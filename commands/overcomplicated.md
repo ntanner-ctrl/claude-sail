@@ -6,7 +6,7 @@ arguments:
     required: false
 ---
 
-# Simplify This
+# Overcomplicated
 
 Challenge unnecessary complexity. Ask if there's a simpler path. The goal isn't minimalism for its own sake—it's ensuring every piece of complexity earns its place.
 
@@ -85,7 +85,7 @@ For elements marked "Simplify" or "Remove":
 ## Output Format
 
 ```markdown
-# Simplify This Review: [plan name]
+# Overcomplicated Review: [plan name]
 
 ## Complex Elements Identified
 
@@ -143,7 +143,7 @@ Complexity review complete. Next:
 When `/gpt-review` is called after this review:
 
 ```markdown
-## Local Adversarial Findings (Simplify This)
+## Local Adversarial Findings (Overcomplicated)
 
 Complexity was challenged on these points:
 

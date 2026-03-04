@@ -40,7 +40,7 @@ Complete reference for all Claude Bootstrap commands.
 | Command | One-liner |
 |---------|-----------|
 | `/devils-advocate` | Challenge assumptions |
-| `/simplify-this` | Question complexity |
+| `/overcomplicated` | Question complexity |
 | `/edge-cases` | Probe boundaries and limits |
 | `/gpt-review` | External model review (different perspective) |
 
@@ -316,12 +316,12 @@ Challenge categories:
 
 ---
 
-### `/simplify-this`
+### `/overcomplicated`
 
 **Complexity challenger.** Questions whether complexity is justified.
 
 ```
-/simplify-this feature-auth
+/overcomplicated feature-auth
 ```
 
 Challenges:

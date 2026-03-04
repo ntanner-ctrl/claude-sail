@@ -1,0 +1,62 @@
+{
+  "blueprint_version": 2,
+  "name": "family-debate-and-rename",
+  "created": "2026-03-03T20:00:00Z",
+  "current_stage": "execute",
+  "challenge_mode": "vanilla",
+  "execution_preference": "auto",
+  "revision": 1,
+  "regressions": 0,
+  "max_regressions": 3,
+  "empirica_session_id": "fc4d14b8-efd8-4f18-9038-e820804d885f",
+  "empirica_preflight_complete": true,
+  "manifest_stale": false,
+  "work_graph_stale": false,
+  "stages": {
+    "describe": {
+      "status": "complete",
+      "confidence": 0.9,
+      "confidence_note": "Clear scope from extensive prior discussion. Two well-defined tracks.",
+      "completed": "2026-03-03T20:05:00Z"
+    },
+    "specify": {
+      "status": "complete",
+      "confidence": 0.85,
+      "confidence_note": "Comprehensive spec drawn from extensive session discussion. Agent prompts well-defined. Open questions documented and deferred. Main risk: the family mode is novel — no prior art in this toolkit to validate against.",
+      "completed": "2026-03-03T20:12:00Z"
+    },
+    "challenge": {
+      "status": "complete",
+      "confidence": 0.85,
+      "confidence_note": "9 assumptions challenged, 6 gaps found and addressed in spec. No critical structural issues. Architecture sound, hardening applied.",
+      "completed": "2026-03-03T20:20:00Z"
+    },
+    "edge_cases": {
+      "status": "complete",
+      "confidence": 0.85,
+      "confidence_note": "7 edge cases identified, 3 medium-risk fixed in spec. State management boundaries well-covered. Asymmetric input and carry-forward guards are novel additions.",
+      "completed": "2026-03-03T20:30:00Z"
+    },
+    "premortem": {
+      "status": "skipped",
+      "skip_reason": "Toolkit change — markdown + shell, no deployment surface. Challenge and edge case stages were thorough."
+    },
+    "review": {
+      "status": "skipped",
+      "skip_reason": "Local adversarial thorough — 9 findings all addressed. Saving context for implementation."
+    },
+    "test": {
+      "status": "complete",
+      "confidence": 0.9,
+      "confidence_note": "15 verification tests defined covering rename completeness, family mode structure, hardening sections, and structural invariants.",
+      "completed": "2026-03-03T20:35:00Z"
+    },
+    "execute": {
+      "status": "complete",
+      "confidence": 0.9,
+      "confidence_note": "All 6 work units implemented. 14/15 verification tests pass (T10 pattern too strict but concept present). Zero residual references. Command count stable at 46.",
+      "completed": "2026-03-03T20:45:00Z"
+    }
+  },
+  "regression_log": []
+}

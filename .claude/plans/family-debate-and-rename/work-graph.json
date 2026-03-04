@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "blueprint": "family-debate-and-rename",
+  "generated": "2026-03-03T20:10:00Z",
+  "units": {
+    "WU-1": {
+      "name": "Rename file",
+      "track": "A",
+      "depends_on": [],
+      "blocks": [
+        "WU-2",
+        "WU-4",
+        "WU-6"
+      ],
+      "estimated_complexity": "trivial",
+      "files": [
+        "commands/simplify-this.md",
+        "commands/overcomplicated.md"
+      ]
+    },
+    "WU-2": {
+      "name": "Update cross-references",
+      "track": "A",
+      "depends_on": [
+        "WU-1"
+      ],
+      "blocks": [
+        "WU-6"
+      ],
+      "estimated_complexity": "trivial",
+      "files": [
+        "commands/devils-advocate.md",
+        "commands/edge-cases.md",
+        "commands/review.md",
+        "commands/toolkit.md",
+        "commands/README.md",
+        "GETTING_STARTED.md",
+        ".claude/bootstrap-manifest.json"
+      ]
+    },
+    "WU-3": {
+      "name": "Add family mode to blueprint",
+      "track": "B",
+      "depends_on": [],
+      "blocks": [
+        "WU-4",
+        "WU-5",
+        "WU-6"
+      ],
+      "estimated_complexity": "high",
+      "files": [
+        "commands/blueprint.md"
+      ]
+    },
+    "WU-4": {
+      "name": "Wire /overcomplicated into blueprint",
+      "track": "B",
+      "depends_on": [
+        "WU-1",
+        "WU-3"
+      ],
+      "blocks": [],
+      "estimated_complexity": "low",
+      "files": [
+        "commands/blueprint.md"
+      ]
+    },
+    "WU-5": {
+      "name": "Wire /simplify into blueprint completion",
+      "track": "B",
+      "depends_on": [
+        "WU-3"
+      ],
+      "blocks": [],
+      "estimated_complexity": "trivial",
+      "files": [
+        "commands/blueprint.md"
+      ]
+    },
+    "WU-6": {
+      "name": "Update README and docs",
+      "track": "both",
+      "depends_on": [
+        "WU-1",
+        "WU-2",
+        "WU-3"
+      ],
+      "blocks": [],
+      "estimated_complexity": "low",
+      "files": [
+        "README.md",
+        "commands/README.md"
+      ]
+    }
+  },
+  "critical_path": [
+    "WU-3",
+    "WU-4"
+  ],
+  "graph_width": 2,
+  "parallelization_recommendation": "moderate"
+}

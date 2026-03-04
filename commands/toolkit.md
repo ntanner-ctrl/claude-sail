@@ -40,7 +40,7 @@ PLANNING (before you build)
 ADVERSARIAL (challenge your blueprint)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   /devils-advocate   What assumptions might be wrong?
-  /simplify-this     Is this overcomplicated?
+  /overcomplicated   Is this overcomplicated?
   /edge-cases        Probe boundaries and limits
   /gpt-review        External model review (different perspective)
 

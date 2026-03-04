@@ -1,0 +1,41 @@
+{
+  "blueprint": "family-debate-and-rename",
+  "version": 2,
+  "generated": "2026-03-03T20:10:00Z",
+  "empirica_session_id": "fc4d14b8-efd8-4f18-9038-e820804d885f",
+  "current_stage": "specify",
+  "revision": 1,
+  "challenge_mode": "vanilla",
+  "execution_preference": "auto",
+  "path": "full",
+  "summary": "Rename /simplify-this to /overcomplicated (9 file updates) + add family challenge mode to /blueprint (6-role generational debate with vault-backed elders) + wire /overcomplicated and /simplify into blueprint workflow",
+  "stages_complete": [
+    "describe"
+  ],
+  "stages_pending": [
+    "specify",
+    "challenge",
+    "edge_cases",
+    "premortem",
+    "review",
+    "test",
+    "execute"
+  ],
+  "spec_digest": {
+    "change_a": "Rename /simplify-this → /overcomplicated across 10 files",
+    "change_b": "New --challenge=family mode: Children (defend/assert, parallel) → Mother (synthesize strengths) → Father (find weaknesses, refine) → Elder Council (vault queries, historical validation, convergence verdict). Max 3 rounds. Timeouts: 10min/round, 25min total.",
+    "change_c": "Wire /overcomplicated as post-challenge complexity check in Stage 3",
+    "change_d": "Wire /simplify as post-implementation suggestion in Stage 7"
+  },
+  "work_units": 6,
+  "critical_path": "WU-3 → WU-4",
+  "graph_width": 2,
+  "risk_flags": [
+    "user-facing behavior change"
+  ],
+  "open_questions": [
+    "Elder split (grandmother/grandfather) deferred to future when vault depth justifies it",
+    "Family mode for Stage 5 deferred",
+    "Persona strengthening for existing agents out of scope"
+  ]
+}

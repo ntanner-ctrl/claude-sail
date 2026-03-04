@@ -5,7 +5,7 @@ arguments:
     description: Name for this blueprint (required for new, optional to resume)
     required: false
   - name: challenge
-    description: "Challenge mode: vanilla, debate (default), team"
+    description: "Challenge mode: vanilla, debate (default), family, team"
     required: false
   - name: parallel
     description: "Parallelization: sequential, parallel, auto (default)"
@@ -25,8 +25,8 @@ Guided planning workflow that walks through all stages. Use this for full planni
 ```
 Stage 1: Describe    → /describe-change (triage, path, execution_preference)
 Stage 2: Specify     → /spec-change (spec + work units + work graph)
-Stage 3: Challenge   → Debate chain (default) / Vanilla / Agent team
-Stage 4: Edge Cases  → Debate chain (default) / Vanilla / Agent team
+Stage 3: Challenge   → Debate chain (default) / Vanilla / Family / Agent team
+Stage 4: Edge Cases  → Debate chain (default) / Vanilla / Family / Agent team
 Stage 4.5: Pre-Mortem → Operational failure exercise
 Stage 5: Review      → /gpt-review (external perspective) [optional]
 Stage 6: Test        → /spec-to-tests (spec-blind tests)
@@ -65,6 +65,7 @@ These are optional. Proceed to /blueprint when you have a clear enough picture.
 /blueprint feature-auth
 /blueprint feature-auth --challenge=debate
 /blueprint feature-auth --challenge=vanilla
+/blueprint feature-auth --challenge=family
 /blueprint feature-auth --challenge=team
 ```
 
@@ -109,6 +110,7 @@ It applies to both Stage 3 (Challenge) and Stage 4 (Edge Cases).
 /blueprint feature-auth                      # debate mode (DEFAULT)
 /blueprint feature-auth --challenge=vanilla  # original single-agent
 /blueprint feature-auth --challenge=debate   # sequential debate chain
+/blueprint feature-auth --challenge=family   # generational debate (deep specs)
 /blueprint feature-auth --challenge=team     # agent team (experimental)
 ```
 
@@ -388,6 +390,372 @@ The Judge/Synthesizer output is processed as follows:
 The curated output goes to `adversarial.md` (canonical source of truth).
 Raw debate transcript preserved in `debate-log.md` (debug artifact only).
 
+### Family Mode (Generational Debate)
+
+A six-role generational debate architecture with three tiers. Designed for deep specification
+review where the dialectical (thesis/antithesis/synthesis) approach produces better results
+than adversarial (winner/loser) debate. Best for major blueprints on the Full path.
+
+```
+┌─────────────────────────────────────────────────┐
+│  GENERATION 1: CHILDREN (parallel)              │
+│                                                 │
+│  Child-Defend          Child-Assert             │
+│  "The spec works       "The spec needs          │
+│   because..."           change because..."      │
+└────────────────────┬────────────────────────────┘
+                     ▼
+┌─────────────────────────────────────────────────┐
+│  GENERATION 2: PARENTS (serial)                 │
+│                                                 │
+│  Mother                Father                   │
+│  "Both children        "But these               │
+│   have merit..."        weaknesses remain..."   │
+│                        → Refined spec            │
+└────────────────────┬────────────────────────────┘
+                     ▼
+┌─────────────────────────────────────────────────┐
+│  GENERATION 3: ELDERS (combined)                │
+│                                                 │
+│  Elder Council                                  │
+│  Queries Obsidian vault for historical          │
+│  analogies. Issues convergence verdict.         │
+│                                                 │
+│  CONVERGED → Stop                               │
+│  CONTINUE  → Inject history, loop to Children   │
+└─────────────────────────────────────────────────┘
+```
+
+#### Family Mode Agent Specifications
+
+**Child-Defend** (subagent, sonnet):
+An earnest advocate who genuinely believes the spec is sound. Not a sycophant — believes
+because they've found real reasons. Receives `spec.md` independently.
+
+```
+You are the Defender of this specification. You genuinely believe this
+plan is sound, and your job is to articulate WHY.
+
+For each major design decision in the spec:
+  - Why is this the RIGHT choice? What alternatives were implicitly
+    rejected, and why is this better?
+  - What strengths would be LOST if this section were changed?
+  - What subtle benefits does this approach have that a critic might miss?
+
+You are not a yes-man. If a section is genuinely weak, you may
+acknowledge it — but even then, find the kernel of good intent behind
+it and articulate why that intent matters.
+
+Produce a numbered list of defended positions, each with:
+  - The decision being defended
+  - The strongest argument FOR it
+  - What would be lost without it
+```
+
+**Child-Assert** (subagent, sonnet):
+A passionate challenger who believes the spec needs change. Not hostile — motivated by
+wanting the project to succeed. Receives `spec.md` independently (same input, parallel).
+
+```
+You are the Challenger of this specification. You believe this plan
+has real problems that need addressing before implementation.
+
+For each concern you identify:
+  - What SPECIFICALLY is wrong or missing?
+  - What's the realistic failure scenario if this isn't addressed?
+  - How confident are you this is a real risk vs theoretical?
+
+Prioritize REAL risks over theoretical ones. A challenger who cries wolf
+about everything is useless. Focus on the findings that would actually
+cause pain.
+
+Produce a numbered list of challenges, each with:
+  - The specific concern
+  - The failure scenario
+  - Confidence: HIGH (seen this fail before) / MEDIUM (plausible) / LOW (theoretical)
+```
+
+**Mother — Strength Synthesizer** (subagent, sonnet):
+Sees merit in both children's positions, even when they contradict. Her gift is finding the
+hidden value in each argument. Receives `spec.md` + both children's outputs.
+
+```
+You are the Synthesizer. You have received two opposing perspectives
+on this specification — one defending it, one challenging it.
+
+You see value in BOTH positions. Your job is to extract what's WORTH
+KEEPING from each perspective.
+
+For each pair of opposing points:
+  - What is the defender RIGHT about?
+  - What is the challenger RIGHT about?
+  - Is there a way BOTH can be true? (Often the defender identifies
+    a real strength AND the challenger identifies a real gap in
+    the same area.)
+
+For points where only one child engaged:
+  - Is the defender celebrating something that masks a weakness?
+  - Is the challenger attacking something that's actually a strength?
+
+Produce a synthesis that maps: defender-point → challenger-point →
+what's genuinely strong → what genuinely needs work.
+
+Do NOT pick winners. Extract the best from both.
+```
+
+**Father — Weakness Analyst & Guide** (subagent, sonnet):
+Loves the project, wants it to succeed. Finds weaknesses not to criticize but to strengthen.
+Offers direction, never implementation. Receives `spec.md` + Mother's synthesis.
+
+```
+You are the Guide. You receive a synthesis of strengths and genuine
+concerns about this specification.
+
+Your job is to find what BREAKS — not to attack, but to strengthen.
+
+For each item the synthesis identified as "genuinely needs work":
+  - Does this need a spec change, or is it acceptable risk?
+  - If it needs a change: what DIRECTION should the change take?
+    (Do NOT write the implementation. Point the way.)
+  - If it's acceptable risk: why? What makes it tolerable?
+
+For items the synthesis identified as "genuinely strong":
+  - Do you agree? Or is this strength masking a subtle weakness?
+  - Are there operational implications the synthesis didn't consider?
+
+If any position from either child is truly untenable, say so clearly
+but explain WHY it doesn't hold — not just that it's wrong.
+
+Produce:
+1. A refined spec summary — what should change and what should stay
+2. For each proposed change: direction only (not implementation)
+3. A confidence assessment: how close is this spec to ready?
+4. Any unresolved tensions that need another round of discussion
+```
+
+**Elder Council — Historical Validator** (subagent, opus):
+The wisdom of accumulated project experience. Speaks with quiet authority grounded in
+"we've seen this before." Receives `spec.md` + Father's analysis. Queries Obsidian vault.
+
+Tools required: Obsidian MCP (vault query), Read, Grep, Glob
+
+```
+You are the Elder Council. You bring the wisdom of past projects to
+this specification review.
+
+FIRST: Query the Obsidian vault for relevant history.
+
+Search for (limit each query to 5 most relevant results):
+  1. Past blueprints with similar scope or technology:
+     - Use mcp__obsidian__search_notes with terms from the spec's
+       key technologies, patterns, and domain
+     - Check Engineering/Blueprints/ for prior work
+  2. Past findings that relate to this spec's risk areas:
+     - Check Engineering/Findings/ for relevant discoveries
+  3. Past decisions that set precedent:
+     - Search for decision records related to this domain
+
+If no relevant vault results are found for any query:
+  - Note: "No historical precedent found — evaluating on
+    analytical merits only"
+  - This is normal for novel work. Do NOT treat absence of
+    history as a red flag.
+
+If the Obsidian vault is unavailable (MCP error, vault not mounted):
+  - Note: "Historical review limited — vault unavailable"
+  - Proceed with analysis based on spec content only
+  - Do NOT block the review
+
+WITH HISTORICAL CONTEXT (or without, if unavailable):
+
+For each of Father's proposed changes:
+  - Does history SUPPORT this direction? (Past success with similar approach)
+  - Does history WARN against it? (Past failure with similar approach)
+  - Is this genuinely novel? (No historical analogue found)
+
+Weight recent findings (last 6 months) more heavily. Note the age of
+any historical source cited.
+
+For the spec's overall approach:
+  - Have we attempted something structurally similar before?
+  - What worked? What didn't?
+  - What would we tell our past selves about this kind of project?
+
+CONVERGENCE VERDICT:
+  CONVERGED — The spec addresses historical risks, Father's changes
+    are well-directed, and no historical red flags remain.
+  CONTINUE — [specific unresolved tension] needs another round.
+    Inject this historical context into the next cycle:
+    [specific vault findings to carry forward]
+    NOTE: If CONTINUE, carry_forward MUST contain specific context.
+    Empty carry_forward invalidates CONTINUE — treat as CONVERGED.
+
+You MUST justify your verdict with specific evidence (vault results
+or analytical reasoning). "It feels ready" is not sufficient.
+
+OUTPUT FORMAT:
+{
+  "historical_analogies": [
+    {
+      "source": "vault path or 'analytical'",
+      "relevance": "description",
+      "lesson": "what it teaches us here",
+      "supports_or_warns": "supports|warns|neutral"
+    }
+  ],
+  "father_review": [
+    {
+      "proposed_change": "description",
+      "historical_support": "supported|warned|novel",
+      "evidence": "source or reasoning"
+    }
+  ],
+  "verdict": "CONVERGED|CONTINUE",
+  "confidence": 0.0-1.0,
+  "continue_reason": "null or specific tension",
+  "carry_forward": "null or historical context for next round"
+}
+```
+
+#### Elder Output Processing
+
+The Elder Council's JSON output is processed with the same fallback chain as debate mode:
+
+1. **Parse JSON:** Extract structured verdict
+2. **Schema validation:** Verify required fields (verdict, confidence, historical_analogies)
+3. **If valid:** Use structured data for convergence decision
+4. **If invalid (parse failure):** Fall back:
+   - Search for "CONVERGED" or "CONTINUE" keywords in raw output
+   - If found: use keyword as verdict, set confidence to 0.5
+   - If neither found: treat as CONVERGED with confidence 0.4 and flag for human review
+   - Log warning via Empirica `deadend_log`
+
+#### Family Mode Loop Control
+
+**Round structure:**
+```
+Round N:
+  ├── Child-Defend (parallel) ──┐
+  ├── Child-Assert  (parallel) ──┤
+  │                              ▼
+  ├── Mother (serial: receives both children)
+  ├── Father (serial: receives mother's synthesis)
+  │                              ▼
+  └── Elder Council (serial: receives father + queries vault)
+       │
+       ├── CONVERGED → Stop, emit final analysis
+       └── CONTINUE  → Round N+1
+            Children receive: refined spec + elder's carry_forward context
+```
+
+**Hard limits:**
+- Maximum rounds: 3 (hardcoded)
+- Per-agent timeout: 3 minutes (individual agent cutoff)
+- Round timeout: 10 minutes (all 5 agents combined per round)
+- Total mode timeout: 25 minutes (all rounds combined)
+
+**Timeout behavior:**
+- If a single agent exceeds 3 minutes: kill agent, log dead-end via Empirica, skip that
+  agent's contribution, continue with remaining agents
+- If round timeout exceeded: complete current agent, skip remaining agents in round,
+  force Elder verdict with available data
+- If total timeout exceeded: force CONVERGED with `confidence: 0.4` and note
+  "timeout — forced convergence"
+- On any timeout: fall back to vanilla mode is NOT applied (family mode either completes
+  within limits or forces convergence — no mid-stream mode switch)
+
+**Convergence conditions** (Elder Council must satisfy ALL):
+1. No historical red flags remain unaddressed
+2. Father's proposed changes are directionally sound (historically supported or genuinely novel)
+3. No critical unresolved tensions between children's positions
+
+**Asymmetric child output:** If one child agent times out but the other completes, Mother
+receives the surviving child's output with a note: "The opposing perspective (defend/assert)
+was unavailable due to timeout." Mother should attempt synthesis by playing devil's advocate
+against the surviving position.
+
+**Empty carry-forward guard:** If Elder Council issues CONTINUE but provides empty or null
+`carry_forward`, treat as CONVERGED. A CONTINUE without specific context for the next round
+would cause children to repeat themselves. Log via Empirica.
+
+#### Family Mode Output
+
+Each agent's output is written to `debate-log.md` immediately upon completion (not batched
+at round end). This protects against mid-round context compaction:
+1. Agent completes → append output to `debate-log.md` with agent label and round number
+2. Update `family_progress.agents_completed` in `state.json`
+3. On resume after compaction: read completed agents' outputs from `debate-log.md`
+
+Curated output in `adversarial.md` uses this format per round:
+
+```markdown
+## Family Round [N]
+
+### Synthesis (Mother)
+[Strength extraction from both children]
+
+### Analysis (Father)
+[Weakness findings + directional guidance]
+
+### Historical Review (Elder Council)
+[Vault findings + convergence verdict]
+
+| Vault Source | Lesson | Relevance |
+|---|---|---|
+| [path] | [lesson] | supports/warns/neutral |
+
+**Elder Verdict:** CONVERGED / CONTINUE
+**Confidence:** [0.0-1.0]
+**Carry Forward:** [context for next round, if continuing]
+```
+
+#### Family Mode Progress Tracking
+
+`family_progress` is initialized fresh at the start of each stage (Stage 3 and Stage 4
+each get their own 3-round budget).
+
+Store in `state.json`:
+```json
+{
+  "family_progress": {
+    "stage": "challenge",
+    "round": 1,
+    "agents_completed": ["child_defend", "child_assert", "mother"],
+    "current_agent": "father",
+    "rounds_total": 1,
+    "elder_verdicts": []
+  }
+}
+```
+
+On resume, skip completed agents and continue from `current_agent`.
+
+#### Family Mode for Stage 3 vs Stage 4
+
+Both stages use the same architecture but with shifted focus:
+
+**Stage 3 (Challenge):** Children debate **design decisions**. Mother synthesizes design
+strengths. Father finds design weaknesses. Elders validate against historical design decisions.
+
+**Stage 4 (Edge Cases):** Children debate **boundary behavior**. Child-Defend argues
+boundaries and error handling are sufficient. Child-Assert finds inputs, states, and
+conditions that will break the system. Mother synthesizes boundary coverage strengths.
+Father finds boundary gaps. Elders validate against historical edge case discoveries.
+
+Mother, Father, and Elder prompts remain the same — they naturally adapt based on what
+the children present.
+
+#### Family Mode Regression Triggers
+
+Same rules as debate mode:
+- Elder Council rates any finding as critical + unaddressed → suggest regression to Stage 2
+- Father identifies architectural change needed → suggest regression to Stage 2
+- All regression prompts follow existing blueprint regression flow
+
+Additional family-specific trigger:
+- If Elder Council issues CONTINUE verdict 3 times (max rounds exhausted), force convergence
+  but set `confidence: 0.3` and suggest regression if any critical items remain unaddressed.
+
 ### Team Mode (Opt-in, Experimental)
 
 Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. If not set and user requests `--challenge=team`:
@@ -418,6 +786,16 @@ The teammates receive the spec and are instructed to:
 The lead synthesizes the final output.
 
 Output: Same format as debate mode — curated findings to `adversarial.md`, full transcript to `debate-log.md`.
+
+### Post-Challenge: Complexity Check
+
+After the challenge mode completes (regardless of mode), run `/overcomplicated` on the spec.
+This checks whether the spec has become over-engineered through the adversarial process — a
+common failure mode where addressing every challenge bloats the spec beyond what's necessary.
+
+The `/overcomplicated` output is appended to `adversarial.md` under `## Complexity Review`.
+If it identifies elements marked "Remove" or "Simplify", these are presented to the user but
+do NOT auto-trigger regression. The user decides whether to simplify.
 
 ---
 
@@ -978,6 +1356,7 @@ After presenting the completion summary, export blueprint to vault if available:
         [parallelization recommendation based on work graph + execution_preference]
 
   Post-implementation:
+    /simplify               — Review changed code for reuse, quality, efficiency (if available)
     /quality-gate           — Score against rubric before completing
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

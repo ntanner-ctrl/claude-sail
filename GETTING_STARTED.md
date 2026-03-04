@@ -436,7 +436,7 @@ rm ~/.claude/commands/{check-project-setup,dashboard,debug,delegate,describe-cha
 rm ~/.claude/commands/{design-check,devils-advocate,dispatch,edge-cases,gpt-review}.md
 rm ~/.claude/commands/{overrides,preflight,process-doc,push-safe,quality-gate}.md
 rm ~/.claude/commands/{refresh-claude-md,requirements-discovery,review,security-checklist}.md
-rm ~/.claude/commands/{setup-hooks,simplify-this,spec-agent,spec-change,spec-hook}.md
+rm ~/.claude/commands/{setup-hooks,overcomplicated,spec-agent,spec-change,spec-hook}.md
 rm ~/.claude/commands/{spec-to-tests,start,status,tdd,test,toolkit,approve,migrate-docs}.md
 
 # Remove templates

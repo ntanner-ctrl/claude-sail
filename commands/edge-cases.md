@@ -156,7 +156,7 @@ For each unhandled case, assess:
 ---
 Edge case analysis complete. Next:
   • Address gaps → update spec or implementation
-  • More challenge types → /devils-advocate, /simplify-this
+  • More challenge types → /devils-advocate, /overcomplicated
   • External review → /gpt-review (includes these findings)
   • Proceed → /preflight
 ```

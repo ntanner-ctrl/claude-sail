@@ -40,7 +40,7 @@ claude
 | **Start Here** | `/start`, `/describe-change`, `/toolkit` |
 | **Workflow Wizards** | `/blueprint`, `/review`, `/test` |
 | **Planning** | `/spec-change`, `/spec-agent`, `/spec-hook`, `/preflight`, `/decision`, `/design-check` |
-| **Adversarial** | `/devils-advocate`, `/simplify-this`, `/edge-cases`, `/gpt-review` |
+| **Adversarial** | `/devils-advocate`, `/overcomplicated`, `/edge-cases`, `/gpt-review` |
 | **Quality** | `/tdd`, `/quality-gate`, `/spec-to-tests`, `/security-checklist`, `/debug` |
 | **Execution** | `/dispatch`, `/delegate`, `/checkpoint`, `/end` |
 | **Vault** | `/vault-save`, `/vault-query`, `/vault-curate`, `/collect-insights` |
@@ -68,17 +68,18 @@ Every change starts with `/describe-change`, which determines planning depth:
 
 ### The `/blueprint` Wizard
 
-Guided workflow through all stages with three challenge modes:
+Guided workflow through all stages with four challenge modes:
 
 ```
 /blueprint feature-auth                     # debate mode (default)
 /blueprint feature-auth --challenge=vanilla # single-agent (original)
+/blueprint feature-auth --challenge=family  # generational debate (deep specs)
 /blueprint feature-auth --challenge=team    # agent teams (experimental)
 
 Stage 1: Describe     → Triage the change
 Stage 2: Specify      → Full specification + work graph
-Stage 3: Challenge    → Debate chain / vanilla / agent team
-Stage 4: Edge Cases   → Debate chain / vanilla / agent team
+Stage 3: Challenge    → Debate / vanilla / family / agent team
+Stage 4: Edge Cases   → Debate / vanilla / family / agent team
 Stage 4.5: Pre-Mortem → Operational failure exercise (optional)
 Stage 5: Review       → External perspective (optional)
 Stage 6: Test         → Spec-blind test generation
@@ -103,7 +104,7 @@ Local-first challenge, then external validation:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    LOCAL ADVERSARIAL LAYER                  │
-│  /devils-advocate  →  /simplify-this  →  /edge-cases       │
+│  /devils-advocate  →  /overcomplicated  →  /edge-cases     │
 └─────────────────────────────────────────────────────────────┘
                              │
                              ▼
@@ -355,7 +356,7 @@ Bootstrap adapts to project maturity:
 | [docs/SECURITY.md](docs/SECURITY.md) | Explanation | Defense-in-depth architecture |
 | [docs/ENFORCEMENT-PATTERNS.md](docs/ENFORCEMENT-PATTERNS.md) | Reference | Command description enforcement tiers |
 | [docs/PLANNING-STORAGE.md](docs/PLANNING-STORAGE.md) | Reference | Planning state and storage schemas (v2) |
-| [docs/BLUEPRINT-MODES.md](docs/BLUEPRINT-MODES.md) | Explanation | Challenge mode comparison (vanilla/debate/team) |
+| [docs/BLUEPRINT-MODES.md](docs/BLUEPRINT-MODES.md) | Explanation | Challenge mode comparison (vanilla/debate/family/team) |
 | [docs/CREATING-DOMAIN-KITS.md](docs/CREATING-DOMAIN-KITS.md) | How-to | Build your own domain kit |
 | [ops-starter-kit/README.md](ops-starter-kit/README.md) | Reference | Ops-specific extensions |
 

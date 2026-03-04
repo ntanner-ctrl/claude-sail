@@ -62,7 +62,7 @@ Run `/devils-advocate` on the target.
 Questioning complexity...
 ```
 
-Run `/simplify-this` on the target.
+Run `/overcomplicated` on the target.
 
 **Stage 3: Edge Cases**
 ```
@@ -226,7 +226,7 @@ Runs only the specified stage.
 ### Assumptions (Devil's Advocate)
 [findings]
 
-### Complexity (Simplify This)
+### Complexity (Overcomplicated)
 [findings]
 
 ### Boundaries (Edge Cases)

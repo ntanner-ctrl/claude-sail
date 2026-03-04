@@ -141,7 +141,7 @@ For each challenge, determine if the plan addresses it:
 ---
 Adversarial review complete. Next:
   • Address findings → update spec with /spec-change
-  • More challenge types → /simplify-this, /edge-cases
+  • More challenge types → /overcomplicated, /edge-cases
   • External review → /gpt-review (includes these findings)
   • Satisfied → /preflight then implement
 ```
