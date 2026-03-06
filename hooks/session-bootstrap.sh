@@ -185,7 +185,7 @@ if [ -f "${HOME}/.claude/hooks/vault-config.sh" ]; then
         if [ -n "$VAULT_PROJECT" ]; then
             RECENT_NOTES=$(timeout 2 grep -rl "^project:.*${VAULT_PROJECT}" "$VAULT_PATH" --include="*.md" \
                 2>/dev/null | grep -v '/.obsidian/' | grep -v '/_Templates/' | grep -v '/CLAUDE.md' \
-                | xargs ls -t 2>/dev/null | head -7)
+                | xargs -d '\n' ls -t 2>/dev/null | head -7)
             VAULT_LABEL="for ${VAULT_PROJECT}"
         fi
 
@@ -193,7 +193,7 @@ if [ -f "${HOME}/.claude/hooks/vault-config.sh" ]; then
         if [ -z "$RECENT_NOTES" ]; then
             RECENT_NOTES=$(timeout 2 find "$VAULT_PATH" -maxdepth 3 -name "*.md" \
                 -not -path "*/.obsidian/*" -not -path "*/_Templates/*" -not -name "CLAUDE.md" \
-                2>/dev/null | xargs ls -t 2>/dev/null | head -7)
+                2>/dev/null | xargs -d '\n' ls -t 2>/dev/null | head -7)
             VAULT_LABEL="recent (no project match)"
         fi
 
