@@ -78,7 +78,7 @@ schema with challenge mode, confidence scoring, Empirica integration, and regres
     },
     "challenge_mode": {
       "type": "string",
-      "enum": ["vanilla", "debate", "team"],
+      "enum": ["vanilla", "debate", "family", "team"],
       "default": "debate",
       "description": "Set once at creation, locked for blueprint lifecycle"
     },
@@ -151,6 +151,24 @@ schema with challenge mode, confidence scoring, Empirica integration, and regres
         }
       }
     },
+    "family_progress": {
+      "type": "object",
+      "description": "Tracks family mode round progress (family challenge mode only)",
+      "properties": {
+        "stage": { "type": "string", "enum": ["challenge", "edge_cases"] },
+        "round": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "agents_completed": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["child_defend", "child_assert", "mother", "father", "elder"] }
+        },
+        "current_agent": { "type": "string" },
+        "rounds_total": { "type": "integer" },
+        "elder_verdicts": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["CONVERGED", "CONTINUE"] }
+        }
+      }
+    },
     "notes": {
       "type": "string"
     }
@@ -183,7 +201,7 @@ schema with challenge mode, confidence scoring, Empirica integration, and regres
           "properties": {
             "mode": {
               "type": "string",
-              "enum": ["vanilla", "debate", "team"]
+              "enum": ["vanilla", "debate", "family", "team"]
             },
             "verdict": {
               "type": "string",
@@ -359,7 +377,7 @@ markdown) at recovery points. ~5-10x more token-efficient than reading all artif
         },
         "challenge_mode": {
           "type": "string",
-          "enum": ["vanilla", "debate", "team"]
+          "enum": ["vanilla", "debate", "family", "team"]
         },
         "execution_preference": {
           "type": "string",

@@ -7,7 +7,7 @@ Create specialized Claude Code extensions for your field or workflow.
 ## Prerequisites
 
 - Claude Code installed and working
-- Familiarity with the bootstrap toolkit structure
+- Familiarity with the Claude Sail toolkit structure
 - A domain with recurring patterns worth encoding
 
 ---

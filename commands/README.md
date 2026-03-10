@@ -72,6 +72,7 @@ Complete reference for all Claude Sail commands.
 | `/vault-query` | Search vault for past decisions, patterns, findings |
 | `/collect-insights` | Flush pending insights to Obsidian vault and Empirica |
 | `/vault-curate` | Interactive multi-stage vault triage (inventory, health, triage, synthesis, prune, report) |
+| `/promote-finding` | Promote a recurring finding to a CLAUDE.md rule (capacity checking) |
 | `/review-findings` | DEPRECATED — use `/vault-curate --quick --section findings` |
 
 ### Status & Tracking
@@ -123,12 +124,23 @@ Guided paths through the toolkit for common scenarios.
 
 Stages:
 1. **Describe** → `/describe-change` (triage)
-2. **Specify** → `/spec-change` (full specification)
-3. **Challenge** → `/devils-advocate` (assumption check)
-4. **Edge Cases** → `/edge-cases` (boundary probing)
+2. **Specify** → `/spec-change` (full specification + work graph)
+3. **Challenge** → Adversarial challenge (mode-dependent)
+4. **Edge Cases** → Boundary probing (mode-dependent)
+4.5. **Pre-Mortem** → Operational failure exercise [optional]
 5. **Review** → `/gpt-review` (external perspective) [optional]
 6. **Test** → `/spec-to-tests` (spec-blind tests)
-7. **Execute** → Implementation
+7. **Execute** → Implementation (with manifest handoff + work graph)
+
+Challenge modes for Stages 3 and 4:
+```
+/blueprint feature-auth                      # debate mode (default)
+/blueprint feature-auth --challenge=vanilla  # single-agent
+/blueprint feature-auth --challenge=family   # generational debate (deep specs)
+/blueprint feature-auth --challenge=team     # agent teams (experimental)
+```
+
+See [docs/BLUEPRINT-MODES.md](../docs/BLUEPRINT-MODES.md) for mode comparison.
 
 The triage in Stage 1 determines path depth:
 - **Light path:** 1 → 7 (skip 2-6)

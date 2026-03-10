@@ -69,7 +69,7 @@ After bootstrapping, your project now contains:
 your-project/
 ├── .claude/
 │   ├── CLAUDE.md                    # Project docs Claude reads every session
-│   ├── bootstrap-manifest.json      # Tracks what was installed
+│   ├── sail-manifest.json      # Tracks what was installed
 │   ├── hooks/                       # Automated reminders and guardrails
 │   └── agents/                      # Specialized assistants
 ├── src/
@@ -78,7 +78,7 @@ your-project/
 
 **CLAUDE.md** is the most important file. It documents your project's conventions, build commands, test commands, and architecture so Claude has context from the start of every session.
 
-**bootstrap-manifest.json** tracks what Sail installed, including content hashes. This means re-running `/bootstrap-project` later won't overwrite your customizations — it knows what you've changed.
+**sail-manifest.json** tracks what Sail installed, including content hashes. This means re-running `/bootstrap-project` later won't overwrite your customizations — it knows what you've changed.
 
 **Hooks** run automatically during your session (e.g., reminding you about test coverage after editing source files). **Agents** are specialized assistants Claude can delegate to (e.g., a troubleshooter or code reviewer).
 

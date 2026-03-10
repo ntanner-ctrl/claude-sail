@@ -40,11 +40,11 @@ claude
 |----------|----------|
 | **Start Here** | `/start`, `/describe-change`, `/toolkit` |
 | **Workflow Wizards** | `/blueprint`, `/review`, `/test` |
-| **Planning** | `/spec-change`, `/spec-agent`, `/spec-hook`, `/preflight`, `/decision`, `/design-check` |
+| **Planning** | `/spec-change`, `/spec-agent`, `/spec-hook`, `/preflight`, `/brainstorm`, `/decision`, `/design-check`, `/requirements-discovery` |
 | **Adversarial** | `/devils-advocate`, `/overcomplicated`, `/edge-cases`, `/gpt-review` |
 | **Quality** | `/tdd`, `/quality-gate`, `/spec-to-tests`, `/security-checklist`, `/debug` |
-| **Execution** | `/dispatch`, `/delegate`, `/checkpoint`, `/end` |
-| **Vault** | `/vault-save`, `/vault-query`, `/vault-curate`, `/collect-insights` |
+| **Execution** | `/dispatch`, `/delegate`, `/checkpoint`, `/end`, `/push-safe` |
+| **Vault** | `/vault-save`, `/vault-query`, `/vault-curate`, `/collect-insights`, `/promote-finding` |
 | **Status** | `/status`, `/blueprints`, `/overrides`, `/approve`, `/dashboard` |
 | **Setup** | `/bootstrap-project`, `/check-project-setup`, `/setup-hooks` |
 | **Docs** | `/refresh-claude-md`, `/migrate-docs`, `/process-doc` |
@@ -247,7 +247,7 @@ See [docs/SECURITY.md](docs/SECURITY.md) for architecture details.
 | `insight-nudge.sh` | Throttled reminder to capture insights (every 8 tool calls) |
 | `empirica-preflight-capture.sh` | Capture preflight vectors to `.empirica/preflight.jsonl` |
 | `empirica-postflight-capture.sh` | Capture postflight vectors to `.empirica/postflight.jsonl` |
-| `vault-config.sh` | Shared vault configuration (sourced by vault hooks) |
+| `session-end-empirica.sh` | Attempt Empirica postflight if session wasn't closed with `/end` |
 | `compaction-guardian.sh` | Protect critical context through compaction events |
 | `failure-escalation.sh` | Track repeated failures and escalate when threshold exceeded |
 | `session-end-cleanup.sh` | Clean up signal files and temporary state at session end |
@@ -361,7 +361,7 @@ Claude Sail adapts to project maturity:
 | [docs/SECURITY.md](docs/SECURITY.md) | Explanation | Defense-in-depth architecture |
 | [docs/ENFORCEMENT-PATTERNS.md](docs/ENFORCEMENT-PATTERNS.md) | Reference | Command description enforcement tiers |
 | [docs/PLANNING-STORAGE.md](docs/PLANNING-STORAGE.md) | Reference | Planning state and storage schemas (v2) |
-| [docs/BLUEPRINT-MODES.md](docs/BLUEPRINT-MODES.md) | Explanation | Challenge mode comparison (vanilla/debate/family/team) |
+| [docs/BLUEPRINT-MODES.md](docs/BLUEPRINT-MODES.md) | Explanation | Challenge mode comparison (vanilla, debate, family, team) |
 | [docs/CREATING-DOMAIN-KITS.md](docs/CREATING-DOMAIN-KITS.md) | How-to | Build your own domain kit |
 | [ops-starter-kit/README.md](ops-starter-kit/README.md) | Reference | Ops-specific extensions |
 

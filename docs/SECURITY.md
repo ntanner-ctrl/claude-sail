@@ -99,6 +99,16 @@ fi
 | `blueprint-stage-gate.sh` | PostToolUse (Edit\|Write) | Check Empirica data before stage transitions (advisory) |
 | `statusline.sh` | StatusLine | Model, cost, context, active blueprint/TDD state |
 | `notify.sh` | Notification | Desktop alerts |
+| `empirica-commit-reminder.sh` | PostToolUse (Bash) | Remind to log findings via Empirica after successful commits |
+| `empirica-insight-capture.sh` | PostToolUse (mcp__empirica__finding_log\|mistake_log\|deadend_log) | Mirror finding/mistake/deadend logs to disk as write-through safety net |
+| `empirica-preflight-capture.sh` | PostToolUse (mcp__empirica__submit_preflight_assessment) | Capture preflight vectors to `.empirica/preflight.jsonl` |
+| `empirica-postflight-capture.sh` | PostToolUse (mcp__empirica__submit_postflight_assessment) | Capture postflight vectors to `.empirica/postflight.jsonl` |
+| `insight-nudge.sh` | PostToolUse | Throttled reminder to capture insights (every 8 tool calls) |
+| `compaction-guardian.sh` | PreCompact | Protect critical context through compaction events |
+| `failure-escalation.sh` | PostToolUse | Track repeated failures and escalate when threshold exceeded |
+| `session-end-cleanup.sh` | SessionEnd | Clean up signal files and temporary state |
+| `session-end-empirica.sh` | SessionEnd | Attempt Empirica postflight if session wasn't closed with `/end` |
+| `session-end-vault.sh` | SessionEnd | Safety-net vault export when `/end` not used |
 
 ### Fail-Open Pattern
 
