@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Claude Code Bootstrap Toolkit Installer
-# One command to install project bootstrapping for Claude Code
+# Claude Sail Toolkit Installer
+# Structured workflows, safety guardrails, and planning discipline for Claude Code
 #
 set -euo pipefail
 
@@ -12,10 +12,10 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 CLAUDE_HOME="${HOME}/.claude"
-REPO_URL="${BOOTSTRAP_REPO_URL:-https://github.com/ntanner-ctrl/claude-bootstrap}"
+REPO_URL="${SAIL_REPO_URL:-https://github.com/ntanner-ctrl/claude-sail}"
 
 echo -e "${BLUE}╔════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║  Claude Code Bootstrap Toolkit Installer   ║${NC}"
+echo -e "${BLUE}║       Claude Sail Toolkit Installer        ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -31,9 +31,9 @@ mkdir -p "${CLAUDE_HOME}/commands/templates/stock-hooks"
 mkdir -p "${CLAUDE_HOME}/commands/templates/stock-agents"
 mkdir -p "${CLAUDE_HOME}/commands/templates/stock-commands"
 mkdir -p "${CLAUDE_HOME}/commands/templates/vault-notes"
-mkdir -p "${CLAUDE_HOME}/plugins/local/bootstrap-toolkit/.claude-plugin"
-mkdir -p "${CLAUDE_HOME}/plugins/local/bootstrap-toolkit/hooks"
-mkdir -p "${CLAUDE_HOME}/plugins/local/bootstrap-toolkit/scripts"
+mkdir -p "${CLAUDE_HOME}/plugins/local/sail-toolkit/.claude-plugin"
+mkdir -p "${CLAUDE_HOME}/plugins/local/sail-toolkit/hooks"
+mkdir -p "${CLAUDE_HOME}/plugins/local/sail-toolkit/scripts"
 mkdir -p "${CLAUDE_HOME}/hooks"
 mkdir -p "${CLAUDE_HOME}/agents"
 
@@ -98,7 +98,7 @@ if [ -f "${SCRIPT_DIR}/commands/bootstrap-project.md" ]; then
     fi
 
     # Plugin
-    cp -r "${SCRIPT_DIR}/plugins/bootstrap-toolkit/"* "${CLAUDE_HOME}/plugins/local/bootstrap-toolkit/" 2>/dev/null || true
+    cp -r "${SCRIPT_DIR}/plugins/sail-toolkit/"* "${CLAUDE_HOME}/plugins/local/sail-toolkit/" 2>/dev/null || true
 
     # Shell hooks
     if [ -d "${SCRIPT_DIR}/hooks" ]; then
@@ -125,7 +125,7 @@ else
 
     # Download and extract repository tarball (self-maintaining - no file list to update)
     TEMP_DIR=$(mktemp -d)
-    TARBALL_URL="https://github.com/ntanner-ctrl/claude-bootstrap/archive/refs/heads/main.tar.gz"
+    TARBALL_URL="https://github.com/ntanner-ctrl/claude-sail/archive/refs/heads/main.tar.gz"
 
     echo "  → downloading repository..."
     if command -v curl &> /dev/null; then
@@ -134,7 +134,7 @@ else
         wget -qO- "$TARBALL_URL" | tar xz -C "$TEMP_DIR"
     fi
 
-    REPO_DIR="${TEMP_DIR}/claude-bootstrap-main"
+    REPO_DIR="${TEMP_DIR}/claude-sail-main"
 
     if [ ! -d "$REPO_DIR" ]; then
         echo -e "${RED}Error: Failed to download repository${NC}"
@@ -183,7 +183,7 @@ else
 
     # Plugin
     echo "  → session-start plugin"
-    cp -r "${REPO_DIR}/plugins/bootstrap-toolkit/"* "${CLAUDE_HOME}/plugins/local/bootstrap-toolkit/" 2>/dev/null || true
+    cp -r "${REPO_DIR}/plugins/sail-toolkit/"* "${CLAUDE_HOME}/plugins/local/sail-toolkit/" 2>/dev/null || true
 
     # Shell hooks
     if [ -d "${REPO_DIR}/hooks" ]; then
@@ -210,7 +210,19 @@ else
 fi
 
 # Make scripts executable
-chmod +x "${CLAUDE_HOME}/plugins/local/bootstrap-toolkit/scripts/"*.sh 2>/dev/null || true
+chmod +x "${CLAUDE_HOME}/plugins/local/sail-toolkit/scripts/"*.sh 2>/dev/null || true
+
+# Clean up old bootstrap-toolkit plugin if it exists (upgrade path)
+if [ -d "${CLAUDE_HOME}/plugins/local/bootstrap-toolkit" ]; then
+    echo -e "${YELLOW}⚠  Found old bootstrap-toolkit plugin — removing...${NC}"
+    rm -rf "${CLAUDE_HOME}/plugins/local/bootstrap-toolkit"
+fi
+
+# Clean up old session-bootstrap.sh if it exists (upgrade path)
+if [ -f "${CLAUDE_HOME}/hooks/session-bootstrap.sh" ]; then
+    echo -e "${YELLOW}⚠  Found old session-bootstrap.sh hook — removing...${NC}"
+    rm -f "${CLAUDE_HOME}/hooks/session-bootstrap.sh"
+fi
 chmod +x "${CLAUDE_HOME}/hooks/"*.sh 2>/dev/null || true
 
 echo ""
@@ -240,7 +252,7 @@ echo ""
 echo "Run /toolkit for the complete command reference."
 echo ""
 echo -e "${YELLOW}Shell hooks installed:${NC}"
-echo "  ~/.claude/hooks/session-bootstrap.sh  - Session awareness injection"
+echo "  ~/.claude/hooks/session-sail.sh       - Session awareness injection"
 echo "  ~/.claude/hooks/notify.sh             - Desktop notifications"
 echo "  ~/.claude/hooks/after-edit.sh         - Auto-format after edits"
 echo "  ~/.claude/hooks/dangerous-commands.sh - Block dangerous commands"
@@ -282,7 +294,7 @@ echo '  "hooks": {'
 echo '    "SessionStart": [{'
 echo '      "matcher": "",'
 echo '      "hooks": ['
-echo '        { "type": "command", "command": "~/.claude/hooks/session-bootstrap.sh" },'
+echo '        { "type": "command", "command": "~/.claude/hooks/session-sail.sh" },'
 echo '        { "type": "command", "command": "~/.claude/hooks/worktree-cleanup.sh" }'
 echo '      ]'
 echo '    }],'

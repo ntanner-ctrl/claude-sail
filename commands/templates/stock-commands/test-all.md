@@ -4,6 +4,7 @@ allowed-tools:
   - Bash
   - Read
   - Glob
+  - Grep
 ---
 
 # Test Runner
@@ -14,155 +15,127 @@ Run all tests for this project with automatic framework detection.
 
 Parse `$ARGUMENTS` for:
 - `--coverage` or `-c`: Include coverage reporting
-- `--fast` or `-f`: Skip slow tests (uses framework-specific markers)
+- `--fast` or `-f`: Skip slow/integration tests
 - `--verbose` or `-v`: Verbose output
+- `--watch` or `-w`: Watch mode (if framework supports it)
 - `[pattern]`: Run only tests matching pattern
 
-## Detection & Execution
+## Execution
 
 ### Step 1: Detect Test Framework
 
-Check for these indicators in order:
+Check for these indicators in order. Use the FIRST match -- do not run multiple frameworks unless the project explicitly uses them (e.g., separate `package.json` scripts for unit vs e2e).
 
-| Indicator | Framework | Command |
-|-----------|-----------|---------|
-| `pytest.ini`, `pyproject.toml [tool.pytest]`, `conftest.py` | pytest | `pytest` |
-| `setup.py` with test requirements | pytest/unittest | `python -m pytest` |
-| `package.json` with `jest` | Jest | `npm test` |
-| `package.json` with `vitest` | Vitest | `npm test` |
-| `package.json` with `mocha` | Mocha | `npm test` |
-| `Cargo.toml` | Cargo | `cargo test` |
-| `go.mod` | Go | `go test ./...` |
-| `mix.exs` | ExUnit | `mix test` |
-| `Gemfile` with `rspec` | RSpec | `bundle exec rspec` |
+| Priority | Indicator | Framework | Base Command |
+|----------|-----------|-----------|-------------|
+| 1 | `package.json` script named `test` | npm test | `npm test` |
+| 2 | `pytest.ini` or `[tool.pytest.ini_options]` in `pyproject.toml` | pytest | `python -m pytest` |
+| 3 | `conftest.py` anywhere | pytest | `python -m pytest` |
+| 4 | `Cargo.toml` | cargo test | `cargo test` |
+| 5 | `go.mod` | go test | `go test ./...` |
+| 6 | `mix.exs` | ExUnit | `mix test` |
+| 7 | `Gemfile` with `rspec` | RSpec | `bundle exec rspec` |
+| 8 | `Makefile` with `test` target | make | `make test` |
 
-### Step 2: Locate Test Directories
+**For Node projects**, also check `package.json` to identify the actual test runner (Jest, Vitest, Mocha, Playwright, etc.) since this affects flag syntax.
 
-Standard locations to check:
-- `tests/`, `test/`, `__tests__/`
-- `spec/` (Ruby/JavaScript)
-- `*_test.py`, `test_*.py` (Python)
-- `*.test.ts`, `*.spec.ts` (TypeScript)
-- `*_test.go` (Go)
+**If `package.json` has a `test` script:** Always prefer `npm test` (or `yarn test` / `pnpm test` based on lockfile) over calling the framework directly. The script may include necessary setup.
 
-### Step 3: Prepare Environment
+### Step 2: Prepare Environment
 
 **Python:**
 ```bash
 # Activate virtual environment if present
-if [ -d ".venv" ]; then
-    source .venv/bin/activate
-elif [ -d "venv" ]; then
-    source venv/bin/activate
-fi
+for dir in .venv venv env; do
+    [ -d "$dir" ] && source "$dir/bin/activate" && break
+done
 ```
 
 **Node:**
 ```bash
-# Ensure dependencies installed
-if [ ! -d "node_modules" ]; then
-    npm install
+# Check which package manager
+if [ -f "pnpm-lock.yaml" ]; then PM="pnpm"
+elif [ -f "yarn.lock" ]; then PM="yarn"
+elif [ -f "bun.lockb" ]; then PM="bun"
+else PM="npm"
 fi
+
+# Ensure dependencies installed
+[ ! -d "node_modules" ] && $PM install
 ```
 
-### Step 4: Build Test Command
+### Step 3: Build Test Command
 
-**Python (pytest):**
+Apply flags based on detected framework:
+
+**pytest:**
 ```bash
-cmd="pytest"
+cmd="python -m pytest"
 [ "$verbose" = true ] && cmd="$cmd -v"
-[ "$coverage" = true ] && cmd="$cmd --cov=. --cov-report=html"
-[ "$fast" = true ] && cmd="$cmd -m 'not slow'"
+[ "$coverage" = true ] && cmd="$cmd --cov=. --cov-report=term-missing"
+[ "$fast" = true ] && cmd="$cmd -m 'not slow and not integration'"
 [ -n "$pattern" ] && cmd="$cmd -k '$pattern'"
 ```
 
-**Node (Jest/Vitest):**
+**Jest / Vitest (via npm):**
 ```bash
-cmd="npm test"
+cmd="$PM test"
 [ "$coverage" = true ] && cmd="$cmd -- --coverage"
+[ "$fast" = true ] && cmd="$cmd -- --testPathIgnorePatterns='integration|e2e'"
 [ -n "$pattern" ] && cmd="$cmd -- --testNamePattern='$pattern'"
+[ "$watch" = true ] && cmd="$cmd -- --watch"
 ```
 
-**Rust:**
+**cargo test:**
 ```bash
 cmd="cargo test"
 [ -n "$pattern" ] && cmd="$cmd $pattern"
+[ "$verbose" = true ] && cmd="$cmd -- --nocapture"
 ```
 
-**Go:**
+**go test:**
 ```bash
 cmd="go test ./..."
 [ "$verbose" = true ] && cmd="$cmd -v"
 [ "$coverage" = true ] && cmd="$cmd -coverprofile=coverage.out"
 [ -n "$pattern" ] && cmd="$cmd -run '$pattern'"
+[ "$fast" = true ] && cmd="$cmd -short"
 ```
 
-### Step 5: Execute and Report
+### Step 4: Execute and Report
 
-Run the command and capture results. Report:
-- Total tests run
-- Passed / Failed / Skipped counts
-- Duration
-- Coverage percentage (if enabled)
-- Failed test details
+Run the command. After execution, report:
 
-## Output Format
-
-```
+```markdown
 ## Test Results
 
-**Framework:** pytest
-**Duration:** 12.3s
+**Framework:** [detected framework]
+**Command:** `[exact command run]`
+**Duration:** [time]
 
 ### Summary
-✓ 45 passed
-✗ 2 failed
-○ 3 skipped
+- [N] passed
+- [N] failed
+- [N] skipped
 
-### Failed Tests
+### Failed Tests (if any)
+1. `test_file::test_name`
+   Error: [first few lines of failure output]
 
-1. `test_user_auth.py::test_login_invalid_password`
-   AssertionError: Expected 401, got 500
-
-2. `test_api.py::test_rate_limiting`
-   TimeoutError: Test exceeded 5s limit
+2. ...
 
 ### Coverage (if --coverage)
-- Overall: 78%
-- Uncovered files:
-  - src/utils/legacy.py (0%)
-  - src/services/deprecated.py (23%)
+- Overall: [N]%
+- Files below 50%:
+  - `path/to/file.py` ([N]%)
+  - ...
 ```
 
-## Customization
+### Step 5: Interpret Results
 
-When this command is installed in a project, you can customize it:
-
-1. **Add project-specific test directories:**
-   ```bash
-   # Add to detection
-   TEST_DIRS="tests/ integration_tests/ e2e/"
-   ```
-
-2. **Add pre-test setup:**
-   ```bash
-   # Database migrations, fixtures, etc.
-   ./scripts/setup-test-db.sh
-   ```
-
-3. **Add post-test cleanup:**
-   ```bash
-   # Clean up test artifacts
-   rm -rf .test-cache/
-   ```
-
-4. **Configure CI-specific behavior:**
-   ```bash
-   if [ "$CI" = "true" ]; then
-       # Use CI-friendly output
-       cmd="$cmd --ci"
-   fi
-   ```
+- **All passed:** Report success, note any skipped tests
+- **Failures:** For each failure, briefly explain the likely cause based on the error message. If the failure relates to code you just changed, say so explicitly.
+- **No tests found:** Warn the user and suggest creating tests for the modules they are working on
 
 ---
 

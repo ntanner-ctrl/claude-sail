@@ -12,7 +12,7 @@ input=$(cat)
 cwd=$(echo "$input" | jq -r '.cwd // "."' 2>/dev/null || echo ".")
 
 # Check if user has disabled session start checks
-config_file="$HOME/.claude/bootstrap-config.json"
+config_file="$HOME/.claude/sail-config.json"
 if [ -f "$config_file" ]; then
     disabled=$(jq -r '.disableSessionCheck // false' "$config_file" 2>/dev/null || echo "false")
     if [ "$disabled" = "true" ]; then
@@ -48,7 +48,11 @@ if [ ! -d "$cwd/.git" ]; then
 fi
 
 # Quick Check 4: Check manifest staleness (if it exists)
-manifest="$cwd/.claude/bootstrap-manifest.json"
+# Check both new and old manifest names (backward compatibility)
+manifest="$cwd/.claude/sail-manifest.json"
+if [ ! -f "$manifest" ]; then
+    manifest="$cwd/.claude/bootstrap-manifest.json"
+fi
 if [ -f "$manifest" ]; then
     # Check if bootstrapped more than 30 days ago
     bootstrapped_at=$(jq -r '.bootstrapped_at // ""' "$manifest" 2>/dev/null || echo "")

@@ -126,7 +126,7 @@ jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
 
 ## Reading Checkpoints
 
-On session resume, the session-bootstrap hook reads the latest checkpoint and surfaces it. Checkpoints can also be read manually:
+On session resume, the session-sail hook reads the latest checkpoint and surfaces it. Checkpoints can also be read manually:
 
 ```bash
 # Latest checkpoint for active plan
@@ -140,7 +140,7 @@ cat .claude/checkpoints/*.json | jq -s 'sort_by(.timestamp) | last'
 
 - Checkpoints are append-only (never modified, only new ones created)
 - Old checkpoints are NOT deleted (they're cheap and provide history)
-- The session-bootstrap hook only shows the LATEST checkpoint
+- The session-sail hook only shows the LATEST checkpoint
 - Pair with `/dashboard` to see full active state
 - **`empirica` field:** Captures Empirica session state so a resumed session can reconnect to the same epistemic tracking. `session_id` is the active Empirica session UUID (or null if none). `preflight_complete` indicates whether preflight assessment was submitted. `last_finding_count` is the number of findings logged so far (helps the resumed session gauge how much was captured).
 - **`compaction_context` field:** Only populated when the checkpoint is triggered by the compaction guardian (context >= 75%). Contains `triggered_by_guardian` (boolean), `context_percentage_at_checkpoint` (integer), and `key_context` (object with `current_task`, `blocking_question`, `last_file_edited`, `next_intended_action`, and `confidence_caveat`). The `confidence_caveat` should note that high-context checkpoints may have lossy early-conversation recall.

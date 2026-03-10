@@ -6,50 +6,52 @@ hooks:
     tools:
       - Write
       - Edit
-    pattern: "src/**/*.{py,ts,js,tsx,jsx,rs,go}|lib/**/*.py|**/*.py"
+    pattern: "src/**/*.{py,ts,js,tsx,jsx,rs,go}|lib/**/*.{py,rb}|app/**/*.{py,ts,js,rb}|**/*.py"
 ---
 
 # Test Coverage Reminder
 
-When editing source files, this hook reminds you to check for corresponding tests.
+When you create or edit a source file, pause and verify test coverage before moving on.
 
-## What This Hook Does
+## Immediate Actions
 
-After you create or edit a source file, it will remind you to:
-1. Check if a corresponding test file exists
-2. Verify the tests cover the functionality you modified
-3. Consider edge cases and error paths
+1. **Locate the corresponding test file** using the conventions below
+2. **If no test file exists** and you added new public API, flag this to the user: "No test file found for `{module}`. Want me to create one?"
+3. **If a test file exists**, check whether the function/method you just modified has coverage
+4. **If you added a new code path** (branch, error case, edge condition), verify a test exercises it
 
 ## Test File Location Conventions
 
-| Language | Test File Patterns |
-|----------|-------------------|
-| Python | `tests/test_{module}.py`, `{module}_test.py`, `tests/unit/test_{module}.py` |
-| TypeScript/JavaScript | `__tests__/{module}.test.ts`, `{module}.spec.ts`, `{module}.test.tsx` |
-| Rust | `tests/{module}.rs`, `mod tests` in same file |
-| Go | `{module}_test.go` in same package |
+| Language | Source Pattern | Test File Patterns |
+|----------|--------------|-------------------|
+| Python | `src/foo.py` | `tests/test_foo.py`, `tests/unit/test_foo.py`, `foo_test.py` |
+| TypeScript/JS | `src/foo.ts` | `src/__tests__/foo.test.ts`, `src/foo.spec.ts`, `tests/foo.test.ts` |
+| Rust | `src/foo.rs` | `tests/foo.rs`, inline `#[cfg(test)] mod tests` in same file |
+| Go | `pkg/foo.go` | `pkg/foo_test.go` (same package, same directory) |
+| Ruby | `app/foo.rb` | `spec/foo_spec.rb`, `test/foo_test.rb` |
 
-## Verification Checklist
+## What To Check
 
-When this hook triggers, consider:
+- **New public function/method?** It needs at least one test covering the happy path.
+- **Changed function signature?** Existing tests may need updating -- check for compile/type errors in test files.
+- **Added error handling?** Add a test that triggers the error path.
+- **Modified conditional logic?** Ensure both branches have coverage.
+- **Changed return type or shape?** Tests asserting on the old shape will silently pass with wrong data -- verify assertions match.
 
-- [ ] Does a test file exist for this module?
-- [ ] Do tests cover the function/method I just modified?
-- [ ] Are both success and failure paths tested?
-- [ ] Are edge cases handled (null, empty, boundary values)?
-- [ ] If I added new public API, is it tested?
+## When To Skip This
 
-## When to Ignore
+- Documentation-only or comment-only changes
+- Configuration files, data files, migration files
+- Refactors that do not change public behavior (rename, extract method) -- existing tests should still pass
+- Files in directories explicitly excluded from testing (vendored code, generated code)
 
-This reminder can be safely ignored when:
-- You're making documentation-only changes
-- The file is a configuration or data file
-- You plan to write tests in a follow-up commit
-- The module is explicitly excluded from testing
+## Auto-Detection Hint
 
-## Customization
+If you are unsure where tests live, run:
+```bash
+# Find test directories
+find . -type d -name "tests" -o -name "__tests__" -o -name "spec" -o -name "test" | head -10
 
-To customize this hook for your project:
-1. Adjust the `pattern` to match your source file locations
-2. Update the test file conventions to match your project structure
-3. Add project-specific testing requirements to the checklist
+# Find test files matching a module name
+find . -name "*test*{module_name}*" -o -name "*{module_name}*test*" -o -name "*{module_name}*spec*" | head -10
+```

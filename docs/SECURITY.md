@@ -1,6 +1,6 @@
 # Security Architecture
 
-How Claude Bootstrap implements defense-in-depth security for AI-assisted development.
+How Claude Sail implements defense-in-depth security for AI-assisted development.
 
 ---
 
@@ -18,7 +18,7 @@ These aren't malicious—they're the mistakes everyone makes eventually. The que
 
 ## Defense-in-Depth Model
 
-Claude Bootstrap implements three security layers, each with different characteristics:
+Claude Sail implements three security layers, each with different characteristics:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -86,7 +86,7 @@ fi
 
 | Hook | Event | Purpose |
 |------|-------|---------|
-| `session-bootstrap.sh` | SessionStart | Inject command awareness, auto-create Empirica session, and active work state |
+| `session-sail.sh` | SessionStart | Inject command awareness, auto-create Empirica session, and active work state |
 | `worktree-cleanup.sh` | SessionStart | Clean orphaned worktrees |
 | `dangerous-commands.sh` | PreToolUse (Bash) | Block catastrophic commands |
 | `secret-scanner.sh` | PreToolUse (Bash) | Scan for secrets before commits |
@@ -194,7 +194,7 @@ Add hooks to `~/.claude/settings.json`:
 {
   "hooks": {
     "SessionStart": [{ "matcher": "", "hooks": [
-      { "type": "command", "command": "~/.claude/hooks/session-bootstrap.sh" },
+      { "type": "command", "command": "~/.claude/hooks/session-sail.sh" },
       { "type": "command", "command": "~/.claude/hooks/worktree-cleanup.sh" }
     ]}],
     "PreToolUse": [

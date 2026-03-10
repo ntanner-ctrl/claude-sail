@@ -1,13 +1,13 @@
-# Claude Code Bootstrap Toolkit
+# Claude Sail
 
-> Extensibility tools for Claude Code - the CLI-based AI coding assistant.
+> Structured workflows, safety guardrails, and planning discipline for Claude Code.
 
-Give Claude Code the context it needs: **CLAUDE.md documentation**, **safety hooks**, **planning infrastructure**, and **workflow commands**.
+A sail doesn't cross an ocean alone — Claude Sail is the human-AI collaborative discipline toolkit for Claude Code.
 
 ## Quick Start
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ntanner-ctrl/claude-bootstrap/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ntanner-ctrl/claude-sail/main/install.sh | bash
 ```
 
 Then in any project:
@@ -26,11 +26,12 @@ claude
 
 | Component | Purpose |
 |-----------|---------|
-| [**Commands**](commands/README.md) | 46 workflow commands for planning, review, testing, execution, vault integration + plugin integration |
+| [**Commands**](commands/README.md) | 47 workflow commands for planning, review, testing, execution, vault integration + plugin integration |
 | [**Agents**](agents/) | 6 specialized review agents (spec, quality, security, performance, architecture, CloudFormation) |
 | [**Planning Infrastructure**](docs/PLANNING-STORAGE.md) | Staged planning with triage, specs, and adversarial challenge |
-| [**Shell Hooks**](hooks/) | 20 shell hooks for safety, session lifecycle, Empirica capture |
+| [**Shell Hooks**](hooks/) | 23 shell hooks for safety, session lifecycle, Empirica capture, toolkit hardening |
 | [**Hookify Rules**](hookify-rules/) | 7 YAML-based security rules |
+| [**Stock Elements**](commands/templates/) | 12 stock elements (6 hooks, 3 agents, 3 commands) installed into target projects |
 | [**Ops Starter Kit**](ops-starter-kit/) | Domain-specific extensions for infrastructure work |
 
 ### Commands at a Glance
@@ -162,7 +163,7 @@ Each agent works in its own git worktree. After completion, review and accept/re
 
 ## Plugin Integration
 
-If you have Claude Code plugins installed, bootstrap workflows automatically detect them and offer plugin-powered enhancements at review stages.
+If you have Claude Code plugins installed, Claude Sail workflows automatically detect them and offer plugin-powered enhancements at review stages.
 
 **How it works:**
 1. Workflow commands read `~/.claude/plugins/installed_plugins.json` (maintained by Claude Code)
@@ -195,17 +196,17 @@ SESSION LIFECYCLE                          OBSIDIAN VAULT
 ═══════════════                           ══════════════
 
 SessionStart:
-  session-bootstrap.sh ──────────────────→ Reads recent vault notes
-                                           (titles injected into context)
+  session-sail.sh ─────────────────────→ Reads recent vault notes
+                                          (titles injected into context)
 During Session:
-  /vault-query ──────────────────────────→ Search vault for past knowledge
-  /vault-save  ──────────────────────────→ Capture ideas, findings, patterns
+  /vault-query ────────────────────────→ Search vault for past knowledge
+  /vault-save  ────────────────────────→ Capture ideas, findings, patterns
 
 /end Command:
-  Vault export ──────────────────────────→ Decisions, Findings, Blueprints,
-                                           Session summary (with wiki-links)
+  Vault export ────────────────────────→ Decisions, Findings, Blueprints,
+                                          Session summary (with wiki-links)
 SessionEnd (safety net):
-  session-end-vault.sh ──────────────────→ Minimal breadcrumb if /end skipped
+  session-end-vault.sh ────────────────→ Minimal breadcrumb if /end skipped
 ```
 
 **Setup:** Copy `~/.claude/hooks/vault-config.sh.example` to `vault-config.sh` and set `VAULT_PATH` to your Obsidian vault location. All vault features gracefully skip when the vault is unavailable.
@@ -228,7 +229,7 @@ See [docs/SECURITY.md](docs/SECURITY.md) for architecture details.
 
 | Hook | Purpose |
 |------|---------|
-| `session-bootstrap.sh` | **Inject command awareness, auto-create Empirica session, and active work state at session start** |
+| `session-sail.sh` | **Inject command awareness, auto-create Empirica session, and active work state at session start** |
 | `state-index-update.sh` | Maintain `.claude/state-index.json` when blueprint/TDD state changes |
 | `blueprint-stage-gate.sh` | Block blueprint stage transitions when [Empirica](https://github.com/Nubaeon/empirica) data is missing |
 | `empirica-session-guard.sh` | Block duplicate Empirica session creation (redirect to preflight) |
@@ -247,6 +248,10 @@ See [docs/SECURITY.md](docs/SECURITY.md) for architecture details.
 | `empirica-preflight-capture.sh` | Capture preflight vectors to `.empirica/preflight.jsonl` |
 | `empirica-postflight-capture.sh` | Capture postflight vectors to `.empirica/postflight.jsonl` |
 | `vault-config.sh` | Shared vault configuration (sourced by vault hooks) |
+| `compaction-guardian.sh` | Protect critical context through compaction events |
+| `failure-escalation.sh` | Track repeated failures and escalate when threshold exceeded |
+| `session-end-cleanup.sh` | Clean up signal files and temporary state at session end |
+| `empirica-insight-capture.sh` | Mirror finding/mistake/deadend logs to disk as write-through safety net |
 
 ### Hookify Rules
 
@@ -267,15 +272,15 @@ See [docs/SECURITY.md](docs/SECURITY.md) for architecture details.
 ### Full Install (Recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ntanner-ctrl/claude-bootstrap/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ntanner-ctrl/claude-sail/main/install.sh | bash
 ```
 
 ### Components Only
 
 ```bash
 # Clone and pick what you need
-git clone https://github.com/ntanner-ctrl/claude-bootstrap.git
-cd claude-bootstrap
+git clone https://github.com/ntanner-ctrl/claude-sail.git
+cd claude-sail
 
 # Shell hooks
 cp hooks/*.sh ~/.claude/hooks/
@@ -328,7 +333,7 @@ See [docs/CREATING-DOMAIN-KITS.md](docs/CREATING-DOMAIN-KITS.md) for the full gu
 
 ### Context is Everything
 
-Claude Code is powerful, but without project context it's guessing at your conventions, architecture, and workflows. Bootstrap provides that context.
+Claude Code is powerful, but without project context it's guessing at your conventions, architecture, and workflows. Claude Sail provides that context.
 
 ### Safety by Default
 
@@ -340,7 +345,7 @@ Speed without understanding leads to confident mistakes. The planning infrastruc
 
 ### Evolve, Don't Prescribe
 
-Bootstrap adapts to project maturity:
+Claude Sail adapts to project maturity:
 - **Nascent** → Full starter kit
 - **Growing** → Selective additions
 - **Mature** → Suggestions only

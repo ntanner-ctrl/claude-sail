@@ -1,6 +1,6 @@
-# Claude Code Bootstrap Toolkit
+# Claude Sail
 
-Extensibility tools for Claude Code: commands, agents, hooks, and planning infrastructure that give Claude structured workflows, safety guardrails, and planning discipline.
+Structured workflows, safety guardrails, and planning discipline for Claude Code. A human-AI collaborative discipline toolkit.
 
 ## Quick Reference
 
@@ -17,12 +17,12 @@ Extensibility tools for Claude Code: commands, agents, hooks, and planning infra
 This repo is a **distribution package** — not a runtime app. `install.sh` copies files to `~/.claude/` where Claude Code discovers them. The repo itself is the source of truth; `~/.claude/` is the install target.
 
 ```
-claude-bootstrap/
+claude-sail/
 ├── commands/          # 47 slash commands (*.md with YAML frontmatter, includes plugin-enhancers reference)
 │   ├── templates/     # Stock elements installed by /bootstrap-project into target projects
-│   │   ├── stock-hooks/      # Prompt-based hooks for target projects
-│   │   ├── stock-agents/     # Agents for target projects
-│   │   ├── stock-commands/   # Commands for target projects
+│   │   ├── stock-hooks/      # 6 prompt-based hooks for target projects
+│   │   ├── stock-agents/     # 3 agents for target projects
+│   │   ├── stock-commands/   # 3 commands for target projects
 │   │   ├── vault-notes/      # Obsidian vault note templates
 │   │   ├── prompts/          # Shared prompt templates (dispatch/delegate review lenses)
 │   │   └── documentation/    # Diataxis doc templates
@@ -30,7 +30,7 @@ claude-bootstrap/
 ├── agents/            # 6 review agents (spec, quality, security, performance, architecture, CloudFormation)
 ├── hooks/             # 23 shell hooks (*.sh) for SessionStart, PreToolUse, PostToolUse, SessionEnd, etc.
 ├── hookify-rules/     # 7 YAML-based safety rules (*.local.md)
-├── plugins/           # Session-start plugin (bootstrap-toolkit)
+├── plugins/           # Session-start plugin (sail-toolkit)
 ├── ops-starter-kit/   # Domain extension example for infrastructure teams
 ├── docs/              # Architecture explanations (Diataxis: explanation type)
 ├── plans/             # Legacy planning directory (pre-.claude/ era)

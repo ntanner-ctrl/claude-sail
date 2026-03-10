@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/session-bootstrap.sh"
+            "command": "~/.claude/hooks/session-sail.sh"
           },
           {
             "type": "command",

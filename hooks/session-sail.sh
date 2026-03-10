@@ -1,5 +1,5 @@
 #!/bin/bash
-# Claude Code Session Bootstrap - SessionStart Hook
+# Claude Sail - Session Start Hook
 # Injects awareness of available commands at session start.
 #
 # Philosophy: Superpowers (obra/superpowers) proved that a <2000 token
@@ -108,7 +108,14 @@ if [ -n "$EMPIRICA_BIN" ]; then
     # project-switch writes to active_work.json (canonical) which
     # get_active_project_path() doesn't check — it only reads instance-keyed files.
     PROJECT_NAME=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)
-    INSTANCE_ID="claude_bootstrap_hook"
+    INSTANCE_ID="claude_sail_hook"
+    # One-shot migration: copy old instance file if it exists and new one doesn't
+    OLD_INSTANCE_FILE="${HOME}/.empirica/instance_projects/claude_bootstrap_hook.json"
+    NEW_INSTANCE_FILE="${HOME}/.empirica/instance_projects/${INSTANCE_ID}.json"
+    if [ -f "$OLD_INSTANCE_FILE" ] && [ ! -f "$NEW_INSTANCE_FILE" ]; then
+        mkdir -p "${HOME}/.empirica/instance_projects"
+        cp "$OLD_INSTANCE_FILE" "$NEW_INSTANCE_FILE" 2>/dev/null || true
+    fi
     if [ -n "$PROJECT_NAME" ] && [ -n "$GIT_ROOT" ]; then
         # Ensure project is registered (idempotent)
         "$EMPIRICA_BIN" project-create --name "$PROJECT_NAME" --output json 2>/dev/null || true
@@ -266,7 +273,7 @@ if [ -f "${HOME}/.claude/hooks/vault-config.sh" ]; then
 fi
 
 cat << EOF
-You have structured workflows available via claude-bootstrap (${total} commands).
+You have structured workflows available via claude-sail (${total} commands).
 
 BEFORE writing ANY implementation code, you MUST check if a workflow applies:
 

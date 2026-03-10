@@ -1,6 +1,6 @@
 # Planning Storage Structure
 
-How Claude Bootstrap stores planning state and artifacts.
+How Claude Sail stores planning state and artifacts.
 
 > **Note:** The storage directory is `.claude/plans/` (not `.claude/blueprints/`).
 > This is intentional — the directory stores both blueprint artifacts and general
@@ -514,7 +514,7 @@ The manifest MUST be **read** (not full markdown) at these recovery points:
 
 | Trigger | Reader | Why |
 |---------|--------|-----|
-| Session start with active blueprint | Session bootstrap hook | Orient to current state |
+| Session start with active blueprint | Session sail hook | Orient to current state |
 | `/blueprint [name]` resume | `/blueprint` command | Recover full context cheaply |
 | `/status [name]` | Status display | Meaningful summary |
 | `/checkpoint` | Checkpoint creation | Include in checkpoint |

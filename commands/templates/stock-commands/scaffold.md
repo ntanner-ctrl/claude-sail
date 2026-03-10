@@ -4,280 +4,154 @@ allowed-tools:
   - Read
   - Write
   - Glob
+  - Grep
   - Bash
-  - AskUserQuestion
 ---
 
 # Module Scaffolder
 
-Generate new modules, components, or features following project conventions.
+Generate new modules, components, or features by analyzing existing project conventions and replicating them -- not from generic templates.
 
 ## Arguments
 
 Parse `$ARGUMENTS` for:
-- Module type (if provided): `service`, `component`, `handler`, `model`, etc.
+- Module type (if provided): `service`, `component`, `handler`, `model`, `route`, `middleware`, etc.
 - Module name (if provided): Name of the new module
 
-If not provided, use AskUserQuestion to gather interactively.
+If either is missing, ask the user before proceeding.
 
 ## Scaffolding Process
 
 ### Step 1: Detect Project Type
 
-Identify the project's language and framework to determine scaffolding templates:
+Identify the project's language, framework, and conventions:
 
-| Indicator | Project Type | Scaffold Templates |
-|-----------|--------------|-------------------|
-| `pyproject.toml`, `setup.py` | Python | service, model, handler, test |
-| `package.json` + React | React | component, hook, context, test |
-| `package.json` + Express | Node API | router, controller, middleware, model |
-| `Cargo.toml` | Rust | module, struct, trait |
-| `go.mod` | Go | package, handler, model |
+| Indicator | Project Type |
+|-----------|-------------|
+| `package.json` + `react` or `next` dep | React / Next.js |
+| `package.json` + `express` or `fastify` dep | Node API |
+| `package.json` + `svelte` dep | SvelteKit |
+| `pyproject.toml` or `setup.py` + `django` | Django |
+| `pyproject.toml` or `setup.py` + `fastapi` | FastAPI |
+| `pyproject.toml` or `setup.py` (generic) | Python |
+| `Cargo.toml` | Rust |
+| `go.mod` | Go |
+| `mix.exs` | Elixir |
+| `Gemfile` + `rails` | Rails |
 
-### Step 2: Analyze Existing Patterns
+### Step 2: Find Existing Examples (Critical Step)
 
-Before generating, examine existing code to match patterns:
-
-1. **Find similar modules:**
-   ```bash
-   # Find existing services/components/handlers
-   find . -name "*_service.py" -o -name "*Service.ts" | head -5
-   ```
-
-2. **Analyze structure:**
-   - File naming convention (snake_case, PascalCase, kebab-case)
-   - Import patterns
-   - Class vs function-based
-   - Typing/annotation style
-
-3. **Check for base classes or interfaces:**
-   ```bash
-   grep -r "class Base\|interface I" --include="*.py" --include="*.ts"
-   ```
-
-### Step 3: Gather Information
-
-If not provided in arguments, ask:
-
-```
-What type of module do you want to create?
-- [ ] Service (business logic)
-- [ ] Component (UI element)
-- [ ] Handler (request handler)
-- [ ] Model (data model)
-- [ ] Other (custom)
-
-What should it be called? [name]
-```
-
-### Step 4: Generate Files
-
-Based on project type and module type, generate appropriate files.
-
-#### Python Service Template
-
-**File:** `services/{name}_service.py`
-```python
-"""
-{Name} service module.
-
-Handles {description}.
-"""
-from dataclasses import dataclass
-from typing import Optional
-
-from .base_service import BaseService
-
-
-@dataclass
-class {Name}Config:
-    """Configuration for {Name}Service."""
-    # Add configuration fields here
-    pass
-
-
-class {Name}Service(BaseService):
-    """
-    {Description of what this service does}.
-
-    Usage:
-        service = {Name}Service(config)
-        result = service.process(data)
-    """
-
-    def __init__(self, config: {Name}Config):
-        self.config = config
-
-    def process(self, data: dict) -> dict:
-        """
-        Process the input data.
-
-        Args:
-            data: Input data to process
-
-        Returns:
-            Processed result
-
-        Raises:
-            ValueError: If data is invalid
-        """
-        # TODO: Implement processing logic
-        raise NotImplementedError()
-```
-
-**File:** `tests/test_{name}_service.py`
-```python
-"""Tests for {Name}Service."""
-import pytest
-
-from services.{name}_service import {Name}Service, {Name}Config
-
-
-class Test{Name}Service:
-    """Test cases for {Name}Service."""
-
-    @pytest.fixture
-    def service(self):
-        """Create a service instance for testing."""
-        config = {Name}Config()
-        return {Name}Service(config)
-
-    def test_process_valid_data(self, service):
-        """Test processing with valid data."""
-        # TODO: Implement test
-        pass
-
-    def test_process_invalid_data(self, service):
-        """Test processing with invalid data raises ValueError."""
-        # TODO: Implement test
-        pass
-```
-
-#### React Component Template
-
-**File:** `components/{Name}/{Name}.tsx`
-```typescript
-import React from 'react';
-import styles from './{Name}.module.css';
-
-export interface {Name}Props {
-  /** Description of prop */
-  // Add props here
-}
-
-/**
- * {Description of component}
- *
- * @example
- * <{Name} />
- */
-export const {Name}: React.FC<{Name}Props> = (props) => {
-  return (
-    <div className={styles.container}>
-      {/* TODO: Implement component */}
-    </div>
-  );
-};
-
-export default {Name};
-```
-
-**File:** `components/{Name}/{Name}.module.css`
-```css
-.container {
-  /* TODO: Add styles */
-}
-```
-
-**File:** `components/{Name}/{Name}.test.tsx`
-```typescript
-import { render, screen } from '@testing-library/react';
-import { {Name} } from './{Name}';
-
-describe('{Name}', () => {
-  it('renders without crashing', () => {
-    render(<{Name} />);
-    // TODO: Add assertions
-  });
-});
-```
-
-**File:** `components/{Name}/index.ts`
-```typescript
-export { {Name} } from './{Name}';
-export type { {Name}Props } from './{Name}';
-```
-
-#### Node Handler Template
-
-**File:** `handlers/{name}.handler.ts`
-```typescript
-import { Request, Response, NextFunction } from 'express';
-
-/**
- * Handle {name} requests.
- */
-export const {name}Handler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    // TODO: Implement handler logic
-    res.json({ success: true });
-  } catch (error) {
-    next(error);
-  }
-};
-```
-
-### Step 5: Update Imports/Exports
-
-After generating files, update barrel exports if the project uses them:
+Before generating ANYTHING, find existing modules of the same type and study their conventions:
 
 ```bash
-# Check for index files that need updating
-[ -f "services/index.py" ] && echo "Update services/index.py"
-[ -f "components/index.ts" ] && echo "Update components/index.ts"
+# Find existing files of the same type
+# Adjust the search based on what type was requested
 ```
 
-### Step 6: Report Results
+For each existing example, note:
+1. **File location** -- Where does it live? What directory structure?
+2. **Naming convention** -- snake_case, PascalCase, kebab-case? Suffix convention (`*_service.py`, `*.handler.ts`)?
+3. **Internal structure** -- Imports, class vs function, export style
+4. **Type annotations** -- How thorough? What style?
+5. **Documentation** -- Docstrings? JSDoc? Inline comments?
+6. **Error handling** -- Custom exceptions? Result types? Try/catch patterns?
+7. **Testing** -- Where do tests live? What naming? What test framework?
+8. **Registration** -- Are modules registered in an index file, barrel export, or config?
 
+### Step 3: Generate Files
+
+Generate files that match the project's existing conventions EXACTLY. Do not use generic templates -- replicate the patterns you found in Step 2.
+
+**For each generated file:**
+- Match the exact import style of existing modules
+- Match the exact naming conventions
+- Match the exact documentation style
+- Include `TODO` markers for implementation-specific logic
+- Include the test file with the correct naming and location
+
+### Step 4: Register the Module
+
+Check if the project uses any registration mechanism and update it:
+
+```bash
+# Barrel exports (index.ts, __init__.py)
+# Route registration (routes.ts, urls.py)
+# Module config (app.module.ts, settings.py INSTALLED_APPS)
+# Dependency injection containers
 ```
+
+If a registration file exists, add the new module to it.
+
+### Step 5: Report
+
+```markdown
 ## Scaffolding Complete
 
-Created the following files:
-- services/payment_service.py
-- tests/test_payment_service.py
+### Created Files
+| File | Purpose |
+|------|---------|
+| `path/to/new_file.py` | [purpose] |
+| `path/to/test_new_file.py` | Tests |
+
+### Updated Files
+| File | Change |
+|------|--------|
+| `path/to/index.ts` | Added export for new module |
+
+### Conventions Applied
+- [Convention 1 from existing code]
+- [Convention 2 from existing code]
+- Based on: `path/to/existing_similar_module.py`
 
 ### Next Steps
-1. Implement the TODO sections in the generated files
-2. Add necessary imports to services/__init__.py
-3. Write additional test cases
-
-### Related Files
-- services/base_service.py (base class)
-- services/user_service.py (similar service for reference)
+1. Implement the TODO sections
+2. Run tests: `[test command]`
+3. [Any project-specific follow-up]
 ```
 
-## Customization
+## Convention Discovery Examples
 
-When installed in a project, customize by:
+### Python Service
+```bash
+# Find existing services
+find . -name "*_service.py" -not -path "./.venv/*" | head -5
+# Read one to learn the pattern
+```
 
-1. **Add project-specific templates:**
-   - Custom service patterns
-   - Project-specific imports
-   - Required boilerplate
+### React Component
+```bash
+# Find existing components
+find . -path "*/components/*" -name "*.tsx" -not -path "*/node_modules/*" | head -10
+# Check if using barrel exports
+find . -path "*/components/*/index.ts" | head -5
+# Check for co-located tests
+find . -name "*.test.tsx" -o -name "*.spec.tsx" | head -5
+# Check for co-located styles
+find . -name "*.module.css" -o -name "*.styled.ts" | head -5
+```
 
-2. **Configure naming conventions:**
-   - File naming (snake_case vs PascalCase)
-   - Class/function naming
-   - Test file location
+### Go Handler
+```bash
+# Find existing handlers
+find . -name "*_handler.go" -o -name "*handler*.go" | head -5
+# Check for interface definitions
+grep -r "type.*Handler.*interface" --include="*.go" | head -5
+```
 
-3. **Add post-generation hooks:**
-   - Auto-format generated files
-   - Run linting
-   - Update import maps
+### Express Route
+```bash
+# Find existing route files
+find . -name "*.routes.ts" -o -name "*.router.ts" | head -5
+# Check middleware patterns
+grep -r "router\.\(use\|get\|post\)" --include="*.ts" | head -10
+```
+
+## Guardrails
+
+- NEVER generate from a hardcoded template if existing examples exist in the project
+- ALWAYS read at least one existing file of the same type before generating
+- If NO existing example exists (first of its kind), ask the user for their preferred conventions
+- Match line endings, indentation (tabs vs spaces, width), and trailing newlines of existing files
 
 ---
 

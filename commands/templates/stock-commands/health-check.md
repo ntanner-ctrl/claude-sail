@@ -4,238 +4,182 @@ allowed-tools:
   - Bash
   - Read
   - Glob
+  - Grep
 ---
 
 # Project Health Check
 
-Validate that the project is properly configured and ready for development.
+Validate that the project is properly configured and ready for development. Run each check and report results.
 
 ## Arguments
 
 Parse `$ARGUMENTS` for:
 - `--verbose` or `-v`: Show detailed output for each check
 - `--fix`: Attempt to fix issues automatically where possible
-- `--skip <check>`: Skip specific checks (deps, config, build, git)
+- `--skip <check>`: Skip specific checks (deps, config, build, git, runtime)
 
 ## Health Checks
 
-Perform the following checks in order:
+Run each check in order. For each, report PASS, WARN, or FAIL.
 
-### 1. Dependencies Check
+### 1. Project Detection
 
-**What to verify:**
-- All dependencies are installed
-- No missing peer dependencies
-- No critical vulnerabilities (optional)
+First, identify the project type to determine which checks apply:
 
-**Python:**
 ```bash
-# Check if requirements are satisfied
-pip check
-
-# Check for outdated critical packages
-pip list --outdated --format=json | jq '.[] | select(.name | test("security|auth|crypto"))'
+# Detect project type(s)
+[ -f "package.json" ]    && echo "node"
+[ -f "pyproject.toml" ] || [ -f "setup.py" ] || [ -f "requirements.txt" ] && echo "python"
+[ -f "Cargo.toml" ]     && echo "rust"
+[ -f "go.mod" ]          && echo "go"
+[ -f "mix.exs" ]         && echo "elixir"
+[ -f "Gemfile" ]         && echo "ruby"
+[ -f "Makefile" ]        && echo "make"
 ```
 
-**Node:**
+Projects may be multi-language (e.g., Python backend + Node frontend). Check all that apply.
+
+### 2. Dependencies Check
+
+**Goal:** All dependencies are installed and resolvable.
+
+| Project Type | Check Command | Pass Condition |
+|-------------|--------------|----------------|
+| Node | `npm ls 2>&1` (or yarn/pnpm equivalent) | No `MISSING` or `ERR!` in output |
+| Python | `pip check` | Exit code 0 |
+| Rust | `cargo check 2>&1` | Exit code 0 |
+| Go | `go mod verify` | Exit code 0 |
+| Ruby | `bundle check` | Exit code 0 |
+
+**If `--fix`:** Run the appropriate install command (`npm install`, `pip install -r requirements.txt`, etc.)
+
+**Status logic:**
+- PASS: All dependencies satisfied
+- WARN: Dependencies present but outdated or have non-critical audit findings
+- FAIL: Missing dependencies or resolution failures
+
+### 3. Configuration Check
+
+**Goal:** Required config files exist, optional ones are documented.
+
+Check for:
 ```bash
-# Check for missing dependencies
-npm ls --all 2>&1 | grep -E "MISSING|ERR!"
+# Essential project files
+[ -f "README.md" ]       || echo "WARN: No README.md"
+[ -f ".gitignore" ]      || echo "WARN: No .gitignore"
 
-# Security audit (optional)
-npm audit --audit-level=high
-```
-
-**Rust:**
-```bash
-cargo check
-```
-
-**Go:**
-```bash
-go mod verify
-```
-
-**Status:** PASS if all dependencies satisfied, WARN if outdated, FAIL if missing
-
-### 2. Configuration Check
-
-**What to verify:**
-- Required config files exist
-- Environment variables are documented
-- No obvious misconfigurations
-
-**Checks to perform:**
-```bash
-# Check for required files
-required_files=(".env.example" "README.md")
-for file in "${required_files[@]}"; do
-    [ -f "$file" ] || echo "Missing: $file"
-done
-
-# Check if .env exists when .env.example exists
+# Environment configuration
 if [ -f ".env.example" ] && [ ! -f ".env" ]; then
-    echo "WARN: .env.example exists but .env is missing"
+    echo "WARN: .env.example exists but .env is missing -- copy and fill in values"
 fi
 
-# Validate JSON/YAML configs
-for config in $(find . -name "*.json" -path "./config/*"); do
-    jq . "$config" > /dev/null 2>&1 || echo "Invalid JSON: $config"
+# Claude Code configuration
+[ -d ".claude" ]         || echo "INFO: No .claude/ directory"
+[ -f ".claude/CLAUDE.md" ] || echo "INFO: No project CLAUDE.md"
+
+# Validate JSON/YAML configs (syntax only)
+for f in $(find . -maxdepth 3 -name "*.json" -not -path "*/node_modules/*" -not -path "*/.git/*" | head -20); do
+    python3 -c "import json; json.load(open('$f'))" 2>/dev/null || echo "FAIL: Invalid JSON: $f"
 done
 ```
 
-**Status:** PASS if all configs valid, WARN if optional missing, FAIL if required missing/invalid
+**Status logic:**
+- PASS: All required configs present and valid
+- WARN: Optional configs missing or .env not set up
+- FAIL: Required configs missing or malformed
 
-### 3. Build Check
+### 4. Build Check
 
-**What to verify:**
-- Project compiles/builds successfully
-- No type errors (for typed languages)
-- Linting passes (optional)
+**Goal:** The project compiles/builds without errors.
 
-**Python:**
+| Project Type | Check Command | Notes |
+|-------------|--------------|-------|
+| Node (TS) | `npx tsc --noEmit` | Type checking only, no output files |
+| Node (JS) | Skip or `npm run build` if script exists | |
+| Python | `python -m py_compile [changed files]` | Syntax check |
+| Python (typed) | `mypy . --ignore-missing-imports` if mypy installed | |
+| Rust | `cargo check` | Faster than `cargo build` |
+| Go | `go build ./...` | Compile check |
+
+**Also check for lint scripts:**
 ```bash
-# Type checking
-mypy . --ignore-missing-imports 2>&1 | tail -5
-
-# Syntax check
-python -m py_compile $(find . -name "*.py" -not -path "./.venv/*" | head -10)
+# If a lint script exists, run it
+[ -f "package.json" ] && grep -q '"lint"' package.json && echo "Lint available: npm run lint"
 ```
 
-**TypeScript:**
-```bash
-# Type checking
-npx tsc --noEmit
+**Status logic:**
+- PASS: Builds clean
+- WARN: Builds with warnings
+- FAIL: Build errors
 
-# Lint check
-npx eslint . --max-warnings 0
-```
+### 5. Git Check
 
-**Rust:**
-```bash
-cargo build
-cargo clippy -- -D warnings
-```
+**Goal:** Repository is in a known state.
 
-**Go:**
-```bash
-go build ./...
-go vet ./...
-```
-
-**Status:** PASS if builds clean, WARN if warnings, FAIL if errors
-
-### 4. Git Check
-
-**What to verify:**
-- On expected branch
-- Working tree is clean (or has expected changes)
-- Remote is configured and accessible
-
-**Checks:**
 ```bash
 # Current branch
-branch=$(git branch --show-current)
+git branch --show-current
 
-# Check for uncommitted changes
-if ! git diff --quiet; then
-    echo "Uncommitted changes present"
-fi
+# Working tree status
+git status --short | head -20
 
-# Check remote
-git fetch --dry-run 2>&1 | head -3
+# Remote sync status
+git rev-list --left-right --count HEAD...@{upstream} 2>/dev/null
+# Output: "ahead behind" -- e.g., "3 0" means 3 commits ahead
+
+# Check for merge conflicts
+git diff --check 2>/dev/null
 ```
 
-**Status:** PASS if clean and synced, WARN if uncommitted changes, FAIL if remote issues
+**Status logic:**
+- PASS: Clean working tree, synced with remote
+- WARN: Uncommitted changes or behind remote
+- FAIL: Merge conflicts, detached HEAD, no remote configured
 
-### 5. Runtime Check (Optional)
+### 6. Runtime Check (Optional)
 
-**What to verify:**
-- Required services are running (database, cache, etc.)
-- Required ports are available
-- Required tools are installed
+**Goal:** Required services and tools are available.
 
-**Checks:**
 ```bash
-# Check if required ports are available
-for port in 3000 5432 6379; do
-    nc -z localhost $port 2>/dev/null && echo "Port $port: IN USE" || echo "Port $port: available"
+# Check for common required tools
+for tool in docker git curl; do
+    command -v $tool > /dev/null 2>&1 || echo "WARN: $tool not installed"
 done
 
-# Check for required tools
-for tool in docker docker-compose aws; do
-    command -v $tool > /dev/null 2>&1 || echo "Missing tool: $tool"
+# Check for running services (if docker-compose.yml exists)
+if [ -f "docker-compose.yml" ] || [ -f "compose.yml" ]; then
+    docker compose ps 2>/dev/null || echo "INFO: Docker Compose services not running"
+fi
+
+# Check common ports
+for port in 3000 5432 6379 8080; do
+    (echo > /dev/tcp/localhost/$port) 2>/dev/null && echo "INFO: Port $port in use"
 done
 ```
 
 ## Output Format
 
-```
+```markdown
 ## Project Health Check
 
-### Dependencies: [PASS/WARN/FAIL]
-✓ All 47 dependencies installed
-✓ No missing peer dependencies
-⚠ 3 packages have updates available
+**Project type:** [detected type(s)]
+**Directory:** [cwd]
 
-### Configuration: [PASS/WARN/FAIL]
-✓ Required config files present
-✓ .env configured
-⚠ Missing optional: docker-compose.override.yml
-
-### Build: [PASS/WARN/FAIL]
-✓ TypeScript compilation successful
-✓ No type errors
-⚠ 2 ESLint warnings (non-blocking)
-
-### Git: [PASS/WARN/FAIL]
-✓ On branch: main
-✓ Working tree clean
-✓ Remote: origin (up to date)
-
----
-
-## Summary
-
-**Overall: 3/4 checks passed**
+| Check | Status | Details |
+|-------|--------|---------|
+| Dependencies | PASS/WARN/FAIL | [summary] |
+| Configuration | PASS/WARN/FAIL | [summary] |
+| Build | PASS/WARN/FAIL | [summary] |
+| Git | PASS/WARN/FAIL | [summary] |
+| Runtime | PASS/WARN/FAIL | [summary] |
 
 ### Issues to Address
-1. [WARN] 3 packages have security updates
-2. [WARN] 2 ESLint warnings in src/utils.ts
+1. [FAIL] [description and fix command]
+2. [WARN] [description and suggested action]
 
-### Quick Fixes
-- Run `npm update` to update dependencies
-- Run `npm run lint:fix` to auto-fix lint issues
+### Quick Fixes (if --fix not used)
+- `[command]` -- [what it fixes]
 ```
-
-## Customization
-
-When installed in a project, customize by:
-
-1. **Add project-specific checks:**
-   ```bash
-   # Check database migrations
-   ./scripts/check-migrations.sh
-
-   # Check for required env vars
-   required_vars=("DATABASE_URL" "API_KEY" "SECRET")
-   for var in "${required_vars[@]}"; do
-       [ -z "${!var}" ] && echo "Missing: $var"
-   done
-   ```
-
-2. **Add service health checks:**
-   ```bash
-   # Ping database
-   pg_isready -h localhost -p 5432
-
-   # Check Redis
-   redis-cli ping
-   ```
-
-3. **Configure severity levels:**
-   - What's a FAIL vs WARN for your project
-   - Which checks are mandatory vs optional
 
 ---
 

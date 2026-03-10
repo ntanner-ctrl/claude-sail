@@ -421,7 +421,7 @@ Before sharing:
 
 If your domain kit would help others:
 
-1. Fork the claude-bootstrap repo
+1. Fork the claude-sail repo
 2. Add your kit as a new directory
 3. Update the main README to list it
 4. Open a PR

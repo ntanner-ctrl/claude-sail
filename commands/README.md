@@ -1,6 +1,6 @@
 # Commands Reference
 
-Complete reference for all Claude Bootstrap commands.
+Complete reference for all Claude Sail commands.
 
 ---
 
@@ -520,7 +520,7 @@ Steps:
 
 **Why not just `/exit`?** The `SessionEnd` hook closes the DB record and writes a vault breadcrumb, but can't do epistemic self-assessment or rich vault export (Claude is already gone). `/end` keeps Claude in the loop for meaningful postflight data and detailed vault notes with wiki-links.
 
-**When to use:** Before every `/exit`. The session-bootstrap hook reminds Claude to suggest it.
+**When to use:** Before every `/exit`. The session-sail hook reminds Claude to suggest it.
 
 ---
 

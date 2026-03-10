@@ -12,7 +12,7 @@ Present this reference card:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                     CLAUDE BOOTSTRAP TOOLKIT
+                        CLAUDE SAIL TOOLKIT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 WORKFLOW WIZARDS (guided paths)

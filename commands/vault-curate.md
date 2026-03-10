@@ -20,7 +20,7 @@ Subsumes `/review-findings`, which is now a deprecated alias for `/vault-curate 
 /vault-curate --skip-synthesis                   # Skip Stage 4 (Synthesis)
 ```
 
-Flags are composable: `--quick --project claude-bootstrap` works.
+Flags are composable: `--quick --project claude-sail` works.
 
 ## Vault Content Types
 
@@ -175,7 +175,7 @@ Consider: --section [type] or --quick for a shorter session.
     Patterns:    N
 
   By project:
-    claude-bootstrap:  N
+    claude-sail:  N
     project-scout:     N
     [other]:           N
 

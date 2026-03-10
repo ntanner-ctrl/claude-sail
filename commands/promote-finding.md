@@ -82,11 +82,11 @@ Conviction-level findings (3+ observations):
 
   [1] "Hook fail-open pattern is critical for reliability"
       Observations: 4 across 3 sessions
-      Projects: claude-bootstrap, project-scout
+      Projects: claude-sail, project-scout
 
   [2] "CLAUDE.md description field must be trigger-only"
       Observations: 3 across 2 sessions
-      Projects: claude-bootstrap
+      Projects: claude-sail
 
   [0] Cancel
 

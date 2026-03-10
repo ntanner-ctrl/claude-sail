@@ -1,0 +1,16 @@
+{
+  "name": "sail-toolkit",
+  "version": "2.0.0",
+  "description": "Claude Sail session-start drift detection and project setup checking",
+  "author": {
+    "name": "Claude Code User"
+  },
+  "license": "MIT",
+  "keywords": [
+    "sail",
+    "setup",
+    "drift-detection",
+    "extensibility"
+  ],
+  "hooks": "./hooks/hooks.json"
+}

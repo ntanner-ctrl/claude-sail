@@ -1,0 +1,77 @@
+{
+  "blueprint_version": 2,
+  "name": "toolkit-rebrand",
+  "challenge_mode": "debate",
+  "execution_preference": "auto",
+  "current_stage": "challenge",
+  "revision": 2,
+  "regressions_used": 1,
+  "max_regressions": 3,
+  "created_at": "2026-03-10T20:00:00Z",
+  "stages": {
+    "describe": {
+      "status": "complete",
+      "completed_at": "2026-03-10T20:00:00Z",
+      "confidence": 0.9,
+      "confidence_note": "Thoroughly discussed in brainstorm pre-stage."
+    },
+    "specify": {
+      "status": "complete",
+      "completed_at": "2026-03-10T20:30:00Z",
+      "confidence": 0.92,
+      "confidence_note": "Spec updated with all debate findings. Critical install.sh issues (tarball dir, chmod, REPO_URL, mkdir) now explicitly addressed in W2. Plugin detection, grep/replace scope, and stock element counts all specified."
+    },
+    "challenge": {
+      "status": "complete",
+      "completed_at": "2026-03-10T20:35:00Z",
+      "confidence": 0.88,
+      "confidence_note": "Debate found 2 critical issues (tarball dir name, chmod path) and 5 high/medium issues, all resolved in spec rev 2. Defender caught 6 additional issues challenger missed. Thorough coverage of install.sh blast radius."
+    },
+    "edge_cases": {
+      "status": "pending"
+    },
+    "premortem": {
+      "status": "pending"
+    },
+    "review": {
+      "status": "pending"
+    },
+    "test": {
+      "status": "pending"
+    },
+    "execute": {
+      "status": "pending"
+    }
+  },
+  "ambiguity_gate": {
+    "goal_clarity": 5,
+    "constraint_clarity": 4,
+    "success_criteria": 4,
+    "composite": 4.4,
+    "result": "pass",
+    "override": false
+  },
+  "regression_log": [
+    {
+      "from_stage": "challenge",
+      "to_stage": "specify",
+      "trigger_type": "automatic",
+      "trigger": "debate_critical_findings",
+      "reason": "2 critical findings: F1 (tarball dir name breaks remote install) and M1 (chmod targets old plugin path). Plus 5 high/medium findings requiring spec updates.",
+      "timestamp": "2026-03-10T20:25:00Z",
+      "revision": 2
+    }
+  ],
+  "debate_progress": {
+    "rounds_completed": [
+      "challenger",
+      "defender",
+      "judge"
+    ],
+    "current_round": null
+  },
+  "empirica_session_id": "ee6cd69c-d6a2-4d87-a7fa-a3c35e3a58d5",
+  "empirica_preflight_complete": false,
+  "manifest_stale": false,
+  "work_graph_stale": true
+}

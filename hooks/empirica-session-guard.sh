@@ -2,7 +2,7 @@
 # empirica-session-guard.sh — Block duplicate Empirica session creation
 #
 # PreToolUse hook matched on mcp__empirica__session_create.
-# If a session was already pre-created by session-bootstrap.sh, this hook
+# If a session was already pre-created by session-sail.sh, this hook
 # blocks the duplicate and redirects Claude to submit_preflight_assessment.
 #
 # If no active session exists, allows creation through (fallback for when

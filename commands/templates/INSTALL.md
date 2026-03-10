@@ -1,15 +1,15 @@
-# Bootstrap Toolkit Installation
+# Claude Sail Installation
 
 ## Quick Install (Recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USER/claude-bootstrap/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ntanner-ctrl/claude-sail/main/install.sh | bash
 ```
 
 Or if you prefer to inspect first:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USER/claude-bootstrap/main/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/ntanner-ctrl/claude-sail/main/install.sh -o install.sh
 cat install.sh  # Review it
 bash install.sh
 ```
@@ -18,23 +18,26 @@ bash install.sh
 
 ```
 ~/.claude/
-├── commands/
+├── commands/              # 47 slash commands
 │   ├── bootstrap-project.md     # Full project setup
 │   ├── check-project-setup.md   # Light drift detection
-│   └── templates/               # Stock element templates
-│       ├── stock-hooks/
-│       ├── stock-agents/
-│       └── stock-commands/
+│   ├── blueprint.md             # Planning workflow
+│   └── templates/               # Stock element templates (12 total)
+│       ├── stock-hooks/    (6)  # Prompt-based hooks for target projects
+│       ├── stock-agents/   (3)  # Agents for target projects
+│       └── stock-commands/ (3)  # Commands for target projects
+├── agents/                # 6 review agents
+├── hooks/                 # 23 shell hooks
 └── plugins/local/
-    └── bootstrap-toolkit/       # Session-start hook
+    └── sail-toolkit/      # Session-start drift detection
 ```
 
 ## Manual Installation
 
 1. Clone the repo:
    ```bash
-   git clone https://github.com/YOUR_USER/claude-bootstrap.git
-   cd claude-bootstrap
+   git clone https://github.com/ntanner-ctrl/claude-sail.git
+   cd claude-sail
    ```
 
 2. Run the installer:
@@ -55,13 +58,18 @@ After installation, in any project:
 
 # Update documentation only
 /refresh-claude-md
+
+# See all available commands
+/toolkit
 ```
+
+## Upgrading from claude-bootstrap
+
+The installer automatically cleans up old bootstrap-toolkit files. Existing project manifests (`.claude/bootstrap-manifest.json`) are still read for backward compatibility — new manifests are written as `.claude/sail-manifest.json`.
 
 ## Uninstall
 
 ```bash
-rm ~/.claude/commands/bootstrap-project.md
-rm ~/.claude/commands/check-project-setup.md
-rm -rf ~/.claude/commands/templates/
-rm -rf ~/.claude/plugins/local/bootstrap-toolkit/
+rm -rf ~/.claude/commands/ ~/.claude/agents/ ~/.claude/hooks/
+rm -rf ~/.claude/plugins/local/sail-toolkit/
 ```

@@ -1,176 +1,102 @@
 ---
 name: documentation-standards
 description: Enforces Diataxis documentation framework (Tutorial, How-to, Reference, Explanation)
-version: 2.0.0
 hooks:
   - event: PostToolUse
-    tools: [Write, Edit]
-    pattern: "**/docs/**/*.md"
+    tools:
+      - Write
+      - Edit
+    pattern: "**/docs/**/*.md|**/documentation/**/*.md|**/*.mdx"
 ---
+
 # Diataxis Documentation Standards
 
-When writing or editing documentation, classify it using the **Diataxis framework**:
+When writing or editing documentation, classify it using the **Diataxis framework**. Every document must be exactly ONE of these four types -- mixing types produces documentation that serves no reader well.
+
+## Type Decision
+
+Ask: **What is the reader's goal right now?**
+
+| Type | Reader's Goal | Opens With | Tone |
+|------|--------------|------------|------|
+| **Tutorial** | "I want to learn X" | "In this tutorial, you will..." | Encouraging, one path |
+| **How-to Guide** | "I need to accomplish X" | "This guide shows how to..." | Direct, task-focused |
+| **Reference** | "I need to look up X" | "This section documents..." | Austere, complete |
+| **Explanation** | "I want to understand X" | "This explains why/how..." | Discursive, contextual |
 
 ```
-              PRACTICAL                         THEORETICAL
-                   │                                 │
-   ┌───────────────┼─────────────────────────────────┼───────────────┐
-   │               │                                 │               │
- A │   TUTORIAL    │    "Learning a craft"           │  EXPLANATION  │
- C │               │    Follow along, learn by doing │               │
- Q │               │                                 │  "Understanding
- U ├───────────────┼─────────────────────────────────┤   a topic"    │
- I │               │                                 │               │
- S │  HOW-TO GUIDE │    "Achieving a goal"           │  REFERENCE    │
- I │               │    Steps to accomplish task     │               │
- T │               │                                 │  "Looking up  │
- I │               │                                 │   information"│
- O │               │                                 │               │
- N └───────────────┴─────────────────────────────────┴───────────────┘
-              DOING                            UNDERSTANDING
+Is the reader trying to...
+├── Learn something new?           --> TUTORIAL
+├── Accomplish a specific task?    --> HOW-TO GUIDE
+├── Look up specific information?  --> REFERENCE
+└── Understand why/how?            --> EXPLANATION
 ```
 
-## Document Type Classification
+## Validate Against Type
 
-**Ask: What is the reader's goal?**
+### Tutorial Checklist
+- [ ] States a clear learning objective upfront
+- [ ] Follows ONE path -- no choices, no alternatives
+- [ ] Every step produces a visible, verifiable result
+- [ ] Ends with a working thing the reader built themselves
+- [ ] Does NOT explain concepts inline (link to Explanation instead)
+- [ ] Does NOT offer alternatives (pick the simplest path)
 
-| Type | Reader Goal | Opens With | Ends With |
-|------|-------------|------------|-----------|
-| **Tutorial** | "I want to learn X" | "In this tutorial, you will..." | Working example + next steps |
-| **How-to Guide** | "I need to do X" | "This guide shows how to..." | Completed task + verification |
-| **Reference** | "I need to look up X" | "This section documents..." | Complete, accurate information |
-| **Explanation** | "I want to understand X" | "This explains why/how..." | Deeper understanding |
-
-## Validation Checklists
-
-### If This Is a TUTORIAL
-
-Learning-oriented. The reader is acquiring skills.
-
-- [ ] Has a clear learning objective stated upfront
-- [ ] Provides a complete, working example to follow
-- [ ] Steps are repeatable and produce consistent results
-- [ ] Focuses on *learning*, not just *doing*
-- [ ] Ends with a working result the reader built themselves
-- [ ] Suggests next tutorials or related how-to guides
-
-**Anti-patterns:**
-- Explaining concepts mid-tutorial (→ link to Explanation instead)
-- Offering choices or alternatives (→ pick one path for learning)
-- Assuming prior knowledge not stated in prerequisites
-
----
-
-### If This Is a HOW-TO GUIDE
-
-Task-oriented. The reader is accomplishing a goal.
-
+### How-to Guide Checklist
 - [ ] Addresses a specific, real-world task
-- [ ] Assumes the reader knows *what* they want, shows *how*
 - [ ] Steps are numbered and actionable
 - [ ] Includes verification after critical steps
-- [ ] Covers the task completely (not just happy path)
-- [ ] Has troubleshooting for common failures
+- [ ] Covers failure modes, not just happy path
+- [ ] Has a troubleshooting section for common errors
+- [ ] Does NOT teach concepts (link to Tutorial or Explanation)
 
-**Process Categories:**
+**Process categories** -- identify which applies:
 
-| Category | First Section |
-|----------|---------------|
-| **Manual** | "Step 1: [Human action]..." |
-| **Scheduled** | "This runs automatically at [schedule]. To monitor..." |
-| **Event-driven** | "Triggered when [event]. To monitor..." |
+| Category | Human Role | First Section |
+|----------|-----------|---------------|
+| **Manual** | Initiates | "Step 1: [Human action]..." |
+| **Scheduled** | Monitors | "Runs automatically at [schedule]. To monitor..." |
+| **Event-driven** | Responds | "Triggered when [event]. To respond..." |
 
-**Anti-patterns:**
-- Teaching concepts (→ link to Tutorial or Explanation)
-- Providing background (→ brief context only, link to Explanation)
-- Multiple paths without clear recommendation
+### Reference Checklist
+- [ ] Organized for quick lookup (alphabetical, by function, by resource type)
+- [ ] Consistent structure across ALL entries (same headings, same order)
+- [ ] Complete -- every parameter, option, return value documented
+- [ ] Accurate -- matches the actual current behavior
+- [ ] Includes brief examples (illustrative, not tutorial-length)
+- [ ] Does NOT explain why (link to Explanation)
+- [ ] Does NOT walk through procedures (link to How-to Guide)
 
----
-
-### If This Is a REFERENCE
-
-Information-oriented. The reader is looking something up.
-
-- [ ] Organized for quick lookup (alphabetical, by function, etc.)
-- [ ] Consistent structure across all entries
-- [ ] Accurate and complete (this is the source of truth)
-- [ ] Describes *what*, not *why* or *how*
-- [ ] Austere—no tutorials, no explanation, just facts
-
-**Standard sections:**
-- Signature/syntax
-- Parameters/options
-- Return value/output
-- Examples (brief, illustrative)
-- Related items
-
-**Anti-patterns:**
-- Explaining why something works (→ Explanation)
-- Step-by-step procedures (→ How-to Guide)
-- Learning sequences (→ Tutorial)
-
----
-
-### If This Is an EXPLANATION
-
-Understanding-oriented. The reader wants to *know* something.
-
+### Explanation Checklist
 - [ ] Clarifies a concept, decision, or design
-- [ ] Provides context and background
-- [ ] Connects to other concepts and the bigger picture
-- [ ] Can discuss alternatives, tradeoffs, history
-- [ ] Is discursive—explores the topic
+- [ ] Provides context: why does this exist? what problem does it solve?
+- [ ] Discusses alternatives and tradeoffs
+- [ ] Connects to the bigger picture
+- [ ] Does NOT include step-by-step procedures (link to How-to Guide)
+- [ ] Does NOT serve as API documentation (link to Reference)
 
-**Standard approaches:**
-- "Why does X work this way?"
-- "The architecture of X"
-- "X vs Y: when to use each"
-- "The history/evolution of X"
+## Document Header
 
-**Anti-patterns:**
-- Step-by-step procedures (→ How-to Guide)
-- API specifications (→ Reference)
-- Hands-on exercises (→ Tutorial)
-
----
-
-## Document Header Template
-
-Every document should declare its type:
+Every document should declare its type for readers and future editors:
 
 ```markdown
 # [Title]
 
 > **Type:** Tutorial | How-to Guide | Reference | Explanation
-> **Last Updated:** YYYY-MM-DD
-> **Related:** [Links to complementary doc types]
+> **Last updated:** YYYY-MM-DD
+> **Related:** [Links to complementary doc types for this topic]
 ```
 
-## Quick Decision Tree
+## Common Anti-Patterns
 
-```
-What is the reader trying to do?
-│
-├─► Learn something new
-│   └─► TUTORIAL
-│
-├─► Accomplish a specific task
-│   └─► HOW-TO GUIDE
-│
-├─► Look up specific information
-│   └─► REFERENCE
-│
-└─► Understand why/how something works
-    └─► EXPLANATION
-```
-
-## Templates
-
-- Tutorial: `~/.claude/commands/templates/documentation/tutorial.md`
-- How-to Guide: `~/.claude/commands/templates/documentation/how-to-guide.md`
-- Reference: `~/.claude/commands/templates/documentation/reference.md`
-- Explanation: `~/.claude/commands/templates/documentation/explanation.md`
+| Anti-Pattern | Problem | Fix |
+|-------------|---------|-----|
+| Tutorial with choices | Overwhelms learners | Pick one path |
+| How-to that teaches theory | Reader loses focus | Extract to Explanation, link |
+| Reference with opinions | Undermines trust | State facts, move opinions to Explanation |
+| Explanation with steps | Reader can't follow | Extract procedure to How-to Guide |
+| One giant doc covering all four | Serves nobody well | Split into four linked documents |
 
 ## Further Reading
 
-- https://diataxis.fr/ — The canonical Diataxis documentation
+- https://diataxis.fr/ -- The canonical Diataxis documentation

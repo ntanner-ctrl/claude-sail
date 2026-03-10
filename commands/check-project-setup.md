@@ -33,8 +33,8 @@ Does CLAUDE.md exist? (check .claude/CLAUDE.md then ./CLAUDE.md)
 ├── YES → Continue to drift detection
 └── NO → SUGGEST: Run /bootstrap-project
 
-Does .claude/bootstrap-manifest.json exist?
-├── YES → Use it for tracking
+Does .claude/sail-manifest.json OR .claude/bootstrap-manifest.json exist?
+├── YES → Use it for tracking (prefer sail-manifest.json, fall back to bootstrap-manifest.json)
 └── NO → This may be a manually configured project
 ```
 

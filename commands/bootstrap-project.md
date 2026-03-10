@@ -1,5 +1,5 @@
 ---
-description: Use when setting up ANY new project for Claude Code. Creates CLAUDE.md, installs hooks, agents, and commands matched to your stack.
+description: Use when setting up ANY new project for claude-sail. Creates CLAUDE.md, detects integrations, installs hooks, agents, and commands matched to your stack.
 argument-hint: --force to overwrite existing, --skip-claude-md to keep existing docs, --type python|node|docker
 allowed-tools:
   - Read
@@ -13,11 +13,12 @@ allowed-tools:
 
 # Project Bootstrap
 
-Complete Claude Code extensibility setup for any project. This command:
-1. Analyzes your project structure, type, and maturity
+Complete claude-sail extensibility setup for any project. This command:
+1. Analyzes your project structure, type, maturity, and integrations
 2. Generates comprehensive CLAUDE.md documentation
-3. Installs appropriate stock hooks, agents, and commands
-4. Tracks what's installed for future updates
+3. Initializes detected integrations (Empirica, Vault, Plugins)
+4. Installs appropriate stock hooks, agents, and commands
+5. Tracks what's installed for future updates
 
 Think hard before making changes. Take time to understand the project first.
 
@@ -90,11 +91,33 @@ Score the project 0-10 based on these signals:
 - **Growing** (4-6): Established patterns, selective installation
 - **Mature** (7-10): Complex project, suggest rather than install
 
-## 1.4 Existing Setup Audit
+## 1.4 Plugin Detection
 
-If `.claude/` exists:
+Read `~/.claude/plugins/installed_plugins.json` if it exists. Keys are scoped as `name@registry` (e.g., `pr-review-toolkit@claude-code-plugins`). Match by prefix: strip the `@registry` suffix before comparing against known plugin names. Record which plugins are available for Phase 5 recommendations.
 
-1. Read `.claude/bootstrap-manifest.json` if present
+## 1.5 Vault Detection
+
+Source `~/.claude/hooks/vault-config.sh` if it exists:
+```bash
+source ~/.claude/hooks/vault-config.sh 2>/dev/null
+```
+
+Record `VAULT_ENABLED` and `VAULT_PATH`. This informs Phase 4.
+
+## 1.6 Empirica Detection
+
+Check if the `empirica` CLI is available:
+```bash
+which empirica 2>/dev/null
+```
+
+Record availability. This informs Phase 3.
+
+## 1.7 Existing Setup Audit
+
+Check for existing manifest — read `.claude/sail-manifest.json` OR `.claude/bootstrap-manifest.json` (backward compat, prefer new name):
+
+1. Read manifest if present
 2. List existing hooks, agents, commands
 3. Identify which are stock vs custom (via manifest or heuristics)
 4. Check for customizations (hash comparison if manifest exists)
@@ -151,64 +174,162 @@ Create or update `.claude/CLAUDE.md` with:
 - Test: `[command]`
 - Lint: `[command]`
 - Run locally: `[command]`
-- Deploy: `[command]` (if applicable)
 
 ## Architecture Overview
-[2-3 sentences on structure and key patterns]
+[2-3 sentences]
 
 ## Project Structure
-- `src/` - [Description]
-- `tests/` - [Description]
-- [Other key directories]
+[key directories with descriptions]
 
 ## Key Conventions
-- [Naming conventions]
-- [File organization patterns]
-- [Import/module patterns]
-- [Code style requirements]
+[naming, file org, import patterns, code style]
 
 ## Key Patterns
-[Document important architectural patterns used in this codebase]
-
-### [Pattern Name]
-```[language]
-[Code example showing the pattern]
-```
+[documented with code examples]
 
 ## Important Context
-- [Non-obvious dependencies or requirements]
-- [Things that look wrong but are intentional]
-- [Areas requiring extra care]
-- [Environment setup requirements]
+[non-obvious deps, intentional oddities, extra-care areas]
 
 ## Common Tasks
-
 ### How to add a new [X]
-1. [Step 1]
-2. [Step 2]
-
 ### How to modify [Y]
-1. [Step 1]
-2. [Step 2]
 
 ## Testing
-- Test command: `[command]`
-- Test location: `[directory]`
-- [Testing conventions and expectations]
+[framework, location, conventions]
+
+## Integrations
+[IF Empirica detected]
+### Empirica (Epistemic Tracking)
+- Session tracking is available for this project
+- Use `finding_log` to capture discoveries during work
+- Use `mistake_log` to record errors for future prevention
+- Submit preflight/postflight assessments at session boundaries
+
+[IF Vault detected]
+### Obsidian Vault
+- Knowledge vault is connected at: [VAULT_PATH]
+- Use `/vault-save` to capture findings, decisions, and patterns
+- Use `/vault-query` to search prior knowledge before starting work
+
+[IF plugins detected]
+### Available Plugins
+- [plugin-name]: [brief description of what it adds]
 
 ## Do Not
-- [Anti-patterns specific to this project]
-- [Files/areas to avoid modifying]
-- [Common mistakes to avoid]
+[anti-patterns, protected files, common mistakes]
 ```
 
 ---
 
-# PHASE 3: Stock Element Selection
+# PHASE 3: Empirica Initialization
+
+Only runs if Empirica CLI was detected in Phase 1.
+
+## 3.1 If Empirica IS detected
+
+1. Check if `.empirica/` directory exists in project root
+2. If not, create it: `mkdir -p .empirica`
+3. Check if project is registered with Empirica:
+   ```bash
+   empirica project-bootstrap --output json 2>/dev/null
+   ```
+4. If registration fails or returns error, log and continue (fail-soft)
+5. Present to user:
+   ```
+   Empirica integration:
+     ✓ CLI available
+     [✓/✗] Project registered
+
+   Empirica enables epistemic tracking — it helps you (and Claude)
+   measure what you know vs. what you think you know across sessions.
+
+   This is optional but recommended. See /toolkit for Empirica commands.
+   ```
+
+## 3.2 If Empirica is NOT detected
+
+Present to user:
+```
+Empirica integration:
+  ✗ CLI not found (optional — install via: pipx install empirica)
+
+  Empirica tracks confidence and learning across sessions.
+  The toolkit works fine without it.
+```
+
+---
+
+# PHASE 4: Vault Configuration
+
+Only runs if vault config was detected in Phase 1.
+
+## 4.1 If Vault IS configured and accessible
+
+1. Source `~/.claude/hooks/vault-config.sh`
+2. If `VAULT_ENABLED=1` and `VAULT_PATH` is set and accessible:
+   ```
+   Obsidian vault integration:
+     ✓ Vault found at: [VAULT_PATH]
+     ✓ Writable
+
+   The vault captures findings, decisions, and patterns across sessions.
+   Use /vault-save to store knowledge, /vault-query to retrieve it.
+   ```
+
+## 4.2 If Vault is NOT configured or inaccessible
+
+Present to user:
+```
+Obsidian vault integration:
+  ✗ No vault configured
+
+To connect an Obsidian vault:
+  1. Create ~/.claude/hooks/vault-config.sh with:
+     VAULT_ENABLED=1
+     VAULT_PATH="/path/to/your/vault"
+  2. Re-run /bootstrap-project
+
+This is optional. The toolkit works fine without a vault.
+```
+
+---
+
+# PHASE 5: Plugin Recommendation
+
+Based on project type detected in Phase 1, recommend relevant plugins.
+
+## 5.1 Recommendation Matrix
+
+| Project Type | Recommended Plugins |
+|-------------|-------------------|
+| Any | `pr-review-toolkit` (code review agents) |
+| React/Vue/Next | `frontend` (UI dev workflow) |
+| Any with tests | `testing-suite` (test generation) |
+| Any with deployment | `security-pro` (security audit) |
+| Any complex | `superpowers` (structured planning skills) |
+
+## 5.2 Detection Logic
+
+For each recommended plugin, check if it was detected in Phase 1's plugin scan. Use prefix matching: a key like `pr-review-toolkit@claude-code-plugins` matches plugin name `pr-review-toolkit`.
+
+## 5.3 Present Recommendations
+
+```
+Plugin recommendations based on your project:
+  [✓ installed] pr-review-toolkit — 6 specialized review agents
+  [  available ] frontend — UI development workflow with design validation
+  [  available ] testing-suite — Test generation and coverage analysis
+
+Plugins are optional. Install via their respective repos.
+```
+
+---
+
+# PHASE 6: Stock Element Selection
 
 Based on maturity and project type, select appropriate elements.
 
-## 3.1 Selection Logic
+## 6.1 Selection Logic
 
 ```
 IF maturity = nascent (0-3):
@@ -227,54 +348,44 @@ ELSE maturity = mature (7-10):
     Focus on filling gaps in existing setup
 ```
 
-## 3.2 Universal Elements (All Projects)
+## 6.2 Universal Hooks (All Projects)
 
-**Hooks:**
 - `test-coverage-reminder.md` - Remind about tests when editing source
 - `security-warning.md` - Warn when editing sensitive files
+- `compaction-safety.md` - Lightweight compaction awareness for context window management
 
-**Agents:**
+## 6.3 Conditional Hooks
+
+- `empirica-basics.md` - Simplified finding capture (only if Empirica detected in Phase 1)
+- `documentation-standards.md` - Documentation quality reminders (only if `docs/` directory exists)
+- `interface-validation.md` - Module pattern consistency (only if consistent module patterns detected)
+
+## 6.4 Universal Agents (All Projects)
+
 - `troubleshooter.md` - Systematic issue diagnosis
 - `code-reviewer.md` - Code review with confidence scoring
 
-## 3.3 Project-Type Specific Elements
+## 6.5 Conditional Agents
 
-### Python Projects
-**Additional hooks:**
-- Consider: type-checking reminder, docstring validation
+- `architecture-explainer.md` - Architectural context and guidance (only if maturity >= 4)
 
-**Commands:**
-- `test-all.md` configured for pytest
+## 6.6 Commands (Growing/Mature Only)
 
-### Node/React Projects
-**Additional hooks:**
-- Consider: dependency audit reminder
-
-**Commands:**
-- `test-all.md` configured for jest/vitest
-
-### Docker Projects
-**Additional hooks:**
-- Consider: Dockerfile best practices validation
-
-**Agents:**
-- Consider: container troubleshooter
-
-### Monorepo Projects
-**Additional agents:**
-- Consider: workspace navigator
+- `test-all.md` - Unified test runner
+- `health-check.md` - Project health assessment
+- `scaffold.md` - Code scaffolding (only if maturity >= 5)
 
 ---
 
-# PHASE 4: Installation
+# PHASE 7: Installation
 
-## 4.1 Create Directory Structure
+## 7.1 Create Directory Structure
 
 ```bash
 mkdir -p .claude/hooks .claude/agents .claude/commands
 ```
 
-## 4.2 Copy Stock Elements
+## 7.2 Copy Stock Elements
 
 For each selected element:
 
@@ -285,9 +396,9 @@ For each selected element:
 3. Write to `.claude/{type}/{name}.md`
 4. Compute SHA-256 hash for tracking
 
-## 4.3 Create/Update Manifest
+## 7.3 Create/Update Manifest
 
-Create `.claude/bootstrap-manifest.json`:
+Create `.claude/sail-manifest.json`:
 
 ```json
 {
@@ -295,6 +406,7 @@ Create `.claude/bootstrap-manifest.json`:
   "bootstrapped_at": "2026-01-08T12:00:00Z",
   "project_type": ["python", "docker"],
   "maturity_score": 5,
+  "upgraded_from": "bootstrap-manifest",
   "stock_elements": {
     "hooks/test-coverage-reminder.md": {
       "source_version": "1.0.0",
@@ -304,6 +416,11 @@ Create `.claude/bootstrap-manifest.json`:
     "hooks/security-warning.md": {
       "source_version": "1.0.0",
       "installed_hash": "sha256:def456...",
+      "customized": false
+    },
+    "hooks/compaction-safety.md": {
+      "source_version": "1.0.0",
+      "installed_hash": "sha256:jkl012...",
       "customized": false
     },
     "agents/troubleshooter.md": {
@@ -319,11 +436,13 @@ Create `.claude/bootstrap-manifest.json`:
 }
 ```
 
-## 4.4 Handle Re-runs
+Note: The `"upgraded_from": "bootstrap-manifest"` field is included ONLY when migrating from an existing `.claude/bootstrap-manifest.json`. Omit it for fresh installs.
+
+## 7.4 Handle Re-runs
 
 When bootstrap has already run:
 
-1. Read existing manifest
+1. Read existing manifest (check `.claude/sail-manifest.json` first, fall back to `.claude/bootstrap-manifest.json`)
 2. For each stock element:
    - Compute current file hash
    - Compare to `installed_hash` in manifest
@@ -331,109 +450,50 @@ When bootstrap has already run:
    - If same: Safe to update if newer template available
 3. Preserve custom elements (not in stock list)
 4. Update manifest with new timestamp
+5. If migrating from `bootstrap-manifest.json`, write new `sail-manifest.json` with `"upgraded_from": "bootstrap-manifest"` field
 
 ---
 
-# PHASE 5: Recommendations
-
-After installation, provide additional recommendations:
-
-## 5.1 Custom Elements
-
-Based on project analysis, suggest project-specific:
-
-### Custom Hooks
-If patterns detected that would benefit from validation hooks:
-```
-Consider creating: .claude/hooks/[pattern]-validation.md
-- Purpose: [Why this would help]
-- Pattern: [File glob to match]
-```
-
-### Custom Agents
-If domain complexity detected:
-```
-Consider creating: .claude/agents/[domain]-expert.md
-- Purpose: [What domain knowledge would help]
-- Use case: [When to invoke]
-```
-
-### Custom Commands
-If repetitive workflows detected:
-```
-Consider creating: .claude/commands/[workflow].md
-- Purpose: [What it automates]
-- Trigger: [When users would run this]
-```
-
-## 5.2 MCP Integrations
-
-If project would benefit:
-- Database MCP for data-heavy projects
-- GitHub MCP for PR-heavy workflows
-- Cloud provider MCPs for infrastructure projects
-
-## 5.3 Priority Ranking
-
-Rank all recommendations:
-1. **Immediate** - Will improve next session significantly
-2. **Soon** - Worth setting up this week
-3. **Eventually** - Nice to have as project matures
-
----
-
-# PHASE 6: Summary Report
+# PHASE 8: Summary Report
 
 Output a complete summary:
 
 ```markdown
-## Bootstrap Complete
+## Setup Complete
 
 ### Project Profile
-- **Type:** Python + Docker
-- **Maturity:** Growing (score: 5/10)
-- **Existing setup:** None (fresh bootstrap)
+- **Type:** [detected types]
+- **Maturity:** [level] (score: N/10)
+- **Integrations:** Empirica [✓/✗] │ Vault [✓/✗] │ Plugins [N installed]
 
 ### What Was Installed
+[organized by category with counts]
 
 #### CLAUDE.md
 Created `.claude/CLAUDE.md` with:
-- Quick Reference (5 commands)
+- Quick Reference
 - Architecture Overview
-- Key Patterns (3 documented)
-- Common Tasks (4 how-tos)
+- Key Patterns
+- Common Tasks
+- Integrations (if any detected)
 
-#### Hooks (2)
-- `test-coverage-reminder.md` - Reminds about tests
-- `security-warning.md` - Warns on sensitive files
+#### Hooks ([count])
+- [list installed hooks with descriptions]
 
-#### Agents (2)
-- `troubleshooter.md` - Systematic debugging
-- `code-reviewer.md` - Code review
+#### Agents ([count])
+- [list installed agents with descriptions]
 
-#### Commands (0)
-Skipped - project is nascent, run `/bootstrap-project` again when workflows are established
+#### Commands ([count])
+- [list installed commands with descriptions, or note why skipped]
 
 ### Recommendations
-
-#### High Priority
-1. Create interface validation hook for your `*_service.py` pattern
-2. Consider domain-specific troubleshooter for [detected domain]
-
-#### Medium Priority
-3. Add scaffold command when you establish module patterns
-4. Consider pytest coverage hook after test suite grows
+[prioritized: Immediate / Soon / Eventually]
 
 ### Next Steps
 1. Review generated CLAUDE.md and refine
-2. Test the installed hooks by editing a source file
-3. Try `/troubleshooter` agent on your next bug
-4. Existing documentation? Run `/migrate-docs` to restructure into Diataxis framework
-
-### Maintenance
-- Run `/check-project-setup` periodically to detect drift
-- Run `/refresh-claude-md` to update documentation
-- Re-run `/bootstrap-project` after major architectural changes
+2. Run /start at the beginning of your next session
+3. Run /toolkit to see all available commands
+4. Try /blueprint [name] for your next non-trivial change
 ```
 
 ---
@@ -446,6 +506,9 @@ Stock element templates are stored at:
 ├── stock-hooks/
 │   ├── test-coverage-reminder.md
 │   ├── security-warning.md
+│   ├── compaction-safety.md
+│   ├── empirica-basics.md
+│   ├── documentation-standards.md
 │   └── interface-validation.md
 ├── stock-agents/
 │   ├── troubleshooter.md

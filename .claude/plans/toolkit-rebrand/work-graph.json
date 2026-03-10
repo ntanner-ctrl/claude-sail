@@ -1,0 +1,226 @@
+{
+  "spec_checksum": "pending-generation",
+  "generated_at": "2026-03-10T20:15:00Z",
+  "nodes": {
+    "W1": {
+      "description": "Rename infrastructure files",
+      "complexity": "small",
+      "files": [
+        "hooks/session-bootstrap.sh",
+        "plugins/bootstrap-toolkit/",
+        ".claude/bootstrap-manifest.json"
+      ],
+      "dependencies": []
+    },
+    "W2": {
+      "description": "Update install.sh",
+      "complexity": "medium",
+      "files": [
+        "install.sh"
+      ],
+      "dependencies": [
+        "W1"
+      ]
+    },
+    "W3": {
+      "description": "Update settings files",
+      "complexity": "small",
+      "files": [
+        "settings-example.json",
+        ".claude/settings.local.json"
+      ],
+      "dependencies": [
+        "W1"
+      ]
+    },
+    "W4": {
+      "description": "Rebuild bootstrap-project.md",
+      "complexity": "large",
+      "files": [
+        "commands/bootstrap-project.md"
+      ],
+      "dependencies": []
+    },
+    "W5": {
+      "description": "Update check-project-setup.md",
+      "complexity": "medium",
+      "files": [
+        "commands/check-project-setup.md"
+      ],
+      "dependencies": [
+        "W4"
+      ]
+    },
+    "W6": {
+      "description": "Refresh existing stock elements",
+      "complexity": "medium",
+      "files": [
+        "commands/templates/stock-hooks/*.md",
+        "commands/templates/stock-agents/*.md",
+        "commands/templates/stock-commands/*.md"
+      ],
+      "dependencies": []
+    },
+    "W7": {
+      "description": "Create new stock elements",
+      "complexity": "medium",
+      "files": [
+        "commands/templates/stock-hooks/compaction-safety.md",
+        "commands/templates/stock-hooks/empirica-basics.md"
+      ],
+      "dependencies": []
+    },
+    "W8": {
+      "description": "Update INSTALL.md template",
+      "complexity": "small",
+      "files": [
+        "commands/templates/INSTALL.md"
+      ],
+      "dependencies": [
+        "W6",
+        "W7"
+      ]
+    },
+    "W9": {
+      "description": "Rewrite README.md",
+      "complexity": "medium",
+      "files": [
+        "README.md"
+      ],
+      "dependencies": [
+        "W4"
+      ]
+    },
+    "W10": {
+      "description": "Rewrite GETTING_STARTED.md",
+      "complexity": "large",
+      "files": [
+        "GETTING_STARTED.md"
+      ],
+      "dependencies": [
+        "W9"
+      ]
+    },
+    "W11": {
+      "description": "Cross-cutting reference update",
+      "complexity": "medium",
+      "files": [
+        "~30 files"
+      ],
+      "dependencies": [
+        "W1",
+        "W2",
+        "W4"
+      ]
+    },
+    "W12": {
+      "description": "Update docs/*.md",
+      "complexity": "small",
+      "files": [
+        "docs/SECURITY.md",
+        "docs/PLANNING-STORAGE.md",
+        "docs/ENFORCEMENT-PATTERNS.md"
+      ],
+      "dependencies": [
+        "W1"
+      ]
+    },
+    "W13": {
+      "description": "Update .claude/CLAUDE.md",
+      "complexity": "small",
+      "files": [
+        ".claude/CLAUDE.md"
+      ],
+      "dependencies": [
+        "W4",
+        "W9"
+      ]
+    },
+    "W14": {
+      "description": "Update commands/README.md",
+      "complexity": "small",
+      "files": [
+        "commands/README.md"
+      ],
+      "dependencies": [
+        "W4",
+        "W6",
+        "W7"
+      ]
+    },
+    "W15": {
+      "description": "Update assess-project.md",
+      "complexity": "trivial",
+      "files": [
+        "commands/assess-project.md"
+      ],
+      "dependencies": []
+    },
+    "W16": {
+      "description": "Update start.md",
+      "complexity": "trivial",
+      "files": [
+        "commands/start.md"
+      ],
+      "dependencies": []
+    },
+    "W17": {
+      "description": "Update plugin internals",
+      "complexity": "small",
+      "files": [
+        "plugins/sail-toolkit/"
+      ],
+      "dependencies": [
+        "W1"
+      ]
+    }
+  },
+  "batches": [
+    {
+      "batch": 1,
+      "units": [
+        "W1",
+        "W4",
+        "W6",
+        "W7",
+        "W15",
+        "W16"
+      ],
+      "note": "No dependencies — all can run in parallel"
+    },
+    {
+      "batch": 2,
+      "units": [
+        "W2",
+        "W3",
+        "W5",
+        "W8",
+        "W9",
+        "W12",
+        "W17"
+      ],
+      "note": "Depend on batch 1 outputs"
+    },
+    {
+      "batch": 3,
+      "units": [
+        "W10",
+        "W11",
+        "W13",
+        "W14"
+      ],
+      "note": "Depend on batch 2 outputs"
+    }
+  ],
+  "analysis": {
+    "total_units": 17,
+    "max_parallel_width": 6,
+    "critical_path": [
+      "W1",
+      "W2",
+      "W11"
+    ],
+    "critical_path_length": 3,
+    "file_conflicts": []
+  }
+}
