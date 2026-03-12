@@ -263,16 +263,11 @@ echo "  ~/.claude/hooks/state-index-update.sh - Maintain active work state index
 echo "  ~/.claude/hooks/blueprint-stage-gate.sh - Check Empirica data before blueprint stage transitions"
 echo "  ~/.claude/hooks/cfn-lint-check.sh     - Auto-lint CloudFormation templates (fail-open)"
 echo "  ~/.claude/hooks/worktree-cleanup.sh   - Clean orphaned worktrees on start"
-echo "  ~/.claude/hooks/empirica-session-guard.sh - Block duplicate Empirica sessions"
-echo "  ~/.claude/hooks/empirica-commit-reminder.sh - Remind to log findings after commits"
 echo "  ~/.claude/hooks/empirica-insight-capture.sh - Mirror Empirica logs to disk"
 echo "  ~/.claude/hooks/empirica-preflight-capture.sh - Capture preflight vectors to disk"
 echo "  ~/.claude/hooks/empirica-postflight-capture.sh - Capture postflight vectors to disk"
-echo "  ~/.claude/hooks/insight-nudge.sh          - Throttled reminder to capture insights"
-echo "  ~/.claude/hooks/session-end-empirica.sh  - Close Empirica session on exit"
 echo "  ~/.claude/hooks/statusline.sh         - Toolkit-aware status line display"
 echo "  ~/.claude/hooks/session-end-vault.sh  - Safety-net vault export on session end"
-echo "  ~/.claude/hooks/compaction-guardian.sh - Gate tool calls when context nears compaction"
 echo "  ~/.claude/hooks/failure-escalation.sh  - Track consecutive test/build failures"
 echo "  ~/.claude/hooks/session-end-cleanup.sh - Clean up signal files on session end"
 echo "  ~/.claude/hooks/vault-config.sh       - Shared vault configuration (sourced by vault hooks)"
@@ -305,7 +300,6 @@ echo '    }],'
 echo '    "PostToolUse": [{'
 echo '      "matcher": "Bash",'
 echo '      "hooks": ['
-echo '        { "type": "command", "command": "~/.claude/hooks/empirica-commit-reminder.sh" },'
 echo '        { "type": "command", "command": "~/.claude/hooks/failure-escalation.sh" }'
 echo '      ]'
 echo '    }, {'
@@ -315,6 +309,21 @@ echo '        { "type": "command", "command": "~/.claude/hooks/after-edit.sh" },
 echo '        { "type": "command", "command": "~/.claude/hooks/cfn-lint-check.sh", "timeout": 30 },'
 echo '        { "type": "command", "command": "~/.claude/hooks/state-index-update.sh" },'
 echo '        { "type": "command", "command": "~/.claude/hooks/blueprint-stage-gate.sh" }'
+echo '      ]'
+echo '    }, {'
+echo '      "matcher": "mcp__empirica__finding_log|mcp__empirica__mistake_log|mcp__empirica__deadend_log",'
+echo '      "hooks": ['
+echo '        { "type": "command", "command": "~/.claude/hooks/empirica-insight-capture.sh" }'
+echo '      ]'
+echo '    }, {'
+echo '      "matcher": "mcp__empirica__submit_preflight_assessment",'
+echo '      "hooks": ['
+echo '        { "type": "command", "command": "~/.claude/hooks/empirica-preflight-capture.sh" }'
+echo '      ]'
+echo '    }, {'
+echo '      "matcher": "mcp__empirica__submit_postflight_assessment",'
+echo '      "hooks": ['
+echo '        { "type": "command", "command": "~/.claude/hooks/empirica-postflight-capture.sh" }'
 echo '      ]'
 echo '    }],'
 echo '    "PreToolUse": [{'
@@ -329,21 +338,10 @@ echo '      "hooks": ['
 echo '        { "type": "command", "command": "~/.claude/hooks/protect-claude-md.sh" },'
 echo '        { "type": "command", "command": "~/.claude/hooks/tdd-guardian.sh" }'
 echo '      ]'
-echo '    }, {'
-echo '      "matcher": "*",'
-echo '      "hooks": ['
-echo '        { "type": "command", "command": "~/.claude/hooks/compaction-guardian.sh" }'
-echo '      ]'
-echo '    }, {'
-echo '      "matcher": "mcp__empirica__session_create",'
-echo '      "hooks": ['
-echo '        { "type": "command", "command": "~/.claude/hooks/empirica-session-guard.sh" }'
-echo '      ]'
 echo '    }],'
 echo '    "SessionEnd": [{'
 echo '      "matcher": "",'
 echo '      "hooks": ['
-echo '        { "type": "command", "command": "~/.claude/hooks/session-end-empirica.sh" },'
 echo '        { "type": "command", "command": "~/.claude/hooks/session-end-vault.sh" },'
 echo '        { "type": "command", "command": "~/.claude/hooks/session-end-cleanup.sh" }'
 echo '      ]'

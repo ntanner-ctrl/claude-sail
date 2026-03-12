@@ -54,20 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/empirica-commit-reminder.sh"
-          },
-          {
-            "type": "command",
             "command": "~/.claude/hooks/failure-escalation.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Read|Edit|Write|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/insight-nudge.sh"
           }
         ]
       },
@@ -125,34 +112,12 @@
             "command": "~/.claude/hooks/tdd-guardian.sh"
           }
         ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/compaction-guardian.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__empirica__session_create",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/empirica-session-guard.sh"
-          }
-        ]
       }
     ],
     "SessionEnd": [
       {
         "matcher": "",
         "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/session-end-empirica.sh"
-          },
           {
             "type": "command",
             "command": "~/.claude/hooks/session-end-vault.sh"

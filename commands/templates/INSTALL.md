@@ -27,7 +27,7 @@ bash install.sh
 │       ├── stock-agents/   (3)  # Agents for target projects
 │       └── stock-commands/ (3)  # Commands for target projects
 ├── agents/                # 6 review agents
-├── hooks/                 # 23 shell hooks
+├── hooks/                 # 18 shell hooks
 └── plugins/local/
     └── sail-toolkit/      # Session-start drift detection
 ```

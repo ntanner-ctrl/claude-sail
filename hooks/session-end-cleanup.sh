@@ -1,26 +1,20 @@
 #!/usr/bin/env bash
 # session-end-cleanup.sh — Removes signal files created during the session
 #
-# Cleans up: compaction guardian signals, failure counter, debug reset,
-# guardian heartbeat, and checkpoint-done markers.
-#
-# To disable: remove the SessionEnd entry for session-end-cleanup.sh from ~/.claude/settings.json
+# Cleans up: failure counter, debug reset, and session start timestamp.
 
 set +e
 
-# Determine session-scoped suffix (same logic as guardian/failure hooks)
+# Determine session-scoped suffix (same logic as failure-escalation hook)
 if [ "$PPID" -eq 1 ]; then
     SIG_SUFFIX="$USER-$(pwd | md5sum | cut -c1-8)"
 else
     SIG_SUFFIX="$PPID"
 fi
 
-rm -f "/tmp/.claude-ctx-warning-${SIG_SUFFIX}" \
-      "/tmp/.claude-ctx-critical-${SIG_SUFFIX}" \
-      "/tmp/.claude-checkpoint-done-${SIG_SUFFIX}" \
-      "/tmp/.claude-fail-count-${SIG_SUFFIX}" \
+rm -f "/tmp/.claude-fail-count-${SIG_SUFFIX}" \
       "/tmp/.claude-debug-reset-${SIG_SUFFIX}" \
-      "/tmp/.claude-guardian-heartbeat-${SIG_SUFFIX}" \
+      "/tmp/.claude-session-start-$(id -u)" \
       2>/dev/null
 
 exit 0

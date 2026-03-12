@@ -8,7 +8,7 @@ Structured workflows, safety guardrails, and planning discipline for Claude Code
 - **Verify install:** `ls ~/.claude/commands/blueprint.md`
 - **Count commands:** `ls commands/*.md | grep -v README | wc -l` (expect 47)
 - **Count agents:** `ls agents/*.md | wc -l` (expect 6)
-- **Count hooks:** `ls hooks/*.sh | wc -l` (expect 23)
+- **Count hooks:** `ls hooks/*.sh | wc -l` (expect 18)
 - **Lint enforcement:** `grep -rn "^description:.*\(consider\|might\|optionally\)" commands/` (expect 0 matches)
 - **Run from repo:** `cd /path/to/project && claude` then `/bootstrap-project`
 
@@ -28,7 +28,7 @@ claude-sail/
 │   │   └── documentation/    # Diataxis doc templates
 │   └── *.md           # The actual toolkit commands
 ├── agents/            # 6 review agents (spec, quality, security, performance, architecture, CloudFormation)
-├── hooks/             # 23 shell hooks (*.sh) for SessionStart, PreToolUse, PostToolUse, SessionEnd, etc.
+├── hooks/             # 18 shell hooks (*.sh) for SessionStart, PreToolUse, PostToolUse, SessionEnd, etc.
 ├── hookify-rules/     # 7 YAML-based safety rules (*.local.md)
 ├── plugins/           # Session-start plugin (sail-toolkit)
 ├── ops-starter-kit/   # Domain extension example for infrastructure teams

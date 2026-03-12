@@ -29,7 +29,7 @@ claude
 | [**Commands**](commands/README.md) | 47 workflow commands for planning, review, testing, execution, vault integration + plugin integration |
 | [**Agents**](agents/) | 6 specialized review agents (spec, quality, security, performance, architecture, CloudFormation) |
 | [**Planning Infrastructure**](docs/PLANNING-STORAGE.md) | Staged planning with triage, specs, and adversarial challenge |
-| [**Shell Hooks**](hooks/) | 23 shell hooks for safety, session lifecycle, Empirica capture, toolkit hardening |
+| [**Shell Hooks**](hooks/) | 18 shell hooks for safety, session lifecycle, Empirica capture, toolkit hardening |
 | [**Hookify Rules**](hookify-rules/) | 7 YAML-based security rules |
 | [**Stock Elements**](commands/templates/) | 12 stock elements (6 hooks, 3 agents, 3 commands) installed into target projects |
 | [**Ops Starter Kit**](ops-starter-kit/) | Domain-specific extensions for infrastructure work |
