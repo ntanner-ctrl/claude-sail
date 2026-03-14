@@ -296,6 +296,25 @@ On Light path, run a **shortened gate**: score Goal Clarity only (the single mos
 
 **Known gap:** Constraint Clarity and Success Criteria are intentionally not checked on Light path.
 
+### Prior Art Gate (Between Stage 1 → Stage 2)
+
+After the Ambiguity Gate passes and before Stage 2 (Specify) begins, run a prior art search.
+This is ENFORCED — cannot proceed to Stage 2 without completing it.
+
+1. Run `/prior-art` with the problem description from describe.md
+2. Write output to `.claude/plans/[name]/prior-art.md`
+3. Gate behavior:
+   - **Adopt** recommendation → prompt user to supersede blueprint or continue
+   - **Adapt/Inform/Build** → proceed to Stage 2, prior-art report available as context
+4. Record in state.json: `"prior_art_gate": { "status": "complete", "recommendation": "[adopt/adapt/inform/build]", "override": false, "run_at": "YYYY-MM-DDTHH:MM:SSZ" }`
+
+On Light path: skip prior-art gate entirely (Light path skips Stages 2-6, prior art is a pre-Stage-2 gate).
+On Standard/Full path: enforced.
+
+If WebSearch is unavailable: log skip with reason, proceed to Stage 2.
+
+**Backward compatibility:** If state.json has no `prior_art_gate` key AND the current stage is >= 2 (Specify), treat the gate as already passed: set `"prior_art_gate": { "status": "legacy-skipped", "reason": "pre-feature blueprint — stage already past gate" }` and proceed without prompting. Only enforce the gate on blueprints that have not yet reached Stage 2.
+
 ### Path-Based Stage Selection
 
 After Stage 1 (Describe), the triage result determines the path:
@@ -1547,6 +1566,8 @@ After presenting the completion summary, export blueprint to vault if available:
         [parallelization recommendation based on work graph + execution_preference]
 
   Post-implementation:
+    /quality-sweep [name]   — Structured review sweep with all reviewer agents (recommended)
+    /outside-review         — Cross-model adversarial assessment
     /simplify               — Review changed code for reuse, quality, efficiency (if available)
     /quality-gate           — Score against rubric before completing
 

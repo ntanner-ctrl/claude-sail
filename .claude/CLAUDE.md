@@ -6,7 +6,7 @@ Structured workflows, safety guardrails, and planning discipline for Claude Code
 
 - **Test install locally:** `bash install.sh` (copies to `~/.claude/`)
 - **Verify install:** `ls ~/.claude/commands/blueprint.md`
-- **Count commands:** `ls commands/*.md | grep -v README | wc -l` (expect 47)
+- **Count commands:** `ls commands/*.md | grep -v README | wc -l` (expect 49)
 - **Count agents:** `ls agents/*.md | wc -l` (expect 6)
 - **Count hooks:** `ls hooks/*.sh | wc -l` (expect 18)
 - **Lint enforcement:** `grep -rn "^description:.*\(consider\|might\|optionally\)" commands/` (expect 0 matches)
@@ -18,7 +18,7 @@ This repo is a **distribution package** — not a runtime app. `install.sh` copi
 
 ```
 claude-sail/
-├── commands/          # 47 slash commands (*.md with YAML frontmatter, includes plugin-enhancers reference)
+├── commands/          # 49 slash commands (*.md with YAML frontmatter, includes plugin-enhancers reference)
 │   ├── templates/     # Stock elements installed by /bootstrap-project into target projects
 │   │   ├── stock-hooks/      # 6 prompt-based hooks for target projects
 │   │   ├── stock-agents/     # 3 agents for target projects

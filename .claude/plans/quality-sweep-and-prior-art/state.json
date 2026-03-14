@@ -1,0 +1,76 @@
+{
+  "blueprint_version": 2,
+  "name": "quality-sweep-and-prior-art",
+  "challenge_mode": "debate",
+  "execution_preference": "auto",
+  "current_stage": "execute",
+  "path": "full",
+  "revision": 2,
+  "regressions": 1,
+  "max_regressions": 3,
+  "empirica_session_id": "6368dfff-e268-401d-a64a-553fe32c1796",
+  "empirica_preflight_complete": true,
+  "manifest_stale": false,
+  "work_graph_stale": false,
+  "ambiguity_gate": {
+    "goal_clarity": 5,
+    "constraint_clarity": 4,
+    "success_criteria": 4,
+    "composite": 4.4,
+    "result": "pass",
+    "override": false
+  },
+  "stages": {
+    "describe": {
+      "status": "complete",
+      "confidence": 0.9,
+      "confidence_note": "Well-defined from brainstorm session, clear scope and steps"
+    },
+    "specify": {
+      "status": "complete",
+      "confidence": 0.9,
+      "confidence_note": "Revision 1: All 17 debate findings addressed. Removed auto-fix mode, added git checkpoint, agent interface contract, dynamic branch detection, dedup heuristic, prior-art caching, fix timeouts."
+    },
+    "challenge": {
+      "status": "complete",
+      "confidence": 0.85,
+      "confidence_note": "Debate complete. All findings addressed in revision 1. Revalidation passed."
+    },
+    "edge_cases": {
+      "status": "complete",
+      "confidence": 0.85,
+      "confidence_note": "PASS_WITH_NOTES. 3 high, 5 medium findings all addressed in spec revision 1.1. No regression needed."
+    },
+    "premortem": {
+      "status": "complete",
+      "confidence": 0.8,
+      "confidence_note": "5 findings (2 NEW high, 2 NEW medium, 1 covered-insufficient). File-existence criteria and emoji/text severity mismatch addressed in spec. WebSearch fallback noted for implementation."
+    },
+    "review": {
+      "status": "skipped",
+      "confidence": null,
+      "skip_reason": "Stages 3-4.5 were thorough — 3-round debate, 3-round edge case analysis, and pre-mortem. 30+ findings addressed."
+    },
+    "test": {
+      "status": "complete",
+      "confidence": 0.85,
+      "confidence_note": "44 test cases across 9 categories covering standalone, gate, sweep, triage, fix dispatch, edge cases, and pre-mortem findings. Manual verification — no automated test suite for this toolkit."
+    },
+    "execute": {
+      "status": "pending",
+      "confidence": null
+    }
+  },
+  "regression_log": [
+    {
+      "from_stage": "challenge",
+      "to_stage": "specify",
+      "trigger_type": "automatic",
+      "trigger": "debate_judge_regress",
+      "reason": "2 critical findings: F1 (description too broad), F3 (auto-fix no confirmation). 4 high findings: F2 (agent interface), F5 (dependency detection), F6 (no checkpoint), F8 (assumes main branch).",
+      "timestamp": "2026-03-13T10:30:00Z",
+      "revision": 1
+    }
+  ],
+  "created_at": "2026-03-13T10:00:00Z"
+}

@@ -162,7 +162,8 @@ if [ -n "$EMPIRICA_BIN" ]; then
 
             EMPIRICA_INSTRUCTION="\nEMPIRICA (epistemic tracking — REQUIRED):
   SESSION PRE-CREATED: ${SESSION_ID}. Do NOT call mcp__empirica__session_create.
-  Call mcp__empirica__submit_preflight_assessment with session_id: ${SESSION_ID} and honest self-assessment vectors.
+  Call mcp__empirica__submit_preflight_assessment with session_id: ${SESSION_ID}.
+  VECTORS (use EXACTLY these 13 keys): engagement, know, do, context, clarity, coherence, signal, density, state, change, completion, impact, uncertainty. Each 0.0-1.0.
   Store session_id ${SESSION_ID} for use throughout this conversation.
   Before ending the session, suggest /end to close Empirica with a proper postflight assessment."
         else
@@ -171,7 +172,8 @@ if [ -n "$EMPIRICA_BIN" ]; then
             rm -f "$ACTIVE_SESSION_FILE" 2>/dev/null
             EMPIRICA_INSTRUCTION="\nEMPIRICA (epistemic tracking — REQUIRED):
   Session auto-creation failed (JSON parse error). You MUST call mcp__empirica__session_create (ai_id: \"claude-code\") as your FIRST action.
-  Then call mcp__empirica__submit_preflight_assessment with honest self-assessment vectors.
+  Then call mcp__empirica__submit_preflight_assessment.
+  VECTORS (use EXACTLY these 13 keys): engagement, know, do, context, clarity, coherence, signal, density, state, change, completion, impact, uncertainty. Each 0.0-1.0.
   Before ending the session, suggest /end to close Empirica with a proper postflight assessment."
         fi
     else
@@ -179,7 +181,8 @@ if [ -n "$EMPIRICA_BIN" ]; then
         rm -f "$ACTIVE_SESSION_FILE" 2>/dev/null
         EMPIRICA_INSTRUCTION="\nEMPIRICA (epistemic tracking — REQUIRED):
   Session auto-creation failed (exit code: ${SESSION_EXIT}). You MUST call mcp__empirica__session_create (ai_id: \"claude-code\") as your FIRST action.
-  Then call mcp__empirica__submit_preflight_assessment with honest self-assessment vectors.
+  Then call mcp__empirica__submit_preflight_assessment.
+  VECTORS (use EXACTLY these 13 keys): engagement, know, do, context, clarity, coherence, signal, density, state, change, completion, impact, uncertainty. Each 0.0-1.0.
   Before ending the session, suggest /end to close Empirica with a proper postflight assessment."
     fi
 fi

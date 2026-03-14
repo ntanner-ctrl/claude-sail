@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "units": {
+    "W1": {
+      "name": "Create commands/prior-art.md",
+      "file": "commands/prior-art.md",
+      "action": "create",
+      "dependencies": [],
+      "estimated_complexity": "medium"
+    },
+    "W2": {
+      "name": "Create commands/quality-sweep.md",
+      "file": "commands/quality-sweep.md",
+      "action": "create",
+      "dependencies": [],
+      "estimated_complexity": "high"
+    },
+    "W3": {
+      "name": "Blueprint wiring: prior-art gate",
+      "file": "commands/blueprint.md",
+      "action": "modify",
+      "dependencies": [
+        "W1"
+      ],
+      "estimated_complexity": "low"
+    },
+    "W4": {
+      "name": "Blueprint wiring: quality-sweep suggestion",
+      "file": "commands/blueprint.md",
+      "action": "modify",
+      "dependencies": [
+        "W2"
+      ],
+      "estimated_complexity": "low"
+    },
+    "W5": {
+      "name": "Update commands/README.md",
+      "file": "commands/README.md",
+      "action": "modify",
+      "dependencies": [
+        "W1",
+        "W2"
+      ],
+      "estimated_complexity": "low"
+    },
+    "W6": {
+      "name": "Update README.md",
+      "file": "README.md",
+      "action": "modify",
+      "dependencies": [
+        "W1",
+        "W2"
+      ],
+      "estimated_complexity": "low"
+    }
+  },
+  "graph": {
+    "W1": [
+      "W3",
+      "W5",
+      "W6"
+    ],
+    "W2": [
+      "W4",
+      "W5",
+      "W6"
+    ],
+    "W3": [],
+    "W4": [],
+    "W5": [],
+    "W6": []
+  },
+  "width": 2,
+  "critical_path": [
+    "W1",
+    "W3",
+    "W5"
+  ],
+  "critical_path_length": 3,
+  "parallel_groups": [
+    {
+      "group": 1,
+      "units": [
+        "W1",
+        "W2"
+      ],
+      "note": "Independent command creation"
+    },
+    {
+      "group": 2,
+      "units": [
+        "W3",
+        "W4"
+      ],
+      "note": "Blueprint modifications (same file, different sections)"
+    },
+    {
+      "group": 3,
+      "units": [
+        "W5",
+        "W6"
+      ],
+      "note": "README updates"
+    }
+  ]
+}

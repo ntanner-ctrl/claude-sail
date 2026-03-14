@@ -34,6 +34,7 @@ Complete reference for all Claude Sail commands.
 | `/decision` | Record a non-obvious decision |
 | `/design-check` | Pre-implementation prerequisite check (6-point) |
 | `/requirements-discovery` | Extract validated requirements |
+| `/prior-art` | Search for existing solutions before building custom |
 
 ### Adversarial (Challenge Your Blueprint)
 
@@ -50,6 +51,7 @@ Complete reference for all Claude Sail commands.
 |---------|-----------|
 | `/tdd` | TDD-enforced development with RED-GREEN-REFACTOR discipline |
 | `/quality-gate` | Quality threshold check before completing implementation |
+| `/quality-sweep` | Post-implementation review sweep with all reviewer agents |
 | `/spec-to-tests` | Generate tests from spec (spec-blind) |
 | `/security-checklist` | 8-point OWASP-style security audit |
 | `/debug` | Scientific debugging (OBSERVE-HYPOTHESIZE-PREDICT-EXPERIMENT-CONCLUDE) |
