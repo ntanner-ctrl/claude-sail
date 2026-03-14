@@ -6,6 +6,7 @@
 # Low-frequency: most edits don't trigger any work.
 #
 # Installation: PostToolUse hook with matcher "Edit|Write"
+set +e
 
 # Get the file that was just edited/written
 TOOL_INPUT="${CLAUDE_TOOL_INPUT:-}"

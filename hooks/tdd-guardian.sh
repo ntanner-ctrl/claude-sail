@@ -6,6 +6,7 @@
 # Reads: .claude/tdd-sessions/active.json in working directory
 # Exit codes: 0=allow, 2=block with feedback
 #
+set +e
 
 # Read tool input from stdin
 input=$(cat)

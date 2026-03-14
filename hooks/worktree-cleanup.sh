@@ -7,6 +7,7 @@
 # or interrupted sessions.
 #
 # Installation: Add to ~/.claude/settings.json SessionStart hooks
+set +e
 
 WORKTREE_DIR=".claude/worktrees"
 
@@ -19,7 +20,7 @@ orphans=$(ls -d "$WORKTREE_DIR"/*/ 2>/dev/null)
 
 # Remove orphaned worktrees
 count=0
-for wt in $WORKTREE_DIR/*/; do
+for wt in "$WORKTREE_DIR"/*/; do
     [ -d "$wt" ] || continue
     wt_name=$(basename "$wt")
     git worktree remove "$WORKTREE_DIR/$wt_name" --force 2>/dev/null || rm -rf "$wt"

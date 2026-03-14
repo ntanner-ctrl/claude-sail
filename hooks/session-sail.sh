@@ -11,6 +11,7 @@
 #
 # Installation: Add to ~/.claude/settings.json SessionStart hooks
 # Output: Stdout is injected into conversation context
+set +e
 
 # Detect available commands
 COMMANDS_DIR="${HOME}/.claude/commands"

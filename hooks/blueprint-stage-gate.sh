@@ -13,6 +13,7 @@
 #   3. On Stage 1→2 transition: preflight assessment exists
 #   4. manifest_stale flag is not set [H5]
 #
+set +e
 # Installation: PostToolUse hook with matcher "Edit|Write"
 
 TOOL_INPUT="${CLAUDE_TOOL_INPUT:-}"

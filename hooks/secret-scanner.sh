@@ -75,7 +75,8 @@ fi
 # Scan staged content for secrets
 found_secrets=()
 
-for file in $staged_files; do
+while IFS= read -r file; do
+    [ -z "$file" ] && continue
     # Skip binary files and common non-code files
     if [[ "$file" =~ \.(png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|pdf|zip|tar|gz)$ ]]; then
         continue
@@ -97,7 +98,7 @@ for file in $staged_files; do
             found_secrets+=("$file: Potential $pattern_name detected")
         fi
     done
-done
+done <<< "$staged_files"
 
 # Report findings
 if [[ ${#found_secrets[@]} -gt 0 ]]; then
