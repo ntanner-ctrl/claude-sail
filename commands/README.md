@@ -108,6 +108,13 @@ Complete reference for all Claude Sail commands.
 | `/check-project-setup` | Quick drift detection |
 | `/assess-project` | CLAUDE.md generation only |
 | `/setup-hooks` | Configure formatting hooks |
+| `/sail-doctor` | Verify install health, check counts, diagnose configuration issues |
+
+### Pipelines
+
+| Command | One-liner |
+|---------|-----------|
+| `/pipeline [name]` | Run a named YAML pipeline or list available pipelines |
 
 ### Documentation
 

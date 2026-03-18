@@ -1,0 +1,16 @@
+# toolkit-version: 0.9.0
+name: ship-feature
+description: Plan, test, and push a feature
+steps:
+  - command: describe-change
+    args: "$INPUT"
+    description: "Triage the change and determine planning path"
+  - command: blueprint
+    pass-output-as: context
+    description: "Run full planning workflow based on triage"
+  - command: test
+    pass-output-as: context
+    description: "Verify implementation passes tests"
+  - command: push-safe
+    description: "Pre-push safety checks and push"
+on-error: stop

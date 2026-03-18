@@ -1,0 +1,13 @@
+# toolkit-version: 0.9.0
+name: quality-check
+description: Run quality sweep, gate check, and optional review
+steps:
+  - command: quality-sweep
+    args: "$INPUT"
+    description: "Structured review sweep with all reviewer agents"
+  - command: quality-gate
+    pass-output-as: context
+    description: "Score against quality rubric"
+  - command: push-safe
+    description: "Pre-push safety checks"
+on-error: ask

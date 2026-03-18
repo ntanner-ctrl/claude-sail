@@ -1,0 +1,801 @@
+# Specification: Naksha-Inspired Improvements
+
+## Overview
+
+Three new capabilities for claude-sail, inspired by naksha-studio analysis. All additive, no breaking changes.
+
+**Scope boundaries:**
+- IN: /sail-doctor command, /pipeline command, behavioral evals
+- OUT: scored quality rubrics, CI workflow templates, multi-platform templates (deferred to future work)
+- UNCHANGED: existing commands, hooks, agents, test.sh structure (extended, not rewritten)
+
+---
+
+## Feature 1: `/sail-doctor` — Toolkit Health Check
+
+### Purpose
+
+Runtime self-diagnostic that validates claude-sail's installed state inside a Claude Code session. Positioned as **toolkit health** (not system health — that's `claude doctor`'s job).
+
+### Command Definition
+
+**File:** `commands/sail-doctor.md`
+
+**Frontmatter:**
+```yaml
+description: Use when Claude Sail may have drifted, hooks aren't firing, or after re-installing. Validates toolkit integrity and suggests fixes.
+argument-hint: --fix to show remediation steps, --quiet for pass/fail only
+allowed-tools:
+  - Read
+  - Glob
+  - Bash
+  - Grep
+```
+
+**Enforcement tier:** Utility (`Use when...`)
+
+### Diagnostic Categories
+
+The command runs 6 categories of checks, presented sequentially:
+
+#### Category 1: File Count Verification
+Compare installed file counts against expected values:
+
+| Check | Expected Source | Location |
+|-------|----------------|----------|
+| Commands | Count from README.md | `~/.claude/commands/*.md` (excluding README) |
+| Agents | Count from README.md | `~/.claude/agents/*.md` |
+| Hooks | Count from README.md | `~/.claude/hooks/*.sh` |
+| Hookify rules | Count from README.md | `~/.claude/hookify-rules/*.local.md` |
+| Stock elements | 12 total | `~/.claude/commands/templates/stock-*` |
+
+**Expected counts are hardcoded in the command** (matching test.sh). When counts change, both test.sh and sail-doctor.md must be updated.
+
+**Output format per check:**
+```
+✓ Commands: 53 (expected 53)
+✗ Hooks: 16 (expected 18) — 2 missing
+```
+
+#### Category 2: Hook Wiring Validation
+Read `~/.claude/settings.json` (or `~/.claude/settings.local.json`) and verify:
+
+1. All hooks referenced in settings-example.json exist in settings.json
+2. All hook .sh files referenced in settings.json exist on disk
+3. Hook .sh files are executable (`test -x`)
+
+**Checks:**
+- For each hook entry in settings-example.json, verify a matching entry exists in the user's settings.json (match by `command` path)
+- For each hook path in user's settings.json, verify the file exists and is executable
+- Report: "N/M expected hooks wired", list any missing
+
+**Output format:**
+```
+✓ Hook wiring: 18/18 hooks from settings-example.json found in settings.json
+✓ Hook files: all referenced .sh files exist and are executable
+  OR
+✗ Hook wiring: 16/18 — missing: secret-scanner.sh, tdd-guardian.sh
+✗ Hook files: 2 referenced files not found: ~/.claude/hooks/missing-hook.sh
+```
+
+#### Category 3: Settings Drift Detection
+Compare user's settings.json against settings-example.json for structural drift:
+
+- Event types present in example but missing from user settings (e.g., entire `PreToolUse` section missing)
+- New hook entries in example not present in user settings
+- **Do NOT flag:** user additions, custom hooks, different timeouts, extra matchers (these are intentional customization)
+
+**Output:**
+```
+✓ Settings: aligned with settings-example.json
+  OR
+⚠ Settings drift: 2 event types missing from your settings.json
+    - SessionEnd: not configured (example has session-end-cleanup.sh, session-end-vault.sh)
+    - Stop: not configured (example has failure-escalation.sh)
+```
+
+#### Category 4: MCP Server Availability
+Probe for MCP servers that claude-sail integrates with. These are informational — unavailability does NOT mark the toolkit unhealthy.
+
+**Servers to probe:**
+- Empirica: attempt `mcp__empirica__system_status` (if available)
+- Context7: attempt `mcp__context7__resolve-library-id` with a known library (if available)
+- Obsidian: check vault config via `source ~/.claude/hooks/vault-config.sh && echo $VAULT_ENABLED`
+
+**Output:**
+```
+MCP Availability (informational):
+  ✓ Empirica: connected
+  ✗ Context7: not available
+  ✓ Obsidian vault: /path/to/vault (enabled)
+```
+
+**Note:** MCP probing must be best-effort. If a tool isn't available, catch the error and report unavailability. Never block on MCP probes.
+
+#### Category 5: Target Project Health (if in a project)
+If the current working directory has a `.claude/` directory (indicating a bootstrapped project), check:
+
+- `.claude/CLAUDE.md` exists
+- `.claude/sail-manifest.json` or `.claude/bootstrap-manifest.json` exists
+- Stock elements referenced in manifest are present
+- No orphaned plan directories (plans with missing state.json)
+
+**Output:**
+```
+Target Project: /home/user/my-project
+  ✓ CLAUDE.md present
+  ✓ Manifest: sail-manifest.json (bootstrapped 2026-03-10)
+  ⚠ Orphaned plan: .claude/plans/abandoned-feature/ (no state.json)
+```
+
+If not in a project (no `.claude/` in cwd): `"Not in a bootstrapped project — skipping target project checks."`
+
+#### Category 6: Version Alignment
+Check that the installed version matches the repo version (if the repo is accessible):
+
+- Read version from installed `~/.claude/commands/templates/stock-commands/health-check.md` (or another version indicator)
+- If the claude-sail repo is the cwd, compare against source files
+- Otherwise, skip with note
+
+### `--fix` Flag Behavior
+
+When `--fix` is passed, after each failing check, append numbered remediation steps:
+
+```
+✗ Hooks: 16 (expected 18) — 2 missing
+
+  Fix:
+    1. Re-run the installer: cd /path/to/claude-sail && bash install.sh
+    2. Or manually copy missing hooks:
+       cp hooks/secret-scanner.sh ~/.claude/hooks/
+       cp hooks/tdd-guardian.sh ~/.claude/hooks/
+       chmod +x ~/.claude/hooks/secret-scanner.sh ~/.claude/hooks/tdd-guardian.sh
+```
+
+**The `--fix` flag is diagnostic-only** — it prints remediation steps but does NOT auto-patch. This avoids modifying the user's installed files without explicit consent.
+
+### `--quiet` Flag Behavior
+
+Only output failing checks and the summary line. Passing checks are suppressed.
+
+### Summary Output
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SAIL DOCTOR │ Toolkit Health Report
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. File Counts        ✓ All match
+  2. Hook Wiring        ✗ 2 hooks not wired
+  3. Settings Drift     ⚠ 1 event type missing
+  4. MCP Availability   ✓ 2/3 connected (informational)
+  5. Target Project     ✓ Healthy
+  6. Version            — Skipped (not in repo)
+
+  Status: NEEDS ATTENTION — 1 failure, 1 warning
+
+  Run /sail-doctor --fix for remediation steps.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Status values: `HEALTHY` (all pass), `NEEDS ATTENTION` (warnings only), `UNHEALTHY` (any failures).
+
+---
+
+## Feature 2: `/pipeline` — Declarative Workflow Chains
+
+### Purpose
+
+YAML-defined multi-step workflow orchestration. Chains existing claude-sail commands into repeatable sequences with context passing between steps.
+
+### Command Definition
+
+**File:** `commands/pipeline.md`
+
+**Frontmatter:**
+```yaml
+description: Use when you want to run a predefined sequence of commands as a single workflow. Chains commands with context passing.
+argument-hint: list | show <name> | run <name> [input]
+allowed-tools:
+  - Read
+  - Glob
+  - Bash
+  - Grep
+  - Skill
+```
+
+**Enforcement tier:** Utility (`Use when...`)
+
+### Pipeline YAML Schema
+
+Pipelines are stored as YAML files. Search order:
+1. `.claude/pipelines/*.yaml` (project-specific, user-defined)
+2. `~/.claude/pipelines/*.yaml` (global, user-defined)
+3. `~/.claude/commands/templates/stock-pipelines/*.yaml` (shipped defaults)
+
+Project-specific pipelines take precedence over global, which take precedence over stock.
+
+**Schema:**
+```yaml
+name: ship-feature                          # required, kebab-case
+description: Plan, test, and push a feature # required, one line
+steps:                                      # required, 2+ steps
+  - command: describe-change                # required, command name (without /)
+    args: "$INPUT"                          # optional, $INPUT = user's initial input
+    description: "Triage the change"        # required, human-readable purpose
+  - command: blueprint
+    pass-output-as: context                 # optional: feed previous step's output as context
+    description: "Full planning workflow"
+  - command: test
+    pass-output-as: context
+    description: "Run test suite"
+  - command: push-safe
+    description: "Safe push with checks"
+on-error: stop                              # required: "stop" | "continue" | "ask"
+```
+
+**Field definitions:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | yes | kebab-case identifier, must be unique across all search paths |
+| `description` | string | yes | One-line human-readable description |
+| `steps` | array | yes | 2+ step objects (single-step pipelines are just commands) |
+| `steps[].command` | string | yes | Command name without `/` prefix |
+| `steps[].args` | string | no | Arguments to pass. `$INPUT` expands to user's input |
+| `steps[].pass-output-as` | string | no | How to pass previous step's output: `"context"` (append to prompt) |
+| `steps[].description` | string | yes | Human-readable purpose of this step |
+| `on-error` | string | yes | `"stop"` (halt), `"continue"` (skip failed, proceed), `"ask"` (prompt user) |
+
+**Validation rules:**
+- `name` must be kebab-case (`^[a-z][a-z0-9-]*$`)
+- `steps` must have 2+ entries
+- `command` must reference an existing command (validated at `run` time, not load time)
+- `on-error` must be one of: `stop`, `continue`, `ask`
+- `pass-output-as` on step 1 is ignored (no previous output)
+
+### Subcommands
+
+#### `/pipeline list`
+
+Discover and display all available pipelines:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PIPELINES │ Available Workflows
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Name              Steps  Source     Description
+  ─────────────────────────────────────────────────
+  ship-feature      4      stock      Plan, test, and push a feature
+  quality-check     3      stock      Sweep, gate, and review
+  quick-fix         2      project    Describe and execute a small fix
+  full-audit        5      global     Complete quality and security audit
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Source column: `stock` (shipped), `global` (`~/.claude/pipelines/`), `project` (`.claude/pipelines/`)
+
+#### `/pipeline show <name>`
+
+Display a pipeline's definition in a readable format:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PIPELINE │ ship-feature
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Description: Plan, test, and push a feature
+  Steps: 4 │ On Error: stop
+  Source: stock
+
+  Step  Command           Context    Description
+  ────────────────────────────────────────────────
+  1     describe-change   $INPUT     Triage the change
+  2     blueprint         ← step 1   Full planning workflow
+  3     test              ← step 2   Run test suite
+  4     push-safe         —          Safe push with checks
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+#### `/pipeline run <name> [input]`
+
+Execute a pipeline:
+
+**Phase 1: Resolution & Validation**
+1. Locate pipeline YAML (search order: project → global → stock)
+2. Parse and validate YAML against schema
+3. Verify all referenced commands exist (glob `~/.claude/commands/<command>.md`)
+4. Display execution plan and request confirmation:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PIPELINE RUN │ ship-feature
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  About to execute 4 steps:
+
+    1. /describe-change "Add user avatar uploads"
+    2. /blueprint (receives step 1 output as context)
+    3. /test (receives step 2 output as context)
+    4. /push-safe
+
+  On error: stop (pipeline halts on first failure)
+
+  Proceed? (Y/n)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Phase 2: Sequential Execution**
+Execute each step by invoking the command via the Skill tool:
+- Step 1 receives the user's `[input]` as its argument
+- Subsequent steps with `pass-output-as: context` receive a preamble: "Previous step (`/command-name`) produced the following output, use it as context: [output summary]"
+- Display progress after each step:
+
+```
+  ✓ Step 1/4: /describe-change — complete
+  → Step 2/4: /blueprint — running...
+```
+
+**Phase 3: Error Handling**
+When a step fails (command errors, user aborts mid-step):
+
+| on-error | Behavior |
+|----------|----------|
+| `stop` | Halt pipeline. Show completed steps and remaining steps with instructions for manual continuation. |
+| `continue` | Log warning, skip to next step. Note: next step won't receive failed step's output. |
+| `ask` | Prompt user: `[1] Retry step [2] Skip and continue [3] Abort pipeline` |
+
+**Phase 4: Summary**
+After all steps complete (or pipeline halts):
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PIPELINE COMPLETE │ ship-feature
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✓ Step 1: /describe-change
+  ✓ Step 2: /blueprint
+  ✓ Step 3: /test
+  ✓ Step 4: /push-safe
+
+  All 4 steps completed successfully.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Context Passing Design
+
+**How `pass-output-as: context` works:**
+
+The `/pipeline run` command orchestrates by invoking each step's command via the Skill tool. Between steps, it captures the key output/result of the previous step and prepends it as context for the next step's invocation.
+
+**What counts as "output":** The substantive result of the command — for `/describe-change`, that's the triage result; for `/test`, that's pass/fail summary. The pipeline command captures this by summarizing the step's outcome in 2-5 sentences after the step completes.
+
+**Context is additive, not cumulative:** Each step receives only the immediately previous step's output, not the full chain. This prevents context bloat in long pipelines.
+
+### Stock Pipelines
+
+Ship 3 example pipelines in `commands/templates/stock-pipelines/`:
+
+#### `ship-feature.yaml`
+```yaml
+name: ship-feature
+description: Plan, test, and push a feature
+steps:
+  - command: describe-change
+    args: "$INPUT"
+    description: "Triage the change and determine planning path"
+  - command: blueprint
+    pass-output-as: context
+    description: "Run full planning workflow based on triage"
+  - command: test
+    pass-output-as: context
+    description: "Verify implementation passes tests"
+  - command: push-safe
+    description: "Pre-push safety checks and push"
+on-error: stop
+```
+
+#### `quality-check.yaml`
+```yaml
+name: quality-check
+description: Run quality sweep, gate check, and optional review
+steps:
+  - command: quality-sweep
+    args: "$INPUT"
+    description: "Structured review sweep with all reviewer agents"
+  - command: quality-gate
+    pass-output-as: context
+    description: "Score against quality rubric"
+  - command: push-safe
+    description: "Pre-push safety checks"
+on-error: ask
+```
+
+#### `quick-fix.yaml`
+```yaml
+name: quick-fix
+description: Fast path for small changes — triage then execute
+steps:
+  - command: describe-change
+    args: "$INPUT"
+    description: "Triage the change (expects Light path)"
+  - command: test
+    description: "Verify the fix passes tests"
+on-error: stop
+```
+
+### Bootstrap Integration
+
+Update `commands/bootstrap-project.md` to:
+1. Create `.claude/pipelines/` directory in target projects during bootstrap
+2. Note in bootstrap output: "Created .claude/pipelines/ — add custom workflow YAML files here"
+3. Stock pipelines remain in `~/.claude/commands/templates/stock-pipelines/` (NOT copied to projects — they're discovered via search path)
+
+### Pipeline Directory in This Repo
+
+Stock pipeline files live at `commands/templates/stock-pipelines/`. The installer copies them to `~/.claude/commands/templates/stock-pipelines/`. The `/pipeline` command's search path discovers them there.
+
+---
+
+## Feature 3: Behavioral Evals
+
+### Purpose
+
+Fixture-based testing of command reasoning quality. Extends the test suite to catch regressions in how commands behave, not just that they exist.
+
+### Architecture
+
+```
+evals/
+├── evals.json          # Eval definitions with prompts + assertions
+├── fixtures/           # Pre-captured reference outputs
+│   ├── describe-change-simple.md
+│   ├── describe-change-complex.md
+│   ├── sail-doctor-healthy.md
+│   └── ...
+└── README.md           # Documents eval format and how to add new evals
+
+scripts/
+└── behavioral-smoke.sh # Validates fixtures against assertions
+```
+
+### Eval Format (`evals/evals.json`)
+
+```json
+[
+  {
+    "id": 1,
+    "name": "describe-change-simple",
+    "command": "describe-change",
+    "scenario": "Single-file CSS color change, no risk flags",
+    "fixture": "fixtures/describe-change-simple.md",
+    "assertions": [
+      {
+        "type": "contains",
+        "value": "Light",
+        "description": "Should recommend Light path for trivial change"
+      },
+      {
+        "type": "contains-any",
+        "values": ["1-3", "1 step", "2 step", "3 step"],
+        "description": "Should identify low step count"
+      },
+      {
+        "type": "not-contains",
+        "value": "Full",
+        "description": "Should NOT recommend Full path for trivial change"
+      },
+      {
+        "type": "min-headers",
+        "value": 2,
+        "description": "Output should have structured sections"
+      },
+      {
+        "type": "min-length",
+        "value": 200,
+        "description": "Output should be substantive"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "describe-change-complex",
+    "command": "describe-change",
+    "scenario": "14-step change with auth risk flag",
+    "fixture": "fixtures/describe-change-complex.md",
+    "assertions": [
+      {
+        "type": "contains",
+        "value": "Full",
+        "description": "Should recommend Full path for complex change"
+      },
+      {
+        "type": "contains-any",
+        "values": ["authentication", "authorization", "security"],
+        "description": "Should identify auth-related risk flag"
+      },
+      {
+        "type": "min-headers",
+        "value": 3,
+        "description": "Should have structured sections"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "sail-doctor-healthy",
+    "command": "sail-doctor",
+    "scenario": "All checks pass, no MCP issues",
+    "fixture": "fixtures/sail-doctor-healthy.md",
+    "assertions": [
+      {
+        "type": "contains",
+        "value": "HEALTHY",
+        "description": "Should report healthy status"
+      },
+      {
+        "type": "not-contains",
+        "value": "UNHEALTHY",
+        "description": "Should not report unhealthy"
+      },
+      {
+        "type": "min-headers",
+        "value": 2,
+        "description": "Should have structured report sections"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "sail-doctor-drift",
+    "command": "sail-doctor",
+    "scenario": "Settings drift detected, 2 hooks missing",
+    "fixture": "fixtures/sail-doctor-drift.md",
+    "assertions": [
+      {
+        "type": "contains-any",
+        "values": ["NEEDS ATTENTION", "UNHEALTHY"],
+        "description": "Should flag non-healthy status"
+      },
+      {
+        "type": "contains",
+        "value": "missing",
+        "description": "Should identify missing hooks"
+      },
+      {
+        "type": "contains",
+        "value": "--fix",
+        "description": "Should suggest --fix flag"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "pipeline-list",
+    "command": "pipeline",
+    "scenario": "List available pipelines with stock defaults",
+    "fixture": "fixtures/pipeline-list.md",
+    "assertions": [
+      {
+        "type": "contains",
+        "value": "ship-feature",
+        "description": "Should list the ship-feature stock pipeline"
+      },
+      {
+        "type": "contains",
+        "value": "stock",
+        "description": "Should show source column"
+      },
+      {
+        "type": "min-length",
+        "value": 100,
+        "description": "Should be substantive output"
+      }
+    ]
+  }
+]
+```
+
+### Assertion Types
+
+| Type | Fields | Behavior |
+|------|--------|----------|
+| `contains` | `value` (string) | Case-insensitive grep for value in fixture |
+| `contains-any` | `values` (string[]) | At least one value found (case-insensitive) |
+| `not-contains` | `value` (string) | Value must NOT appear in fixture |
+| `min-headers` | `value` (int) | Count `^## ` lines, must be >= value |
+| `min-length` | `value` (int) | Character count must be >= value |
+| `regex` | `value` (string) | Extended regex match (`grep -Ei`) |
+
+### Behavioral Smoke Script (`scripts/behavioral-smoke.sh`)
+
+```bash
+#!/bin/bash
+# Validates eval fixtures against assertion definitions
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+EVALS_FILE="$REPO_DIR/evals/evals.json"
+FIXTURES_DIR="$REPO_DIR/evals/fixtures"
+
+PASS=0
+FAIL=0
+WARN=0
+SKIP=0
+
+# ... (color functions matching test.sh pattern) ...
+```
+
+**Processing logic per eval:**
+
+1. Read eval entry from evals.json (requires `jq`)
+2. Check if fixture file exists and is non-empty
+   - If missing: SKIP with warning "fixture not populated"
+   - If empty: SKIP with warning
+3. For each assertion:
+   - `contains`: `grep -qi "$value" "$fixture_file"`
+   - `contains-any`: loop values, pass if any match
+   - `not-contains`: `! grep -qi "$value" "$fixture_file"`
+   - `min-headers`: `grep -c "^## " "$fixture_file"` >= value
+   - `min-length`: `wc -c < "$fixture_file"` >= value
+   - `regex`: `grep -Eqi "$value" "$fixture_file"`
+4. If all assertions pass: PASS
+5. If any assertion fails: FAIL (report which assertion failed)
+
+**Exit codes:**
+- 0: All populated fixtures pass
+- 1: Any fixture fails assertions
+- (Unpopulated fixtures are warnings, not failures)
+
+### Fixture Files
+
+Pre-captured reference outputs that represent expected command behavior. These are **manually curated** — not auto-generated from live runs.
+
+**Initial fixtures to create (5):**
+1. `fixtures/describe-change-simple.md` — Light path triage for trivial change
+2. `fixtures/describe-change-complex.md` — Full path triage for complex, risky change
+3. `fixtures/sail-doctor-healthy.md` — All-pass health report
+4. `fixtures/sail-doctor-drift.md` — Health report with drift/missing hooks
+5. `fixtures/pipeline-list.md` — Pipeline list output with stock pipelines
+
+Each fixture is a markdown file containing the expected output structure of the command for its scenario. They don't need to be exact — they need to contain the keywords and structural elements that the assertions check for.
+
+### Integration into test.sh
+
+Add a new category (Category 8) to test.sh:
+
+```bash
+# ─── 8. Behavioral Evals ────────────────────────────────────────
+
+bold "8. Behavioral Evals"
+
+if [ -f "$SCRIPT_DIR/evals/evals.json" ] && command -v jq &>/dev/null; then
+    if [ -x "$SCRIPT_DIR/scripts/behavioral-smoke.sh" ]; then
+        eval_output=$("$SCRIPT_DIR/scripts/behavioral-smoke.sh" 2>&1)
+        eval_exit=$?
+        # Parse output for pass/fail/warn counts
+        # ...
+    else
+        warn "scripts/behavioral-smoke.sh not executable"
+    fi
+else
+    if ! [ -f "$SCRIPT_DIR/evals/evals.json" ]; then
+        warn "evals/evals.json not found — skipping behavioral evals"
+    elif ! command -v jq &>/dev/null; then
+        warn "jq not installed — skipping behavioral evals"
+    fi
+fi
+```
+
+The behavioral smoke script outputs in the same `pass`/`fail`/`warn` format as test.sh, so its output can be displayed inline.
+
+---
+
+## Work Units
+
+### WU1: `/sail-doctor` command
+**Files created:**
+- `commands/sail-doctor.md`
+
+**Files modified:**
+- `test.sh` (update CMD_EXPECTED count: 51 → 53)
+- `README.md` (add to command table, update count)
+- `commands/README.md` (add to appropriate category)
+
+**Dependencies:** None (can start immediately)
+
+### WU2: `/pipeline` command + stock pipelines
+**Files created:**
+- `commands/pipeline.md`
+- `commands/templates/stock-pipelines/ship-feature.yaml`
+- `commands/templates/stock-pipelines/quality-check.yaml`
+- `commands/templates/stock-pipelines/quick-fix.yaml`
+
+**Files modified:**
+- `commands/bootstrap-project.md` (add pipeline directory creation)
+- `test.sh` (update CMD_EXPECTED count, add YAML validation for stock pipelines)
+- `README.md` (add to command table, update count, add pipelines section)
+- `commands/README.md` (add to appropriate category)
+
+**Dependencies:** None (can start immediately, parallel with WU1)
+
+### WU3: Behavioral evals
+**Files created:**
+- `evals/evals.json`
+- `evals/fixtures/describe-change-simple.md`
+- `evals/fixtures/describe-change-complex.md`
+- `evals/fixtures/sail-doctor-healthy.md`
+- `evals/fixtures/sail-doctor-drift.md`
+- `evals/fixtures/pipeline-list.md`
+- `scripts/behavioral-smoke.sh`
+
+**Files modified:**
+- `test.sh` (add Category 8: Behavioral Evals)
+- `README.md` (add evals section, update test check count)
+
+**Dependencies:** WU1 and WU2 should be at least specified (fixture content references their output formats). However, fixtures can be written based on the spec above without waiting for implementation.
+
+### WU4: Shared updates (README, test counts)
+**Files modified:**
+- `test.sh` — final count reconciliation (CMD_EXPECTED: 51 → 53, add stock-pipeline count check, add Category 8)
+- `README.md` — command count, test check count, new sections
+- `commands/README.md` — add both new commands to tables
+- `install.sh` — update output message if it references counts
+
+**Dependencies:** WU1, WU2, WU3 complete
+
+## Work Graph
+
+```
+WU1 (sail-doctor) ──────┐
+                         ├──→ WU4 (shared updates)
+WU2 (pipeline + stock) ──┤
+                         │
+WU3 (behavioral evals) ──┘
+```
+
+**Parallelization:** WU1, WU2, WU3 are fully independent and can be implemented in parallel. WU4 is a sequential merge step.
+
+**Width:** 3 (WU1 + WU2 + WU3 in parallel)
+**Critical path length:** 2 (any WU → WU4)
+
+---
+
+## Acceptance Criteria
+
+### /sail-doctor
+- [ ] Command exists with correct frontmatter and enforcement tier
+- [ ] All 6 diagnostic categories produce output
+- [ ] `--fix` flag appends remediation steps to failing checks
+- [ ] `--quiet` flag suppresses passing checks
+- [ ] MCP probes are best-effort (never block or error)
+- [ ] Summary shows HEALTHY / NEEDS ATTENTION / UNHEALTHY correctly
+
+### /pipeline
+- [ ] `list` discovers pipelines from all 3 search paths
+- [ ] `show <name>` displays readable pipeline definition
+- [ ] `run <name>` validates YAML, confirms, executes sequentially
+- [ ] Context passing works via `pass-output-as: context`
+- [ ] All 3 `on-error` modes behave correctly
+- [ ] 3 stock pipelines exist and validate
+- [ ] Pipeline YAML with invalid schema produces clear error message
+
+### Behavioral Evals
+- [ ] `evals/evals.json` validates as JSON
+- [ ] `scripts/behavioral-smoke.sh` runs without errors
+- [ ] All 6 assertion types work correctly
+- [ ] Unpopulated fixtures produce warnings, not failures
+- [ ] At least 5 eval entries with 5 fixtures
+- [ ] Integrated into test.sh as Category 8
+- [ ] `bash test.sh` passes with new category included
+
+### Cross-cutting
+- [ ] test.sh passes after all changes (updated counts, new categories)
+- [ ] install.sh dry run succeeds (new files land correctly)
+- [ ] No escape-hatch language in new command descriptions
+- [ ] Both README.md files updated with accurate counts

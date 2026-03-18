@@ -13,6 +13,7 @@ NC='\033[0m'
 
 CLAUDE_HOME="${HOME}/.claude"
 REPO_URL="${SAIL_REPO_URL:-https://github.com/ntanner-ctrl/claude-sail}"
+VERSION="0.9.0"
 
 echo -e "${BLUE}╔════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║       Claude Sail Toolkit Installer        ║${NC}"
@@ -30,6 +31,7 @@ echo -e "${YELLOW}Creating directories...${NC}"
 mkdir -p "${CLAUDE_HOME}/commands/templates/stock-hooks"
 mkdir -p "${CLAUDE_HOME}/commands/templates/stock-agents"
 mkdir -p "${CLAUDE_HOME}/commands/templates/stock-commands"
+mkdir -p "${CLAUDE_HOME}/commands/templates/stock-pipelines"
 mkdir -p "${CLAUDE_HOME}/commands/templates/vault-notes"
 mkdir -p "${CLAUDE_HOME}/plugins/local/sail-toolkit/.claude-plugin"
 mkdir -p "${CLAUDE_HOME}/plugins/local/sail-toolkit/hooks"
@@ -120,6 +122,20 @@ if [ -f "${SCRIPT_DIR}/commands/bootstrap-project.md" ]; then
         cp "${SCRIPT_DIR}/hookify-rules/"*.local.md "${CLAUDE_HOME}/" 2>/dev/null || true
     fi
 
+    # Stock pipelines — copy-if-not-exists (preserve user customizations)
+    if [ -d "${SCRIPT_DIR}/commands/templates/stock-pipelines" ]; then
+        echo "  → stock pipelines"
+        for f in "${SCRIPT_DIR}/commands/templates/stock-pipelines/"*.yaml; do
+            [ -f "$f" ] || continue
+            dest="${CLAUDE_HOME}/commands/templates/stock-pipelines/$(basename "$f")"
+            if [ ! -f "$dest" ]; then
+                cp "$f" "$dest"
+            else
+                echo "  Skipping $(basename "$f") — already exists (preserving customizations)"
+            fi
+        done
+    fi
+
 else
     echo -e "${YELLOW}Downloading from repository...${NC}"
 
@@ -205,6 +221,20 @@ else
         cp "${REPO_DIR}/hookify-rules/"*.local.md "${CLAUDE_HOME}/" 2>/dev/null || true
     fi
 
+    # Stock pipelines — copy-if-not-exists (preserve user customizations)
+    if [ -d "${REPO_DIR}/commands/templates/stock-pipelines" ]; then
+        echo "  → stock pipelines"
+        for f in "${REPO_DIR}/commands/templates/stock-pipelines/"*.yaml; do
+            [ -f "$f" ] || continue
+            dest="${CLAUDE_HOME}/commands/templates/stock-pipelines/$(basename "$f")"
+            if [ ! -f "$dest" ]; then
+                cp "$f" "$dest"
+            else
+                echo "  Skipping $(basename "$f") — already exists (preserving customizations)"
+            fi
+        done
+    fi
+
     # Cleanup
     rm -rf "$TEMP_DIR"
 fi
@@ -225,6 +255,24 @@ if [ -f "${CLAUDE_HOME}/hooks/session-bootstrap.sh" ]; then
 fi
 chmod +x "${CLAUDE_HOME}/hooks/"*.sh 2>/dev/null || true
 
+# Generate install-time artifacts
+echo "$VERSION" > "${CLAUDE_HOME}/.sail-version" 2>/dev/null || true
+
+# Generate .sail-counts.json from actual installed files
+CMD_COUNT=$(find "${CLAUDE_HOME}/commands" -maxdepth 1 -name "*.md" ! -name "README*" 2>/dev/null | wc -l)
+AGENT_COUNT=$(find "${CLAUDE_HOME}/agents" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l)
+HOOK_COUNT=$(find "${CLAUDE_HOME}/hooks" -maxdepth 1 -name "*.sh" ! -name "vault-config.sh" 2>/dev/null | wc -l)
+HOOKIFY_COUNT=$(find "${CLAUDE_HOME}" -maxdepth 1 -name "*.local.md" 2>/dev/null | wc -l)
+STOCK_HOOK_COUNT=$(find "${CLAUDE_HOME}/commands/templates/stock-hooks" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l)
+STOCK_AGENT_COUNT=$(find "${CLAUDE_HOME}/commands/templates/stock-agents" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l)
+STOCK_CMD_COUNT=$(find "${CLAUDE_HOME}/commands/templates/stock-commands" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l)
+STOCK_PIPELINE_COUNT=$(find "${CLAUDE_HOME}/commands/templates/stock-pipelines" -maxdepth 1 -name "*.yaml" 2>/dev/null | wc -l)
+STOCK_TOTAL=$((STOCK_HOOK_COUNT + STOCK_AGENT_COUNT + STOCK_CMD_COUNT))
+
+cat > "${CLAUDE_HOME}/.sail-counts.json" << COUNTS_EOF
+{"commands": $CMD_COUNT, "agents": $AGENT_COUNT, "hooks": $HOOK_COUNT, "hookify_rules": $HOOKIFY_COUNT, "stock_total": $STOCK_TOTAL, "stock_pipelines": $STOCK_PIPELINE_COUNT, "installed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"}
+COUNTS_EOF
+
 echo ""
 echo -e "${GREEN}✓ Installation complete!${NC}"
 echo ""
@@ -232,6 +280,7 @@ echo "Core commands:"
 echo "  /toolkit               - Quick reference for ALL commands"
 echo "  /start                 - Assess state, recommend next task"
 echo "  /bootstrap-project     - Full project setup"
+echo "  /sail-doctor           - Verify install health and diagnose issues"
 echo ""
 echo "Planning workflow:"
 echo "  /blueprint [name]      - Full planning workflow"
@@ -367,4 +416,6 @@ echo "Try it now in any project:"
 echo "  cd /path/to/your/project"
 echo "  claude"
 echo "  /bootstrap-project"
+echo ""
+echo "  Run /sail-doctor in a Claude session to verify your install"
 echo ""

@@ -26,7 +26,7 @@ claude
 
 | Component | Purpose |
 |-----------|---------|
-| [**Commands**](commands/README.md) | 51 workflow commands for planning, review, testing, execution, vault integration + plugin integration |
+| [**Commands**](commands/README.md) | 53 workflow commands for planning, review, testing, execution, vault integration + plugin integration |
 | [**Agents**](agents/) | 6 specialized review agents (spec, quality, security, performance, architecture, CloudFormation) |
 | [**Planning Infrastructure**](docs/PLANNING-STORAGE.md) | Staged planning with triage, specs, and adversarial challenge |
 | [**Shell Hooks**](hooks/) | 18 shell hooks for safety, session lifecycle, Empirica capture, toolkit hardening |
@@ -47,7 +47,8 @@ claude
 | **Execution** | `/dispatch`, `/delegate`, `/checkpoint`, `/end`, `/push-safe` |
 | **Vault** | `/vault-save`, `/vault-query`, `/vault-curate`, `/collect-insights`, `/promote-finding` |
 | **Status** | `/status`, `/blueprints`, `/overrides`, `/approve`, `/dashboard` |
-| **Setup** | `/bootstrap-project`, `/check-project-setup`, `/setup-hooks` |
+| **Setup** | `/bootstrap-project`, `/check-project-setup`, `/setup-hooks`, `/sail-doctor` |
+| **Pipelines** | `/pipeline` |
 | **Docs** | `/refresh-claude-md`, `/migrate-docs`, `/process-doc` |
 
 See [commands/README.md](commands/README.md) for full reference.
@@ -159,6 +160,17 @@ For parallel delegation with independent review:
 ```
 
 Each agent works in its own git worktree. After completion, review and accept/reject each task's changes independently.
+
+### Pipelines
+
+Reusable YAML-defined workflows that chain multiple commands together. Stock pipelines are installed into target projects by `/bootstrap-project` and can be customized per project.
+
+```bash
+/pipeline ship-feature      # Run a named pipeline
+/pipeline list              # List available pipelines
+```
+
+Pipeline YAML files live in `commands/templates/stock-pipelines/` (source) and `.claude/pipelines/` (project-local). Each pipeline defines `name`, `description`, `steps`, and `on-error` behavior. See [commands/README.md](commands/README.md) for details.
 
 ---
 
@@ -354,6 +366,8 @@ Claude Sail adapts to project maturity:
 ---
 
 ## Documentation
+
+**Behavioral Evals:** `test.sh` includes Category 8 — behavioral smoke tests that run `scripts/behavioral-smoke.sh` against `evals/evals.json` fixtures to verify command dispatch behavior. Skipped gracefully if `jq` is not installed.
 
 | Document | Type | Purpose |
 |----------|------|---------|

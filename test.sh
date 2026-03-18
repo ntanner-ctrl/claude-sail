@@ -38,6 +38,12 @@ else
     fail "install.sh — syntax error"
 fi
 
+if bash -n "$SCRIPT_DIR/scripts/behavioral-smoke.sh" 2>/dev/null; then
+    pass "behavioral-smoke.sh"
+else
+    fail "behavioral-smoke.sh — syntax error"
+fi
+
 echo ""
 
 # ─── 2. Shellcheck ────────────────────────────────────────────────
@@ -65,7 +71,7 @@ echo ""
 bold "3. File Counts (vs README claims)"
 
 # Expected counts from README.md
-CMD_EXPECTED=51
+CMD_EXPECTED=53
 AGENT_EXPECTED=6
 HOOK_EXPECTED=18
 HOOKIFY_EXPECTED=7
@@ -80,6 +86,8 @@ HOOKIFY_ACTUAL=$(ls "$SCRIPT_DIR"/hookify-rules/*.local.md 2>/dev/null | wc -l)
 STOCK_HOOK_ACTUAL=$(ls "$SCRIPT_DIR"/commands/templates/stock-hooks/*.md 2>/dev/null | wc -l)
 STOCK_AGENT_ACTUAL=$(ls "$SCRIPT_DIR"/commands/templates/stock-agents/*.md 2>/dev/null | wc -l)
 STOCK_CMD_ACTUAL=$(ls "$SCRIPT_DIR"/commands/templates/stock-commands/*.md 2>/dev/null | wc -l)
+STOCK_PIPELINE_EXPECTED=3
+STOCK_PIPELINE_ACTUAL=$(ls "$SCRIPT_DIR"/commands/templates/stock-pipelines/*.yaml 2>/dev/null | wc -l)
 STOCK_TOTAL=$((STOCK_HOOK_ACTUAL + STOCK_AGENT_ACTUAL + STOCK_CMD_ACTUAL))
 
 check_count() {
@@ -99,6 +107,7 @@ check_count "Stock hooks" "$STOCK_HOOK_ACTUAL" "$STOCK_HOOK_EXPECTED"
 check_count "Stock agents" "$STOCK_AGENT_ACTUAL" "$STOCK_AGENT_EXPECTED"
 check_count "Stock commands" "$STOCK_CMD_ACTUAL" "$STOCK_CMD_EXPECTED"
 check_count "Stock total" "$STOCK_TOTAL" 12
+check_count "Stock pipelines" "$STOCK_PIPELINE_ACTUAL" "$STOCK_PIPELINE_EXPECTED"
 
 echo ""
 
@@ -138,6 +147,17 @@ for f in "$SCRIPT_DIR"/agents/*.md; do
         pass "$name — frontmatter complete"
     else
         fail "$name — missing: $missing"
+    fi
+done
+
+# Stock pipeline required fields
+for f in "$SCRIPT_DIR"/commands/templates/stock-pipelines/*.yaml; do
+    [ -f "$f" ] || continue
+    name=$(basename "$f")
+    if grep -q '^name:' "$f" && grep -q '^description:' "$f" && grep -q '^steps:' "$f" && grep -q '^on-error:' "$f"; then
+        pass "$name — required fields present"
+    else
+        fail "$name — missing required fields"
     fi
 done
 
@@ -247,6 +267,33 @@ else
 fi
 
 rm -rf "$FAKE_HOME"
+
+echo ""
+
+# ─── 8. Behavioral Evals ────────────────────────────────────────
+
+bold "8. Behavioral Evals"
+
+if [ -f "$SCRIPT_DIR/evals/evals.json" ] && command -v jq &>/dev/null; then
+    if [ -f "$SCRIPT_DIR/scripts/behavioral-smoke.sh" ]; then
+        eval_exit=0
+        eval_output=$(bash "$SCRIPT_DIR/scripts/behavioral-smoke.sh" 2>&1) || eval_exit=$?
+        echo "$eval_output"
+        if [ "$eval_exit" -ne 0 ]; then
+            fail "Behavioral evals: fixtures failed"
+        else
+            pass "Behavioral evals: all fixtures passed"
+        fi
+    else
+        warn "scripts/behavioral-smoke.sh not found"
+    fi
+else
+    if ! [ -f "$SCRIPT_DIR/evals/evals.json" ]; then
+        warn "evals/evals.json not found — skipping behavioral evals"
+    elif ! command -v jq &>/dev/null; then
+        warn "jq not installed — skipping behavioral evals"
+    fi
+fi
 
 echo ""
 

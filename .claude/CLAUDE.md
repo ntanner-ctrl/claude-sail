@@ -4,7 +4,7 @@ Structured workflows, safety guardrails, and planning discipline for Claude Code
 
 ## Quick Reference
 
-- **Run tests:** `bash test.sh` (60 checks: syntax, counts, lint, JSON, install dry-run)
+- **Run tests:** `bash test.sh` (~67 checks: syntax, counts, lint, JSON, install dry-run, behavioral evals)
 - **Install locally:** `bash install.sh` (copies to `~/.claude/`)
 - **Verify install:** `ls ~/.claude/commands/blueprint.md`
 - **Run from repo:** `cd /path/to/project && claude` then `/bootstrap-project`
@@ -15,11 +15,12 @@ This repo is a **distribution package** — not a runtime app. `install.sh` copi
 
 ```
 claude-sail/
-├── commands/          # 51 slash commands (*.md with YAML frontmatter, includes plugin-enhancers reference)
+├── commands/          # 53 slash commands (*.md with YAML frontmatter, includes plugin-enhancers reference)
 │   ├── templates/     # Stock elements installed by /bootstrap-project into target projects
 │   │   ├── stock-hooks/      # 6 prompt-based hooks for target projects
 │   │   ├── stock-agents/     # 3 agents for target projects
 │   │   ├── stock-commands/   # 3 commands for target projects
+│   │   ├── stock-pipelines/  # 3 YAML pipeline templates for target projects
 │   │   ├── vault-notes/      # Obsidian vault note templates
 │   │   ├── prompts/          # Shared prompt templates (dispatch/delegate review lenses)
 │   │   └── documentation/    # Diataxis doc templates
@@ -28,10 +29,13 @@ claude-sail/
 ├── hooks/             # 18 shell hooks (*.sh) for SessionStart, PreToolUse, PostToolUse, SessionEnd, etc.
 ├── hookify-rules/     # 7 YAML-based safety rules (*.local.md)
 ├── plugins/           # Session-start plugin (sail-toolkit)
+├── evals/             # Behavioral eval fixtures (evals.json) — used by test.sh Category 8
+├── scripts/           # Utility scripts (not hooks) — may use strict error modes (behavioral-smoke.sh)
 ├── ops-starter-kit/   # Domain extension example for infrastructure teams
 ├── docs/              # Architecture explanations (Diataxis: explanation type)
 ├── plans/             # Legacy planning directory (pre-.claude/ era)
 ├── _OLD/              # Archived iterations (gitignored)
+├── VERSION            # Current toolkit version (semver)
 ├── install.sh         # Installer — copies everything to ~/.claude/
 ├── settings-example.json  # Full settings.json template for users
 ├── GETTING_STARTED.md     # Tutorial for new users
@@ -44,8 +48,11 @@ claude-sail/
 |-----------|-------------|---------|
 | `commands/*.md` | This repo → `~/.claude/commands/` | Toolkit commands (user runs these) |
 | `commands/templates/stock-*` | This repo → `~/.claude/commands/templates/` | Elements `/bootstrap-project` installs into TARGET projects |
+| `commands/templates/stock-pipelines/` | This repo → `~/.claude/commands/templates/stock-pipelines/` | YAML pipeline templates for target projects (copy-if-not-exists) |
 | `agents/*.md` | This repo → `~/.claude/agents/` | Global review agents |
 | `hooks/*.sh` | This repo → `~/.claude/hooks/` | Shell hooks wired via settings.json |
+| `scripts/*.sh` | This repo only (not installed) | Utility scripts — CAN use strict error modes (not hooks) |
+| `evals/evals.json` | This repo only (not installed) | Behavioral eval fixtures for test.sh Category 8 |
 
 ## Key Conventions
 
@@ -82,6 +89,20 @@ All hooks follow the **fail-open** pattern:
 - Exit 2: Block with feedback TO Claude (stderr)
 - Use `set +e` — hook bugs must not halt work
 - Include timeouts for external tool calls
+
+### Pipeline YAML Format
+
+Pipeline files in `commands/templates/stock-pipelines/` define reusable workflows. Required fields:
+- `name:` — Pipeline identifier (matches filename without extension)
+- `description:` — What this pipeline does
+- `steps:` — Ordered list of commands to run
+- `on-error:` — Behavior on step failure (`stop`, `continue`, or `rollback`)
+
+Stock pipelines are copied with **copy-if-not-exists** semantics — user customizations are preserved on reinstall. The `/pipeline` command discovers pipelines from `.claude/pipelines/` in the target project.
+
+### scripts/ vs hooks/ Convention
+
+`hooks/*.sh` files are Claude Code hooks — they MUST follow the fail-open pattern (no `set -e`, use `set +e`, exit 0/1/2 only). `scripts/*.sh` files are standalone utilities not wired as hooks — they CAN use strict error modes (`set -euo pipefail`) and are called explicitly rather than triggered by Claude Code events. `behavioral-smoke.sh` is the canonical example.
 
 ### Planning Storage
 
@@ -145,20 +166,21 @@ Stock elements go in `commands/templates/stock-{hooks,agents,commands}/`. These 
 
 ## Testing
 
-Run `bash test.sh` for automated verification (60 checks across 7 categories):
+Run `bash test.sh` for automated verification (~67 checks across 8 categories):
 
 ```bash
 bash test.sh
 ```
 
 **What it checks:**
-1. **Shell syntax** — `bash -n` on all hooks and install.sh
+1. **Shell syntax** — `bash -n` on all hooks, install.sh, and scripts/behavioral-smoke.sh
 2. **Shellcheck** — lint warnings (graceful skip if not installed)
-3. **File counts** — commands, agents, hooks, hookify rules, stock elements vs README claims
-4. **Enforcement lint** — no escape-hatch language in descriptions, required frontmatter
+3. **File counts** — commands, agents, hooks, hookify rules, stock elements, stock pipelines vs README claims
+4. **Enforcement lint** — no escape-hatch language in descriptions, required frontmatter, stock pipeline required fields
 5. **Hook conventions** — no `set -e`, no `eval`, `set +e` presence
 6. **JSON validation** — settings-example.json, plugin.json, plan state files
 7. **Install dry run** — runs install.sh in a temp `$HOME`, verifies all files land correctly
+8. **Behavioral evals** — runs `scripts/behavioral-smoke.sh` against `evals/evals.json` fixtures (skipped if `jq` absent)
 
 **Manual verification** (not covered by test.sh):
 - **Hook test:** Start a Claude Code session in any project and verify hooks fire

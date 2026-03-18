@@ -1,0 +1,144 @@
+[
+  {
+    "id": 1,
+    "name": "describe-change-simple",
+    "command": "describe-change",
+    "scenario": "Single-file CSS color change, no risk flags",
+    "fixture": "fixtures/describe-change-simple.md",
+    "assertions": [
+      {
+        "type": "contains",
+        "value": "Light",
+        "description": "Should recommend Light path"
+      },
+      {
+        "type": "contains-any",
+        "values": [
+          "1-3",
+          "1 step",
+          "2 step",
+          "3 step"
+        ],
+        "description": "Low step count"
+      },
+      {
+        "type": "not-contains",
+        "value": "Full",
+        "description": "Should NOT recommend Full path"
+      },
+      {
+        "type": "min-headers",
+        "value": 2,
+        "description": "Structured sections"
+      },
+      {
+        "type": "min-length",
+        "value": 200,
+        "description": "Substantive output"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "describe-change-complex",
+    "command": "describe-change",
+    "scenario": "14-step change with auth risk flag",
+    "fixture": "fixtures/describe-change-complex.md",
+    "assertions": [
+      {
+        "type": "contains",
+        "value": "Full",
+        "description": "Should recommend Full path"
+      },
+      {
+        "type": "contains-any",
+        "values": [
+          "authentication",
+          "authorization",
+          "security"
+        ],
+        "description": "Auth risk flag"
+      },
+      {
+        "type": "min-headers",
+        "value": 3,
+        "description": "Structured sections"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "sail-doctor-healthy",
+    "command": "sail-doctor",
+    "scenario": "All checks pass, no MCP issues",
+    "fixture": "fixtures/sail-doctor-healthy.md",
+    "assertions": [
+      {
+        "type": "contains",
+        "value": "HEALTHY",
+        "description": "Healthy status"
+      },
+      {
+        "type": "not-contains",
+        "value": "UNHEALTHY",
+        "description": "Not unhealthy"
+      },
+      {
+        "type": "min-headers",
+        "value": 2,
+        "description": "Structured report"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "sail-doctor-drift",
+    "command": "sail-doctor",
+    "scenario": "Settings drift detected, 2 hooks missing",
+    "fixture": "fixtures/sail-doctor-drift.md",
+    "assertions": [
+      {
+        "type": "contains-any",
+        "values": [
+          "NEEDS ATTENTION",
+          "UNHEALTHY"
+        ],
+        "description": "Non-healthy status"
+      },
+      {
+        "type": "contains",
+        "value": "missing",
+        "description": "Identifies missing items"
+      },
+      {
+        "type": "contains",
+        "value": "--fix",
+        "description": "Suggests --fix flag"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "pipeline-list",
+    "command": "pipeline",
+    "scenario": "List available pipelines with stock defaults",
+    "fixture": "fixtures/pipeline-list.md",
+    "assertions": [
+      {
+        "type": "contains",
+        "value": "ship-feature",
+        "description": "Lists stock pipeline"
+      },
+      {
+        "type": "contains",
+        "value": "stock",
+        "description": "Shows source column"
+      },
+      {
+        "type": "min-length",
+        "value": 100,
+        "description": "Substantive output"
+      }
+    ]
+  }
+]

@@ -1,0 +1,84 @@
+{
+  "blueprint_version": 2,
+  "name": "naksha-inspired-improvements",
+  "created_at": "2026-03-18T00:00:00Z",
+  "challenge_mode": "debate",
+  "execution_preference": "auto",
+  "current_stage": "execute",
+  "revision": 4,
+  "regressions": [
+    {
+      "from_stage": "challenge",
+      "to_stage": "specify",
+      "trigger_type": "automatic",
+      "trigger": "debate_judge_critical_findings",
+      "reason": "4 critical: F1, F8/F12, F9, F13",
+      "timestamp": "2026-03-18T00:00:00Z",
+      "revision": 2
+    },
+    {
+      "from_stage": "challenge",
+      "to_stage": "specify",
+      "trigger_type": "automatic",
+      "trigger": "debate_judge_r2_critical_findings",
+      "reason": "2 critical: F-R2-01, F-R2-M01",
+      "timestamp": "2026-03-18T00:00:00Z",
+      "revision": 3
+    },
+    {
+      "from_stage": "edge_cases",
+      "to_stage": "specify",
+      "trigger_type": "automatic",
+      "trigger": "edge_case_critical_findings",
+      "reason": "3 critical: EC-01/09, EC-04, EC-07",
+      "timestamp": "2026-03-18T00:00:00Z",
+      "revision": 4
+    }
+  ],
+  "regression_count": 3,
+  "empirica_session_id": "24c4b5db-f901-40ce-9fe3-0a9ef2fe0b7a",
+  "empirica_preflight_complete": true,
+  "manifest_stale": true,
+  "work_graph_stale": true,
+  "stages": {
+    "describe": {
+      "status": "complete",
+      "confidence": 0.85,
+      "completed_at": "2026-03-18T00:00:00Z"
+    },
+    "specify": {
+      "status": "complete",
+      "confidence": 0.93,
+      "completed_at": "2026-03-18T00:00:00Z"
+    },
+    "challenge": {
+      "status": "complete",
+      "confidence": 0.88,
+      "completed_at": "2026-03-18T00:00:00Z"
+    },
+    "edge_cases": {
+      "status": "complete",
+      "confidence": 0.85,
+      "completed_at": "2026-03-18T00:00:00Z"
+    },
+    "premortem": {
+      "status": "complete",
+      "confidence": 0.82,
+      "completed_at": "2026-03-18T00:00:00Z"
+    },
+    "review": {
+      "status": "skipped",
+      "skip_reason": "3 debate rounds provided sufficient adversarial review"
+    },
+    "test": {
+      "status": "complete",
+      "confidence": 0.9,
+      "confidence_note": "Test plan generated: 4 categories (structural, behavioral, spec compliance, pre-mortem), ~60 individual checks. Automated gate: T1+T2 via test.sh. Manual gate: T3 spot-checks.",
+      "completed_at": "2026-03-18T00:00:00Z"
+    },
+    "execute": {
+      "status": "in_progress",
+      "confidence": null
+    }
+  }
+}

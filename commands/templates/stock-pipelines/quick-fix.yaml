@@ -1,0 +1,10 @@
+# toolkit-version: 0.9.0
+name: quick-fix
+description: Fast path for small changes — triage then execute
+steps:
+  - command: describe-change
+    args: "$INPUT"
+    description: "Triage the change (expects Light path)"
+  - command: test
+    description: "Verify the fix passes tests"
+on-error: stop

@@ -1,0 +1,102 @@
+{
+  "version": 2,
+  "generated_at": "2026-03-18T00:00:00Z",
+  "revision": 2,
+  "work_units": [
+    {
+      "id": "WU1",
+      "name": "sail-doctor",
+      "description": "Create /sail-doctor command with 6 diagnostic categories, dynamic counts from .sail-counts.json, MCP probes via Claude tools, self-exclusion guard",
+      "files_created": [
+        "commands/sail-doctor.md"
+      ],
+      "files_modified": [],
+      "dependencies": [],
+      "estimated_complexity": "medium",
+      "parallelizable": true
+    },
+    {
+      "id": "WU2",
+      "name": "pipeline",
+      "description": "Create /pipeline command with line-oriented YAML parser, context/artifact passing modes, shadow detection, audit trail, non-interactive fallback",
+      "files_created": [
+        "commands/pipeline.md",
+        "commands/templates/stock-pipelines/ship-feature.yaml",
+        "commands/templates/stock-pipelines/quality-check.yaml",
+        "commands/templates/stock-pipelines/quick-fix.yaml"
+      ],
+      "files_modified": [
+        "commands/bootstrap-project.md"
+      ],
+      "dependencies": [],
+      "estimated_complexity": "high",
+      "parallelizable": true
+    },
+    {
+      "id": "WU3",
+      "name": "behavioral-evals",
+      "description": "Create offline eval framework: evals.json with stability-tiered assertions, 5 fixtures, behavioral-smoke.sh (no LLM invocation)",
+      "files_created": [
+        "evals/evals.json",
+        "evals/fixtures/describe-change-simple.md",
+        "evals/fixtures/describe-change-complex.md",
+        "evals/fixtures/sail-doctor-healthy.md",
+        "evals/fixtures/sail-doctor-drift.md",
+        "evals/fixtures/pipeline-list.md",
+        "scripts/behavioral-smoke.sh"
+      ],
+      "files_modified": [],
+      "dependencies": [],
+      "estimated_complexity": "medium",
+      "parallelizable": true
+    },
+    {
+      "id": "WU4",
+      "name": "shared-updates",
+      "description": "Explicit integration: test.sh counts + Category 8, README.md x2, install.sh (.sail-counts.json + .sail-version + copy-if-not-exists), CLAUDE.md architecture, VERSION file",
+      "files_created": [
+        "VERSION"
+      ],
+      "files_modified": [
+        "test.sh",
+        "README.md",
+        "commands/README.md",
+        "install.sh",
+        ".claude/CLAUDE.md"
+      ],
+      "dependencies": [
+        "WU1",
+        "WU2",
+        "WU3"
+      ],
+      "estimated_complexity": "medium",
+      "parallelizable": false
+    }
+  ],
+  "graph": {
+    "width": 3,
+    "critical_path_length": 2,
+    "critical_path": [
+      "WU1|WU2|WU3",
+      "WU4"
+    ],
+    "parallel_groups": [
+      {
+        "group": 1,
+        "units": [
+          "WU1",
+          "WU2",
+          "WU3"
+        ]
+      },
+      {
+        "group": 2,
+        "units": [
+          "WU4"
+        ]
+      }
+    ]
+  },
+  "execution_preference": "auto",
+  "parallelization_recommendation": "strong"
+}

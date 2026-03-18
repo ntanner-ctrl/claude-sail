@@ -382,8 +382,10 @@ ELSE maturity = mature (7-10):
 ## 7.1 Create Directory Structure
 
 ```bash
-mkdir -p .claude/hooks .claude/agents .claude/commands
+mkdir -p .claude/hooks .claude/agents .claude/commands .claude/pipelines
 ```
+
+The `.claude/pipelines/` directory is where project-local pipeline YAML files live. It starts empty — add custom workflow pipelines here as the project grows.
 
 ## 7.2 Copy Stock Elements
 
@@ -489,11 +491,19 @@ Created `.claude/CLAUDE.md` with:
 ### Recommendations
 [prioritized: Immediate / Soon / Eventually]
 
+### Directories Created
+- `.claude/CLAUDE.md` — project documentation
+- `.claude/hooks/` — project-local hooks
+- `.claude/agents/` — project-local agents
+- `.claude/commands/` — project-local commands
+- `.claude/pipelines/` — add custom workflow YAML files here
+
 ### Next Steps
 1. Review generated CLAUDE.md and refine
 2. Run /start at the beginning of your next session
 3. Run /toolkit to see all available commands
 4. Try /blueprint [name] for your next non-trivial change
+5. Run /pipeline list to see available workflow pipelines
 ```
 
 ---
@@ -514,10 +524,14 @@ Stock element templates are stored at:
 │   ├── troubleshooter.md
 │   ├── code-reviewer.md
 │   └── architecture-explainer.md
-└── stock-commands/
-    ├── test-all.md
-    ├── health-check.md
-    └── scaffold.md
+├── stock-commands/
+│   ├── test-all.md
+│   ├── health-check.md
+│   └── scaffold.md
+└── stock-pipelines/
+    ├── ship-feature.yaml
+    ├── quality-check.yaml
+    └── quick-fix.yaml
 ```
 
 ---
