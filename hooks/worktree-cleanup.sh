@@ -9,6 +9,12 @@
 # Installation: Add to ~/.claude/settings.json SessionStart hooks
 set +e
 
+# Hook runtime toggle — skip if disabled via env var
+HOOK_NAME="$(basename "${BASH_SOURCE[0]}" .sh)"
+if [[ ",${SAIL_DISABLED_HOOKS}," == *",${HOOK_NAME},"* ]]; then
+    exit 0
+fi
+
 WORKTREE_DIR=".claude/worktrees"
 
 # Only act if worktree directory exists

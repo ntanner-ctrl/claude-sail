@@ -23,8 +23,8 @@ Quickly assess project state and recommend the optimal next task.
      - Use Grep tool to search `$VAULT_PATH` for `"^project: PROJECT_NAME"` in `*.md` files
      - Focus on `Engineering/Findings/` and `Engineering/Decisions/` directories
      - For up to 5 most recent matches, read frontmatter to extract:
-       - `empirica_confidence` scores if present
-       - `empirica_status` values (flag any marked `stale` or `contradicted`)
+       - `epistemic_confidence` scores if present
+       - `epistemic_status` values (flag any marked `stale` or `contradicted`)
        - Brief summary of the finding/decision
      - Present vault context summary (see output format below)
    - If vault is unavailable, note: "No vault configured — skipping prior knowledge lookup"
@@ -101,6 +101,14 @@ Complexity: [Quick/Medium/Significant]
 [If vault context was displayed above:]
 - Search deeper: /vault-query [topic]
 - Full command index: /toolkit
+[If .claude/frozen-dirs.json exists and is non-empty:]
+- ⚠️ N directories frozen from a previous session. Run /unfreeze --all to clear.
+[If .claude/budget-config.json exists:]
+- Budget awareness target: ~N turns (/budget to review)
+[If .claude/error-logs/ or .claude/success-logs/ has 5+ files:]
+- Consider running /evolve to synthesize patterns from logged errors/successes
+[If .claude/budget.jsonl has 5+ entries:]
+- Consider running /retro for a retrospective on recent sessions
 ```
 
 ---

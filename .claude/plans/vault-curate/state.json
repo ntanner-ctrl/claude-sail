@@ -2,7 +2,7 @@
   "blueprint_version": 2,
   "name": "vault-curate",
   "created": "2026-02-20T00:00:00Z",
-  "current_stage": "execute",
+  "current_stage": "complete",
   "challenge_mode": "debate",
   "execution_preference": "simplicity",
   "revision": 2,
@@ -35,7 +35,7 @@
     },
     "premortem": {
       "status": "skipped",
-      "skip_reason": "User chose to skip — spec well-hardened after 2 challenge rounds + 42 boundary analysis"
+      "skip_reason": "User chose to skip \u2014 spec well-hardened after 2 challenge rounds + 42 boundary analysis"
     },
     "review": {
       "status": "skipped",

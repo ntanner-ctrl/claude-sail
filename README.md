@@ -26,10 +26,10 @@ claude
 
 | Component | Purpose |
 |-----------|---------|
-| [**Commands**](commands/README.md) | 55 workflow commands for planning, review, testing, execution, vault integration + plugin integration |
+| [**Commands**](commands/README.md) | 61 workflow commands for planning, review, testing, execution, vault integration + plugin integration |
 | [**Agents**](agents/) | 6 specialized review agents (spec, quality, security, performance, architecture, CloudFormation) |
 | [**Planning Infrastructure**](docs/PLANNING-STORAGE.md) | Staged planning with triage, specs, and adversarial challenge |
-| [**Shell Hooks**](hooks/) | 17 shell hooks for safety, session lifecycle, epistemic tracking, toolkit hardening |
+| [**Shell Hooks**](hooks/) | 19 shell files (18 hooks + 1 audit utility) for safety, session lifecycle, epistemic tracking, toolkit hardening |
 | [**Hookify Rules**](hookify-rules/) | 7 YAML-based security rules |
 | [**Stock Elements**](commands/templates/) | 12 stock elements (6 hooks, 3 agents, 3 commands) installed into target projects |
 | [**Ops Starter Kit**](ops-starter-kit/) | Domain-specific extensions for infrastructure work |
@@ -90,7 +90,7 @@ Stage 7: Execute      → Implementation (with manifest handoff + work graph)
 ```
 
 Features feedback loops (max 3 regressions), HALT state recovery, token-dense
-manifest storage, [Empirica](https://github.com/Nubaeon/empirica)-backed confidence scoring, and work graph parallelization.
+manifest storage, native epistemic tracking (calibration + behavioral feedback), and work graph parallelization.
 
 See [docs/BLUEPRINT-MODES.md](docs/BLUEPRINT-MODES.md) for challenge mode details.
 
@@ -242,11 +242,11 @@ See [docs/SECURITY.md](docs/SECURITY.md) for architecture details.
 
 | Hook | Purpose |
 |------|---------|
-| `session-sail.sh` | **Inject command awareness, auto-create Empirica session, and active work state at session start** |
+| `session-sail.sh` | **Inject command awareness, active work state, and epistemic context at session start** |
 | `state-index-update.sh` | Maintain `.claude/state-index.json` when blueprint/TDD state changes |
-| `blueprint-stage-gate.sh` | Block blueprint stage transitions when [Empirica](https://github.com/Nubaeon/empirica) data is missing |
-| `empirica-session-guard.sh` | Block duplicate Empirica session creation (redirect to preflight) |
-| `empirica-commit-reminder.sh` | Remind to log findings via Empirica after successful commits |
+| `blueprint-stage-gate.sh` | Block blueprint stage transitions when required data is missing |
+| `epistemic-preflight.sh` | Generate calibration feedback and session marker at session start |
+| `epistemic-postflight.sh` | Compute deltas and update calibration at session end |
 | `worktree-cleanup.sh` | Clean orphaned worktrees from interrupted `--isolate` sessions |
 | `protect-claude-md.sh` | Block accidental CLAUDE.md modifications |
 | `tdd-guardian.sh` | Block implementation edits during TDD RED phase |
@@ -257,14 +257,8 @@ See [docs/SECURITY.md](docs/SECURITY.md) for architecture details.
 | `statusline.sh` | Toolkit-aware status line (model, cost, context, active work) |
 | `notify.sh` | Desktop notifications |
 | `session-end-vault.sh` | Safety-net vault export when `/end` not used |
-| `insight-nudge.sh` | Throttled reminder to capture insights (every 8 tool calls) |
-| `empirica-preflight-capture.sh` | Capture preflight vectors to `.empirica/preflight.jsonl` |
-| `empirica-postflight-capture.sh` | Capture postflight vectors to `.empirica/postflight.jsonl` |
-| `session-end-empirica.sh` | Attempt Empirica postflight if session wasn't closed with `/end` |
-| `compaction-guardian.sh` | Protect critical context through compaction events |
 | `failure-escalation.sh` | Track repeated failures and escalate when threshold exceeded |
 | `session-end-cleanup.sh` | Clean up signal files and temporary state at session end |
-| `empirica-insight-capture.sh` | Mirror finding/mistake/deadend logs to disk as write-through safety net |
 
 ### Hookify Rules
 
@@ -325,6 +319,16 @@ Merge into `~/.claude/settings.json`. Minimal example (safety hooks only):
 ```
 
 See `settings-example.json` for complete configuration with all hooks and status line.
+
+#### Temporarily Disabling Hooks
+
+Set `SAIL_DISABLED_HOOKS` to disable specific hooks for a single session:
+
+```bash
+SAIL_DISABLED_HOOKS=secret-scanner,tdd-guardian claude
+```
+
+Comma-separated hook names (without path or `.sh` extension). Unset = all hooks active. Avoid exporting this in `.bashrc`/`.zshrc` — it will persist across all sessions.
 
 ---
 
@@ -392,7 +396,7 @@ Built with patterns and inspiration from:
 - **[Priivacy-ai/spec-kitty](https://github.com/Priivacy-ai/spec-kitty)** - Git worktree isolation for parallel agents
 - **[ryanthedev/code-foundations](https://github.com/ryanthedev/code-foundations)** - Code Complete SE skills (debug, design-check)
 - **[cowwoc/claude-code-cat](https://github.com/cowwoc/claude-code-cat)** - Multi-perspective review lenses
-- **[Nubaeon/empirica](https://github.com/Nubaeon/empirica)** - Epistemic self-assessment framework for AI metacognition and calibration
+- **[Nubaeon/empirica](https://github.com/Nubaeon/empirica)** - Original epistemic self-assessment framework (inspired claude-sail's native tracking system)
 
 ---
 

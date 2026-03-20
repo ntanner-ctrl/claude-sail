@@ -16,6 +16,16 @@
 # Fail-open for non-commit operations
 set +e
 
+# Hook runtime toggle — skip if disabled via env var
+HOOK_NAME="$(basename "${BASH_SOURCE[0]}" .sh)"
+if [[ ",${SAIL_DISABLED_HOOKS}," == *",${HOOK_NAME},"* ]]; then
+    exit 0
+fi
+
+# Audit logging — no-op fallback if utility not installed
+audit_block() { :; }
+source ~/.claude/hooks/_audit-log.sh 2>/dev/null || true
+
 # Read JSON input from stdin
 input=$(cat)
 
@@ -69,6 +79,7 @@ if [[ -n "$env_files" ]]; then
     echo "Add to .gitignore to prevent future accidents." >&2
     echo "" >&2
     # Exit 2 to block with feedback to Claude
+    audit_block "$HOOK_NAME" "SECURITY" ".env file staged for commit" "Bash" "${cmd:0:100}"
     exit 2
 fi
 
@@ -115,6 +126,7 @@ if [[ ${#found_secrets[@]} -gt 0 ]]; then
     echo "  3. Explicitly confirm to proceed" >&2
     echo "" >&2
     # Exit 2 to block with feedback to Claude
+    audit_block "$HOOK_NAME" "SECURITY" "Potential secrets in staged files" "Bash" "${cmd:0:100}"
     exit 2
 fi
 

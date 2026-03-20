@@ -25,6 +25,16 @@
 # Fail-open: Don't let hook bugs block work
 set +e
 
+# Hook runtime toggle — skip if disabled via env var
+HOOK_NAME="$(basename "${BASH_SOURCE[0]}" .sh)"
+if [[ ",${SAIL_DISABLED_HOOKS}," == *",${HOOK_NAME},"* ]]; then
+    exit 0
+fi
+
+# Audit logging — no-op fallback if utility not installed
+audit_block() { :; }
+source ~/.claude/hooks/_audit-log.sh 2>/dev/null || true
+
 APPROVAL_FILE="/tmp/.claude-md-approved-$(id -u)"
 APPROVAL_MAX_AGE=300  # 5 minutes
 
@@ -79,6 +89,7 @@ if [[ "${filename,,}" == "claude.md" ]]; then
     echo "To approve this edit, ask the user for confirmation, then run:" >&2
     echo "  echo '$file_path' > $APPROVAL_FILE" >&2
     echo "Then retry the Write/Edit operation." >&2
+    audit_block "$HOOK_NAME" "GIT_SAFETY" "CLAUDE.md modification blocked pending approval" "Edit|Write" "${file_path:0:100}"
     exit 2
 fi
 

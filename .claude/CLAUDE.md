@@ -15,7 +15,7 @@ This repo is a **distribution package** — not a runtime app. `install.sh` copi
 
 ```
 claude-sail/
-├── commands/          # 55 slash commands (*.md with YAML frontmatter, includes plugin-enhancers reference)
+├── commands/          # 61 slash commands (*.md with YAML frontmatter, includes plugin-enhancers reference)
 │   ├── templates/     # Stock elements installed by /bootstrap-project into target projects
 │   │   ├── stock-hooks/      # 6 prompt-based hooks for target projects
 │   │   ├── stock-agents/     # 3 agents for target projects
@@ -26,7 +26,7 @@ claude-sail/
 │   │   └── documentation/    # Diataxis doc templates
 │   └── *.md           # The actual toolkit commands
 ├── agents/            # 6 review agents (spec, quality, security, performance, architecture, CloudFormation)
-├── hooks/             # 17 shell hooks (*.sh) for SessionStart, PreToolUse, PostToolUse, SessionEnd, etc.
+├── hooks/             # 19 shell files: 18 hooks + 1 utility (_audit-log.sh) for SessionStart, PreToolUse, PostToolUse, SessionEnd, etc.
 ├── hookify-rules/     # 7 YAML-based safety rules (*.local.md)
 ├── plugins/           # Session-start plugin (sail-toolkit)
 ├── evals/             # Behavioral eval fixtures (evals.json) — used by test.sh Category 8
@@ -89,6 +89,25 @@ All hooks follow the **fail-open** pattern:
 - Exit 2: Block with feedback TO Claude (stderr)
 - Use `set +e` — hook bugs must not halt work
 - Include timeouts for external tool calls
+
+### Hook Runtime Toggles
+
+Set `SAIL_DISABLED_HOOKS` to temporarily disable specific hooks:
+
+```bash
+SAIL_DISABLED_HOOKS=secret-scanner,tdd-guardian claude
+```
+
+Comma-separated hook names (without path or `.sh` extension). Unset = all hooks active.
+
+**Warning:** If exported in `.bashrc`/`.zshrc`, the disable persists across ALL sessions.
+
+### Baseline Hookify Rules
+
+Four hookify rules are marked `baseline: true` — security-critical protections:
+- `force-push-protection`, `exfiltration-protection`, `disk-ops-protection`, `chmod-777`
+
+**Current effect: convention signal only.** The hookify plugin does not currently enforce this field. Enforcement requires upstream hookify plugin changes.
 
 ### Pipeline YAML Format
 

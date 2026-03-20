@@ -4,6 +4,7 @@ enabled: true
 event: bash
 pattern: git\s+push\s+.*(-f|--force).*\s+(main|master|production|release|develop)
 action: block
+baseline: true
 ---
 
 **BLOCKED: Force push to protected branch**

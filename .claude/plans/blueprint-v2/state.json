@@ -5,7 +5,7 @@
   "updated": "2026-02-07T21:00:00Z",
   "recommended_path": "full",
   "chosen_path": "full",
-  "current_stage": 7,
+  "current_stage": "complete",
   "challenge_mode": "debate",
   "revision": 2,
   "stages": {
@@ -47,7 +47,7 @@
       "skippable": true,
       "mode": "debate",
       "verdict": "NO_REGRESSION",
-      "confidence": 0.90,
+      "confidence": 0.9,
       "confidence_note": "21 edge cases catalogued. 4 must-fix, 3 should-fix, 2 document-as-limitation. All addressable at implementation time. No architectural gaps found.",
       "findings_summary": {
         "must_fix": 4,
@@ -65,12 +65,12 @@
     "review": {
       "status": "skipped",
       "skippable": true,
-      "skip_reason": "User decision — no external review planned for this iteration."
+      "skip_reason": "User decision \u2014 no external review planned for this iteration."
     },
     "test": {
       "status": "skipped",
       "skippable": true,
-      "skip_reason": "User decision — tests more valuable after implementation exists. Spec-blind testing deferred."
+      "skip_reason": "User decision \u2014 tests more valuable after implementation exists. Spec-blind testing deferred."
     },
     "execute": {
       "status": "complete",
@@ -100,7 +100,7 @@
     {
       "finding": "M1",
       "original": "Default to vanilla for initial release",
-      "override": "Keep debate as default — user impressed with debate chain quality",
+      "override": "Keep debate as default \u2014 user impressed with debate chain quality",
       "timestamp": "2026-02-07T19:15:00Z"
     }
   ],

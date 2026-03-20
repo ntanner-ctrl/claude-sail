@@ -177,7 +177,7 @@ Do not abort the sweep for partial failures. If ALL reviewers time out, report:
 Sweep incomplete — all [N] reviewers timed out. Try running individual reviewers manually.
 ```
 
-Log to `.empirica/insights.jsonl` if available.
+Log to `.epistemic/insights.jsonl` if available.
 
 ### Step 4: Synthesize and Triage
 
@@ -420,7 +420,7 @@ Run `/quality-gate` on the final state.
 | Detached HEAD | Use `git diff HEAD` (working tree changes only). Note in scope summary. |
 | Not a git repo | "Not a git repository. Provide a directory or blueprint name." Stop. |
 | 1-2 reviewers timeout | Continue with partial results. Flag timed-out reviewers in report. |
-| All reviewers timeout | Report sweep incomplete. Log to `.empirica/insights.jsonl` if available. |
+| All reviewers timeout | Report sweep incomplete. Log to `.epistemic/insights.jsonl` if available. |
 | Fix introduces more issues than it solves | After 2 regression cycles, offer rollback. List outstanding findings. |
 | Fix agent requires >3 files | Agent must report back for approval before proceeding. |
 | No spec (standalone without spec) | Skip spec-reviewer automatically. Inform user in scope summary. |
@@ -437,6 +437,6 @@ A quality sweep writes state to `state.json`. Running two sweeps concurrently on
 - **Composes with:** `/delegate` (fix dispatch), `/quality-gate` (final scoring)
 - **Uses:** spec-reviewer, quality-reviewer, security-reviewer, performance-reviewer, architecture-reviewer, cloudformation-reviewer agents
 - **Feeds into:** `/push-safe` (commit after sweep passes)
-- **Insight capture:** If sweep reveals surprising patterns (recurring issues, unexpected vulnerabilities, systemic quality gaps), log to `.empirica/insights.jsonl`
+- **Insight capture:** If sweep reveals surprising patterns (recurring issues, unexpected vulnerabilities, systemic quality gaps), log to `.epistemic/insights.jsonl`
 
 $ARGUMENTS

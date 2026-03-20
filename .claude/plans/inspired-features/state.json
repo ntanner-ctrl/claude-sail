@@ -1,0 +1,71 @@
+{
+  "blueprint_version": 2,
+  "name": "inspired-features",
+  "current_stage": "execute",
+  "challenge_mode": "family",
+  "execution_preference": "speed",
+  "revision": 2,
+  "regressions_used": 0,
+  "max_regressions": 3,
+  "epistemic_session_id": "38424cec-8674-4b6e-b424-92dfd80cbd3d",
+  "epistemic_preflight_complete": true,
+  "manifest_stale": true,
+  "work_graph_stale": false,
+  "stages": {
+    "describe": {
+      "status": "complete",
+      "confidence": 0.85
+    },
+    "specify": {
+      "status": "complete",
+      "confidence": 0.80
+    },
+    "challenge": {
+      "status": "complete",
+      "confidence": 0.85
+    },
+    "edge_cases": {
+      "status": "complete",
+      "confidence": 0.90
+    },
+    "premortem": {
+      "status": "complete",
+      "confidence": 0.85
+    },
+    "review": {
+      "status": "skipped",
+      "skip_reason": "Family mode review sufficient"
+    },
+    "test": {
+      "status": "complete",
+      "confidence": 0.85,
+      "confidence_note": "21 automated checks + 12 manual verification items generated from spec."
+    },
+    "execute": {
+      "status": "in_progress",
+      "started_at": "2026-03-20T19:20:00Z"
+    }
+  },
+  "regression_log": [],
+  "family_progress": {
+    "stage": "complete",
+    "rounds_total": 1,
+    "elder_verdicts": [
+      {
+        "stage": "challenge",
+        "verdict": "CONVERGED",
+        "confidence": 0.85
+      },
+      {
+        "stage": "edge_cases",
+        "verdict": "CONVERGED",
+        "confidence": 0.90
+      }
+    ]
+  },
+  "premortem": {
+    "status": "complete",
+    "new_findings": 4,
+    "premortem_overlap": "low"
+  }
+}

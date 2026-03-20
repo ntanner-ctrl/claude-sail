@@ -156,7 +156,7 @@ Write to `.claude/error-logs/error-YYYY-MM-DD-HHMM.md`:
 ### Step 6: Epistemic Tracking
 
 If an epistemic session is active (`~/.claude/.current-session` exists):
-1. Append to `.empirica/insights.jsonl`:
+1. Append to `.epistemic/insights.jsonl`:
    ```json
    {"timestamp": "ISO-8601", "type": "mistake", "input": {"mistake": "one-line lesson", "impact": "brief impact"}}
    ```
@@ -202,6 +202,7 @@ After logging, consider:
 Also available (user-initiated):
 - `/debug` — If the error produced a bug that needs systematic investigation
 - `/checkpoint` — Save current state if you're about to retry with a different approach
+- `/evolve` — After accumulating 5+ error logs, synthesize patterns into workflow improvements
 
 ## Notes
 

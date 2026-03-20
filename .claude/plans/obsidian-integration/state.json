@@ -5,7 +5,7 @@
   "updated": "2026-02-18T16:00:00Z",
   "recommended_path": "full",
   "chosen_path": "full",
-  "current_stage": 7,
+  "current_stage": "complete",
   "challenge_mode": "debate",
   "execution_preference": "auto",
   "revision": 2,
@@ -94,7 +94,7 @@
       "from_stage": "challenge",
       "to_stage": "specify",
       "trigger_type": "debate_verdict",
-      "trigger": "Judge verdict REGRESS — 5 high-severity findings",
+      "trigger": "Judge verdict REGRESS \u2014 5 high-severity findings",
       "reason": "Debate chain found broken correctness properties requiring spec revision",
       "timestamp": "2026-02-18T12:00:00Z",
       "revision": 2

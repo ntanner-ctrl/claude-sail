@@ -106,7 +106,7 @@ Write to `.claude/success-logs/success-YYYY-MM-DD-HHMM.md`:
 ### Step 5: Epistemic Tracking
 
 If an epistemic session is active (`~/.claude/.current-session` exists):
-1. Append to `.empirica/insights.jsonl`:
+1. Append to `.epistemic/insights.jsonl`:
    ```json
    {"timestamp": "ISO-8601", "type": "finding", "input": {"finding": "[Success] one-line takeaway"}}
    ```
@@ -152,6 +152,7 @@ After logging, consider:
 Also available (user-initiated):
 - `/log-error` — If you want to contrast with a recent failure in the same area
 - `/promote-finding` — If a success pattern has been validated 3+ times, promote it to a CLAUDE.md rule
+- `/evolve` — After accumulating 5+ success logs, synthesize patterns into workflow improvements
 
 ## Notes
 

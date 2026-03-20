@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "generated_at": "2026-03-20T18:00:00Z",
+  "checksum": null,
+  "nodes": {
+    "W1": {
+      "feature": "hook-toggles",
+      "desc": "Add guard to 17 hooks",
+      "deps": [],
+      "size": "medium"
+    },
+    "W2": {
+      "feature": "hook-toggles",
+      "desc": "Document SAIL_DISABLED_HOOKS",
+      "deps": [
+        "W1"
+      ],
+      "size": "small"
+    },
+    "W3": {
+      "feature": "budget",
+      "desc": "Create /budget command",
+      "deps": [],
+      "size": "medium"
+    },
+    "W4": {
+      "feature": "budget",
+      "desc": "Enhance /end for budget logging",
+      "deps": [
+        "W3"
+      ],
+      "size": "small"
+    },
+    "W5": {
+      "feature": "budget",
+      "desc": "Budget awareness in CLAUDE.md template",
+      "deps": [
+        "W3"
+      ],
+      "size": "small"
+    },
+    "W6": {
+      "feature": "baseline",
+      "desc": "Add baseline:true to 4 hookify rules",
+      "deps": [],
+      "size": "small"
+    },
+    "W7": {
+      "feature": "baseline",
+      "desc": "Document baseline convention",
+      "deps": [
+        "W6"
+      ],
+      "size": "small"
+    },
+    "W8": {
+      "feature": "retro",
+      "desc": "Create /retro command",
+      "deps": [],
+      "size": "medium"
+    },
+    "W9": {
+      "feature": "retro",
+      "desc": "Create retro vault template",
+      "deps": [
+        "W8"
+      ],
+      "size": "small"
+    },
+    "W10": {
+      "feature": "freeze",
+      "desc": "Create /freeze command",
+      "deps": [],
+      "size": "small"
+    },
+    "W11": {
+      "feature": "freeze",
+      "desc": "Create /unfreeze command",
+      "deps": [
+        "W10"
+      ],
+      "size": "small"
+    },
+    "W12": {
+      "feature": "freeze",
+      "desc": "Create freeze-guard.sh hook",
+      "deps": [
+        "W10"
+      ],
+      "size": "medium"
+    },
+    "W13": {
+      "feature": "freeze",
+      "desc": "Wire in settings-example.json",
+      "deps": [
+        "W12"
+      ],
+      "size": "small"
+    },
+    "W14": {
+      "feature": "evolve",
+      "desc": "Create /evolve command",
+      "deps": [],
+      "size": "large"
+    },
+    "W15": {
+      "feature": "audit",
+      "desc": "Create audit-log.sh utility",
+      "deps": [],
+      "size": "small"
+    },
+    "W16": {
+      "feature": "audit",
+      "desc": "Add audit calls to blocking hooks",
+      "deps": [
+        "W15"
+      ],
+      "size": "medium"
+    },
+    "W17": {
+      "feature": "audit",
+      "desc": "Create /audit command",
+      "deps": [
+        "W15"
+      ],
+      "size": "medium"
+    },
+    "W18": {
+      "feature": "cross-cutting",
+      "desc": "Update counts in README, CLAUDE.md, test.sh",
+      "deps": [
+        "W1",
+        "W3",
+        "W6",
+        "W8",
+        "W10",
+        "W12",
+        "W14",
+        "W15",
+        "W16",
+        "W17"
+      ],
+      "size": "medium"
+    }
+  },
+  "analysis": {
+    "total_units": 18,
+    "max_parallelism": 7,
+    "critical_path": [
+      "W15",
+      "W16",
+      "W18"
+    ],
+    "critical_path_length": 3,
+    "independent_roots": [
+      "W1",
+      "W3",
+      "W6",
+      "W8",
+      "W10",
+      "W14",
+      "W15"
+    ],
+    "parallel_waves": [
+      {
+        "wave": 1,
+        "units": [
+          "W1",
+          "W3",
+          "W6",
+          "W8",
+          "W10",
+          "W14",
+          "W15"
+        ],
+        "note": "All independent roots — max parallelism"
+      },
+      {
+        "wave": 2,
+        "units": [
+          "W2",
+          "W4",
+          "W5",
+          "W7",
+          "W9",
+          "W11",
+          "W12",
+          "W16",
+          "W17"
+        ],
+        "note": "Second-tier dependencies"
+      },
+      {
+        "wave": 3,
+        "units": [
+          "W13",
+          "W18"
+        ],
+        "note": "Final wiring and count updates"
+      }
+    ]
+  }
+}

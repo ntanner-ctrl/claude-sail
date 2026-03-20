@@ -4,11 +4,11 @@ description: Use when you want to flush pending insights to Obsidian vault and e
 
 # Collect Insights
 
-Flush pending insights to both the Obsidian vault and epistemic tracking. Reads orphaned disk findings from `.empirica/insights.jsonl`, captures any ★ Insight blocks from the current conversation, and writes each to vault (as finding notes) and marks them as synced in the disk store.
+Flush pending insights to both the Obsidian vault and epistemic tracking. Reads orphaned disk findings from `.epistemic/insights.jsonl`, captures any ★ Insight blocks from the current conversation, and writes each to vault (as finding notes) and marks them as synced in the disk store.
 
 ## Why This Exists
 
-Insights accumulate in two places during a session: in-conversation ★ Insight blocks (ephemeral) and `.empirica/insights.jsonl` (disk safety net from the PostToolUse hook). Without explicit collection, these remain fragmented — vault has no record, and the disk store may have partial data. This command reconciles both stores.
+Insights accumulate in two places during a session: in-conversation ★ Insight blocks (ephemeral) and `.epistemic/insights.jsonl` (disk safety net from the PostToolUse hook). Without explicit collection, these remain fragmented — vault has no record, and the disk store may have partial data. This command reconciles both stores.
 
 ## Process
 
@@ -36,7 +36,7 @@ Note the session ID. If no session, session-linked writes will be skipped (fail-
 
 ### Step 3: Gather Insights from Disk
 
-Read `.empirica/insights.jsonl` (at git root). Each line is a JSON object:
+Read `.epistemic/insights.jsonl` (at git root). Each line is a JSON object:
 
 ```json
 {"timestamp": "ISO-8601", "type": "finding", "input": {"finding": "text"}}
@@ -91,10 +91,10 @@ mkdir -p "$VAULT_PATH/Engineering/Findings"
      - `{{session_link}}`: Session ID from Step 2 (or "no-session")
      - `{{implications}}`: Brief note on why this matters (Claude-generated from context)
    - Add epistemic confidence frontmatter (conditional fields — omit line entirely if no value):
-     - `empirica_confidence`: From insight confidence value
-     - `empirica_assessed`: Today's date (YYYY-MM-DD)
-     - `empirica_session`: Session ID from Step 2
-     - `empirica_status`: "active"
+     - `epistemic_confidence`: From insight confidence value
+     - `epistemic_assessed`: Today's date (YYYY-MM-DD)
+     - `epistemic_session`: Session ID from Step 2
+     - `epistemic_status`: "active"
    - Write to: `$VAULT_PATH/Engineering/Findings/YYYY-MM-DD-slug.md`
 
 4. Use the Write tool for each note. Do NOT use Obsidian MCP for writes.
@@ -103,7 +103,7 @@ If vault is unavailable, log: "Vault write skipped (vault disabled or not access
 
 ### Step 7: Ensure Disk Capture
 
-Verify all insights are captured in `.empirica/insights.jsonl`. For any insight that was only in conversation (not already on disk), append it now:
+Verify all insights are captured in `.epistemic/insights.jsonl`. For any insight that was only in conversation (not already on disk), append it now:
 
 ```json
 {"timestamp": "ISO-8601", "type": "finding", "input": {"finding": "[Insight] the insight text"}}
@@ -113,7 +113,7 @@ This ensures all insights survive session boundaries regardless of vault availab
 
 ### Step 8: Mark Disk Entries as Synced
 
-Update `.empirica/insights.jsonl` to mark processed entries. For each processed line, add `"synced": true` to the JSON object. Write the updated file back.
+Update `.epistemic/insights.jsonl` to mark processed entries. For each processed line, add `"synced": true` to the JSON object. Write the updated file back.
 
 If the file contained ONLY the entries that were just processed, the file can be cleared to an empty file to avoid unbounded growth.
 
@@ -125,7 +125,7 @@ If the file contained ONLY the entries that were just processed, the file can be
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   Sources:
-    Disk (.empirica/insights.jsonl):  N entries
+    Disk (.epistemic/insights.jsonl):  N entries
     Conversation (★ Insight blocks):  N entries
     Duplicates removed:               N
 
@@ -150,7 +150,7 @@ If the file contained ONLY the entries that were just processed, the file can be
 
 ## Notes
 
-- This command dual-writes: Obsidian vault is the primary data store, `.empirica/insights.jsonl` is the disk safety net
+- This command dual-writes: Obsidian vault is the primary data store, `.epistemic/insights.jsonl` is the disk safety net
 - Fail-soft: if vault is unavailable, disk writes still proceed (and vice versa)
 - If vault is unavailable, insights are captured on disk only
 - All vault writes use the Write tool (no Obsidian MCP dependency)

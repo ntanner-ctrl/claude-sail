@@ -5,6 +5,12 @@
 
 set +e
 
+# Hook runtime toggle — skip if disabled via env var
+HOOK_NAME="$(basename "${BASH_SOURCE[0]}" .sh)"
+if [[ ",${SAIL_DISABLED_HOOKS}," == *",${HOOK_NAME},"* ]]; then
+    exit 0
+fi
+
 # Determine session-scoped suffix (same logic as failure-escalation hook)
 if [ "$PPID" -eq 1 ]; then
     SIG_SUFFIX="$USER-$(pwd | md5sum | cut -c1-8)"

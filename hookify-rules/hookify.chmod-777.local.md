@@ -4,6 +4,7 @@ enabled: true
 event: bash
 pattern: chmod\s+(777|a\+rwx)
 action: block
+baseline: true
 ---
 
 **BLOCKED: World-writable permissions detected**

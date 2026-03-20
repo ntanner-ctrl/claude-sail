@@ -30,7 +30,7 @@ Flags are composable: `--quick --project claude-sail` works.
 
 | Type | Directory | Health Signals |
 |------|-----------|----------------|
-| Finding | `Engineering/Findings/` | `empirica_status`, `empirica_confidence`, `empirica_assessed` age |
+| Finding | `Engineering/Findings/` | `epistemic_status`, `epistemic_confidence`, `epistemic_assessed` age |
 | Blueprint | `Engineering/Blueprints/` | Linked plan still exists? Execute stage reached? Age vs. project activity |
 | Idea | `Ideas/` | Age without action (>30 days = cold), linked to any blueprint? |
 | Session | `Sessions/` | Has findings? Has open questions? Links to other notes? |
@@ -202,12 +202,12 @@ When `--section` is set, only assess health for the specified content type.
 **Findings:**
 | Status | Criteria |
 |--------|----------|
-| Contradicted | `empirica_status: contradicted` |
-| Stale | `empirica_status: stale` OR `empirica_assessed` > 30 days ago |
-| Low confidence | `empirica_confidence` < 0.6 |
-| Partially assessed | Has SOME but not ALL `empirica_*` fields. Treat as Unassessed for health scoring (neutral) but flag in triage as "incomplete assessment — needs full review." |
-| Unassessed | No `empirica_*` fields at all |
-| Healthy | `empirica_status: confirmed` AND confidence >= 0.7 AND assessed < 30 days |
+| Contradicted | `epistemic_status: contradicted` |
+| Stale | `epistemic_status: stale` OR `epistemic_assessed` > 30 days ago |
+| Low confidence | `epistemic_confidence` < 0.6 |
+| Partially assessed | Has SOME but not ALL `epistemic_*` fields. Treat as Unassessed for health scoring (neutral) but flag in triage as "incomplete assessment — needs full review." |
+| Unassessed | No `epistemic_*` fields at all |
+| Healthy | `epistemic_status: confirmed` AND confidence >= 0.7 AND assessed < 30 days |
 
 **Blueprints:**
 | Status | Criteria |
@@ -478,8 +478,8 @@ When user selects "Create meta-finding", create a new finding note directly (NOT
   project: [primary project, or "cross-project" if multi-project]
   category: synthesis
   tags: [synthesis, source project tags]
-  empirica_confidence: 0.7
-  empirica_status: active
+  epistemic_confidence: 0.7
+  epistemic_status: active
   synthesis_source: true
   synthesized_from:
     - "[[source-finding-1]]"
@@ -512,8 +512,8 @@ When user selects "Create meta-finding", create a new finding note directly (NOT
    project: [primary project, or "cross-project"]
    category: synthesis
    tags: [union of all source tags, plus "merged"]
-   empirica_confidence: [average of source confidences]
-   empirica_status: active
+   epistemic_confidence: [average of source confidences]
+   epistemic_status: active
    synthesis_source: true
    merged_from:
      - "[[source-finding-1]]"
@@ -605,19 +605,19 @@ For each note with a verdict:
 
 1. **Confirmed/Active/Current** — Update frontmatter:
    ```yaml
-   empirica_assessed: YYYY-MM-DD
-   empirica_status: confirmed
-   empirica_confidence: [updated value]
-   empirica_session: [current session ID]
+   epistemic_assessed: YYYY-MM-DD
+   epistemic_status: confirmed
+   epistemic_confidence: [updated value]
+   epistemic_session: [current session ID]
    ```
 
 2. **Updated/Enriched/Evolved** — Edit note content as discussed, then update frontmatter.
 
 3. **Contradicted** — Update frontmatter:
    ```yaml
-   empirica_status: contradicted
-   empirica_confidence: [low value]
-   empirica_assessed: YYYY-MM-DD
+   epistemic_status: contradicted
+   epistemic_confidence: [low value]
+   epistemic_assessed: YYYY-MM-DD
    ```
    Add to Implications section:
    ```markdown
@@ -646,7 +646,7 @@ For each note with a verdict:
    superseded_date: YYYY-MM-DD
    ```
 
-7. **Log to epistemic tracking** (if session active): append to `.empirica/insights.jsonl` for each updated note. For archived notes, prefix finding with "[Archived] " (NOT as a dead-end — archiving is curation, not a dead end).
+7. **Log to epistemic tracking** (if session active): append to `.claude/epistemic-insights.jsonl` for each updated note. For archived notes, prefix finding with "[Archived] " (NOT as a dead-end — archiving is curation, not a dead end).
 
 ### Interruption Recovery
 
@@ -679,12 +679,12 @@ if total_count == 0:
 
 decay_rate = (stale_count + contradicted_count) / total_count
 
-# Use MEDIAN of empirica_assessed dates (not most recent) to avoid single-note bias
-assessed_notes = notes where empirica_assessed exists
+# Use MEDIAN of epistemic_assessed dates (not most recent) to avoid single-note bias
+assessed_notes = notes where epistemic_assessed exists
 fraction_never_assessed = 1 - (len(assessed_notes) / total_count)
 
 if assessed_notes:
-    median_assessed_date = median(assessed_notes.empirica_assessed)
+    median_assessed_date = median(assessed_notes.epistemic_assessed)
     days_since_median_curation = TODAY - median_assessed_date
 else:
     days_since_median_curation = 999  # never curated
@@ -760,7 +760,7 @@ echo "$(date +%Y-%m-%d)" > "$VAULT_PATH/.vault-last-curated"
 
 ### Log to Epistemic Tracking
 
-If session active, append to `.empirica/insights.jsonl`:
+If session active, append to `.claude/epistemic-insights.jsonl`:
 ```json
 {"timestamp": "ISO-8601", "type": "finding", "input": {"finding": "[Vault curation] Vault curation complete: N notes reviewed, health NN->NN, next curation ~YYYY-MM-DD"}}
 ```

@@ -53,6 +53,17 @@ EXECUTION (when you build)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
   /delegate          Hand off to specialized sub-agent
   /push-safe         Safe git push with secret scanning
+  /freeze [dir]      Lock directories from edits
+  /unfreeze [dir]    Unlock frozen directories
+  /budget            Session turn awareness and thresholds
+  /audit             Review hook block history
+
+LEARNING (improve over time)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  /log-error         Interview yourself after mistakes
+  /log-success       Capture what went right and why
+  /evolve            Synthesize patterns into workflow rules
+  /retro             Retrospective across recent sessions
 
 DOCUMENTATION
 ━━━━━━━━━━━━━

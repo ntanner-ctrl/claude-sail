@@ -4,6 +4,7 @@ enabled: true
 event: bash
 pattern: (dd\s+.*of=/dev/(sd|hd|nvme|disk|loop)|mkfs)
 action: block
+baseline: true
 ---
 
 **BLOCKED: Direct disk operation detected**

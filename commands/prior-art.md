@@ -216,14 +216,14 @@ Prior art report is [N] days old. Re-run search to verify recommendation? (Y/n)
 - In blueprint context: log in state.json as `"prior_art_gate": { "status": "skipped", "override": true, "reason": "[user reason]" }`
 - In standalone mode: note in the inline report output and proceed
 
-**Insight capture:** If search reveals a surprisingly popular library or pattern not previously known, append to `.empirica/insights.jsonl` (prefix with "[Insight] ").
+**Insight capture:** If search reveals a surprisingly popular library or pattern not previously known, append to `.epistemic/insights.jsonl` (prefix with "[Insight] ").
 
 ## Integration
 
 - **Gated by:** `/blueprint` Stage 1 → Stage 2 transition (ENFORCED on Standard/Full path)
 - **Usable from:** `/brainstorm`, standalone, any planning context
 - **Feeds into:** `/spec-change` (prior art informs spec decisions)
-- **Insight capture:** If search reveals surprising findings, append to `.empirica/insights.jsonl`
+- **Insight capture:** If search reveals surprising findings, append to `.epistemic/insights.jsonl`
 
 ---
 

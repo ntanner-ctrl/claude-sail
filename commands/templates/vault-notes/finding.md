@@ -5,10 +5,10 @@ project: {{project}}
 category: {{category}}
 severity: {{severity}}
 tags: [finding]
-{{#if empirica_confidence}}empirica_confidence: {{empirica_confidence}}{{/if}}
-{{#if empirica_assessed}}empirica_assessed: {{empirica_assessed}}{{/if}}
-{{#if empirica_session}}empirica_session: {{empirica_session}}{{/if}}
-{{#if empirica_status}}empirica_status: {{empirica_status}}{{/if}}
+{{#if epistemic_confidence}}epistemic_confidence: {{epistemic_confidence}}{{/if}}
+{{#if epistemic_assessed}}epistemic_assessed: {{epistemic_assessed}}{{/if}}
+{{#if epistemic_session}}epistemic_session: {{epistemic_session}}{{/if}}
+{{#if epistemic_status}}epistemic_status: {{epistemic_status}}{{/if}}
 ---
 
 # {{title}}

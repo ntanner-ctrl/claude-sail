@@ -5,7 +5,7 @@
   "type": "program",
   "description": "Major enforcement upgrade based on Superpowers, Turkey-Build, and ZacheryGlass analysis",
   "recommended_path": "custom",
-  "current_stage": 1,
+  "current_stage": "archived",
   "stages": {
     "describe": {
       "status": "complete",
@@ -77,5 +77,6 @@
     "subagent-orchestration",
     "exploratory"
   ],
-  "notes": "P4 requires research phase before design commitment"
+  "notes": "P4 requires research phase before design commitment",
+  "archived_reason": "Stale \u2014 insufficient progress to justify resuming. Can be re-planned fresh if needed."
 }

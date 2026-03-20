@@ -348,14 +348,14 @@ The blueprint-stage-gate hook will flag missing epistemic data.
 - Set `epistemic_preflight_complete: true` in state.json
 
 **After completing each stage:**
-- Append a finding summary to `.empirica/insights.jsonl`
+- Append a finding summary to `.epistemic/insights.jsonl`
 - Record confidence score (0.0-1.0) in state.json under `stages.[name].confidence`
 - Include `confidence_note` explaining the score
 - Update manifest.json
 
 **On regression:**
-- Log the mistake to `.empirica/insights.jsonl` with type "mistake" if caused by error in judgment
-- Log the dead-end to `.empirica/insights.jsonl` with type "deadend" if an approach failed
+- Log the mistake to `.epistemic/insights.jsonl` with type "mistake" if caused by error in judgment
+- Log the dead-end to `.epistemic/insights.jsonl` with type "deadend" if an approach failed
 
 **After Stage 7 complete (or workflow abandoned):**
 - Run `/epistemic-postflight`
@@ -398,7 +398,7 @@ A three-round sequential critique chain using subagents. Each round's agent sees
 prior rounds' output, creating escalating context.
 
 **Timeout protection:** Each debate subagent has a 5-minute timeout. Each stage (3 rounds)
-has a 15-minute total timeout. On timeout: log a dead-end to `.empirica/insights.jsonl`, fall back to
+has a 15-minute total timeout. On timeout: log a dead-end to `.epistemic/insights.jsonl`, fall back to
 vanilla mode for the remainder of that stage, preserve any completed rounds.
 
 **Cascading timeout behavior:** The stage timeout (15 min) is the outer envelope. If Round 1
@@ -510,7 +510,7 @@ The Judge/Synthesizer output is processed as follows:
    - Extract numbered list items via pattern matching (`F[0-9]+`, `[0-9]+.`, `-`)
    - Assign all findings: severity=medium, convergence=newly-identified
    - If no list items found, wrap entire output as single finding
-   - Log warning to `.empirica/insights.jsonl` as dead-end
+   - Log warning to `.epistemic/insights.jsonl` as dead-end
    - Flag all extracted findings for human review
 
 The curated output goes to `adversarial.md` (canonical source of truth).
@@ -754,7 +754,7 @@ The Elder Council's JSON output is processed with the same fallback chain as deb
    - Search for "CONVERGED" or "CONTINUE" keywords in raw output
    - If found: use keyword as verdict, set confidence to 0.5
    - If neither found: treat as CONVERGED with confidence 0.4 and flag for human review
-   - Log warning to `.empirica/insights.jsonl` as dead-end
+   - Log warning to `.epistemic/insights.jsonl` as dead-end
 
 #### Family Mode Loop Control
 
@@ -781,7 +781,7 @@ Round N:
 - Total mode timeout: 25 minutes (all rounds combined)
 
 **Timeout behavior:**
-- If a single agent exceeds 3 minutes: kill agent, log dead-end to `.empirica/insights.jsonl`, skip that
+- If a single agent exceeds 3 minutes: kill agent, log dead-end to `.epistemic/insights.jsonl`, skip that
   agent's contribution, continue with remaining agents
 - If round timeout exceeded: complete current agent, skip remaining agents in round,
   force Elder verdict with available data
@@ -802,7 +802,7 @@ against the surviving position.
 
 **Empty carry-forward guard:** If Elder Council issues CONTINUE but provides empty or null
 `carry_forward`, treat as CONVERGED. A CONTINUE without specific context for the next round
-would cause children to repeat themselves. Log to `.empirica/insights.jsonl`.
+would cause children to repeat themselves. Log to `.epistemic/insights.jsonl`.
 
 #### Family Mode Output
 
@@ -1213,8 +1213,8 @@ Use `[PLUGIN]` prefix for all plugin-related operations:
 ```
 
 If epistemic session is active:
-- Log successful plugin insights to `.empirica/insights.jsonl`
-- Log failures to `.empirica/insights.jsonl` as dead-ends
+- Log successful plugin insights to `.epistemic/insights.jsonl`
+- Log failures to `.epistemic/insights.jsonl` as dead-ends
 
 ---
 
@@ -1487,7 +1487,7 @@ Written to `.claude/plans/[name]/reflect.md` with this structure:
 
 After writing `reflect.md`, execute this export sequence (NOT optional):
 
-1. **Epistemic tracking (mandatory if session active):** For each finding in "Assumptions Proven Wrong" and "Spec Gaps", append to `.empirica/insights.jsonl` with prefix "[Reflection]". Each discrete finding gets its own log entry.
+1. **Epistemic tracking (mandatory if session active):** For each finding in "Assumptions Proven Wrong" and "Spec Gaps", append to `.epistemic/insights.jsonl` with prefix "[Reflection]". Each discrete finding gets its own log entry.
 
 2. **Vault (mandatory if vault available):** Export a summary finding to `Engineering/Findings/YYYY-MM-DD-reflect-[blueprint-name].md` using the finding template. ONE note per reflection (not per finding).
 
@@ -1558,6 +1558,7 @@ After presenting the completion summary, export blueprint to vault if available:
   Pre-implementation:
     /design-check [name]    — Verify prerequisites are met (recommended)
     /preflight              — Safety check for risky operations
+    /freeze [dir]           — Lock directories you don't want touched during implementation
 
   Implementation options:
     [1] Standard implementation (sequential)
@@ -1574,6 +1575,9 @@ After presenting the completion summary, export blueprint to vault if available:
   Retrospective (user-initiated):
     /log-success            — Something work unusually well? Capture the pattern
     /log-error              — Something go wrong? Interview yourself on what YOU did wrong
+    /retro                  — Retrospective across recent sessions (commits, errors, successes)
+    /evolve                 — Synthesize recurring patterns into workflow improvements
+    /audit                  — Review what hooks blocked during implementation
 
   Also available (user-initiated):
     [If git-workflow plugin detected:]

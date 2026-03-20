@@ -25,7 +25,7 @@ Extract `SESSION_ID` and `PROJECT` from the marker file. If no active session is
 
 Reconcile insights that exist on disk but not in vault, or vice versa. This closes the gap between the write-through cache and the vault.
 
-1. **Read insights.jsonl**: Read `.empirica/insights.jsonl` from the project root. If the file doesn't exist or is empty, skip this step.
+1. **Read insights.jsonl**: Read `.epistemic/insights.jsonl` from the project root. If the file doesn't exist or is empty, skip this step.
 
 2. **Read vault findings**: List files in `$VAULT_PATH/Engineering/Findings/` that match this project (check `project:` frontmatter). Source vault config first:
    ```bash
@@ -39,11 +39,11 @@ Reconcile insights that exist on disk but not in vault, or vice versa. This clos
 
 4. **Reconcile disk → vault**: For insights.jsonl entries with NO matching vault note:
    - Create a vault note using the finding template (`~/.claude/commands/templates/vault-notes/finding.md`)
-   - Populate epistemic fields: `empirica_confidence: 0.5` (default — not yet assessed), `empirica_assessed: today`, `empirica_session: SESSION_ID`, `empirica_status: active`
+   - Populate epistemic fields: `epistemic_confidence: 0.5` (default — not yet assessed), `epistemic_assessed: today`, `epistemic_session: SESSION_ID`, `epistemic_status: active`
    - Use vault_sanitize_slug for the filename
 
 5. **Reconcile vault → disk**: For vault finding notes (created this session via `/vault-save`) with NO matching insights.jsonl entry:
-   - Append a finding entry to `.empirica/insights.jsonl` with the finding text (prefix with "[Insight] " if from vault finding notes)
+   - Append a finding entry to `.epistemic/insights.jsonl` with the finding text (prefix with "[Insight] " if from vault finding notes)
 
 6. **Report**:
    ```
@@ -81,25 +81,25 @@ Rate each of the 13 vectors (0.0-1.0) based on where you are NOW:
 
 After postflight vectors are submitted, write epistemic confidence data back to vault findings. This closes the loop between epistemic self-assessment and persistent knowledge.
 
-1. **Gather session findings**: Collect all findings logged this session from `.empirica/insights.jsonl` (filtered by session-start timestamp, same as Step 2.5.3).
+1. **Gather session findings**: Collect all findings logged this session from `.epistemic/insights.jsonl` (filtered by session-start timestamp, same as Step 2.5.3).
 
 2. **Update new findings**: For each finding that was exported to vault THIS session (created in Step 1.5 or Step 2.5.4):
    - Read the vault note
    - Update frontmatter with:
      ```yaml
-     empirica_confidence: <confidence from postflight — use the `know` vector as proxy>
-     empirica_assessed: <today's date YYYY-MM-DD>
-     empirica_session: <SESSION_ID>
-     empirica_status: active
+     epistemic_confidence: <confidence from postflight — use the `know` vector as proxy>
+     epistemic_assessed: <today's date YYYY-MM-DD>
+     epistemic_session: <SESSION_ID>
+     epistemic_status: active
      ```
    - Write the updated note back using the Edit tool
 
 3. **Update confirmed findings**: For existing vault findings (pre-session) that were referenced or used successfully this session:
-   - Update frontmatter: `empirica_status: confirmed`, `empirica_assessed: <today>`
+   - Update frontmatter: `epistemic_status: confirmed`, `epistemic_assessed: <today>`
    - This indicates the finding was re-validated in practice
 
 4. **Update contradicted findings**: For existing vault findings that were found to be wrong or outdated this session:
-   - Update frontmatter: `empirica_status: contradicted`, `empirica_assessed: <today>`
+   - Update frontmatter: `epistemic_status: contradicted`, `epistemic_assessed: <today>`
    - Add a note in the Implications section: `> Contradicted in session [[SESSION_LINK]] — [brief reason]`
 
 5. **Report**:
@@ -139,7 +139,7 @@ Scope artifacts to "this session" using the session-start timestamp:
    **Fallback:** If absent or empty, use `$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)`. Log: "Session-start timestamp missing — scoping artifacts to last 24 hours."
 2. Read `~/.claude/.current-session` for session ID. Fallback: `session-YYYY-MM-DD-HHMM`.
 3. **Decision records:** Read `.claude/decisions/*.md` files. Each has `date:` frontmatter in ISO-8601. Include where `date:` >= session-start timestamp.
-4. **Disk findings:** Read `.empirica/insights.jsonl`. Each line has `timestamp` field in ISO-8601. Include where `timestamp` >= session-start timestamp.
+4. **Disk findings:** Read `.epistemic/insights.jsonl`. Each line has `timestamp` field in ISO-8601. Include where `timestamp` >= session-start timestamp.
 5. Check for active blueprint progress (`.claude/plans/*/state.json` with `updated` after session start).
 6. Check `Ideas/` in vault for notes with `date:` matching today (these are `/vault-save` captures).
 
@@ -172,17 +172,17 @@ This tells the SessionEnd safety-net hook that export already happened.
 
 #### 2.5.6: Detect Stale Findings
 
-After export, scan vault findings for staleness. A finding is stale if its `empirica_assessed` date is more than 30 days old.
+After export, scan vault findings for staleness. A finding is stale if its `epistemic_assessed` date is more than 30 days old.
 
 1. **Scan vault findings**: Read all files in `$VAULT_PATH/Engineering/Findings/` that have `project:` matching the current project.
 
-2. **Check freshness**: For each finding with an `empirica_assessed` frontmatter field:
+2. **Check freshness**: For each finding with an `epistemic_assessed` frontmatter field:
    - Parse the date (YYYY-MM-DD format)
    - If >30 days old, mark as stale
 
 3. **Update stale findings**: For each stale finding:
-   - Update frontmatter: `empirica_status: stale`
-   - Do NOT change `empirica_assessed` (preserve the last-assessed date for audit trail)
+   - Update frontmatter: `epistemic_status: stale`
+   - Do NOT change `epistemic_assessed` (preserve the last-assessed date for audit trail)
 
 4. **Report stale findings** in the session summary:
    ```
@@ -263,7 +263,7 @@ This is your last chance to capture session knowledge. Do NOT skip this step.
 
 1. **Scan conversation for unlogged `★ Insight` blocks**: Search your own output in this session for any `★ Insight` blocks. For each one, check if a corresponding `finding_log` call followed it (look for a finding_log tool call within ~2 messages after the insight).
 
-2. **For each unlogged insight**: Append to `.empirica/insights.jsonl` with a JSON line: `{"timestamp": "ISO-8601", "type": "finding", "input": {"finding": "[Insight] the insight text"}}`. This is the safety net for the behavioral gap where insights get generated as text but never recorded.
+2. **For each unlogged insight**: Append to `.epistemic/insights.jsonl` with a JSON line: `{"timestamp": "ISO-8601", "type": "finding", "input": {"finding": "[Insight] the insight text"}}`. This is the safety net for the behavioral gap where insights get generated as text but never recorded.
 
 3. **Final reflection**: Beyond `★ Insight` blocks, did you learn something significant that wasn't captured anywhere? If so, log it now.
 
@@ -273,6 +273,28 @@ This is your last chance to capture session knowledge. Do NOT skip this step.
    ```
 
 **Why this matters**: Soft instructions to "log insights as you go" have a ~50% compliance rate in practice. This step catches the other 50% before the session closes and the knowledge is lost.
+
+### Step 3.5: Log Budget Entry
+
+Append a heuristic budget record to `.claude/budget.jsonl` in the project root. This is approximate — treat all values as estimates.
+
+```bash
+# Read session info
+SESSION_ID=$(cat ~/.claude/.current-session 2>/dev/null | grep -o 'session-[^ ]*' | head -1 || echo "unknown")
+PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
+STARTED=$(cat /tmp/.claude-session-start-$(id -u) 2>/dev/null || echo "unknown")
+ENDED=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+```
+
+Compute `duration_min` from start to end (integer minutes; 0 if start unknown). Estimate `estimated_turns` as the approximate number of user messages in this session (count your own responses as a proxy — heuristic only).
+
+Append one JSON line to `.claude/budget.jsonl`:
+
+```json
+{"session_id":"SESSION_ID","project":"PROJECT","started":"ISO-UTC","ended":"ISO-UTC","duration_min":N,"estimated_turns":N,"notes":"heuristic — all values approximate"}
+```
+
+**Fail-soft**: If the file cannot be written (missing directory, permissions), skip silently. Never block session closure for budget logging.
 
 ### Step 4: Confirm and Prompt Exit
 
@@ -291,6 +313,7 @@ This is your last chance to capture session knowledge. Do NOT skip this step.
   Exported:     [N JSONL entries marked / skipped]
   Vault:        [N notes exported / skipped (reason)]
   Stale:        [N findings need re-verification / none]
+  Budget:       [logged to .claude/budget.jsonl / skipped]
 
   Type /exit to end the conversation.
 
@@ -302,6 +325,9 @@ This is your last chance to capture session knowledge. Do NOT skip this step.
 Also available (user-initiated):
 - If `documentation-generator` plugin is installed, docs changed this session? Run `/update-docs` before closing.
 - Anything go notably well or poorly this session? `/log-success` and `/log-error` capture the patterns before context is lost. Best done before `/end` while the conversation is still fresh.
+- Multiple sessions completed? `/retro` synthesizes patterns across sessions.
+- Accumulated 5+ error/success logs? `/evolve` can propose workflow improvements.
+- Want to review what hooks blocked this session? `/audit` shows the trail.
 
 ## Notes
 

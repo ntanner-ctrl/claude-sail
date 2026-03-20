@@ -201,7 +201,7 @@ Create or update `.claude/CLAUDE.md` with:
 [IF Epistemic Tracking detected]
 ### Epistemic Tracking
 - Session tracking is available for this project
-- Append to `.empirica/insights.jsonl` to capture discoveries during work
+- Append to `.epistemic/insights.jsonl` to capture discoveries during work
 - Run `/epistemic-preflight` and `/epistemic-postflight` at session boundaries
 
 [IF Vault detected]
@@ -213,6 +213,9 @@ Create or update `.claude/CLAUDE.md` with:
 [IF plugins detected]
 ### Available Plugins
 - [plugin-name]: [brief description of what it adds]
+
+## Budget Awareness
+If `.claude/budget-config.json` exists with a `budget_threshold`, mention remaining budget periodically. This is advisory only — never block work for budget reasons.
 
 ## Do Not
 [anti-patterns, protected files, common mistakes]
@@ -226,8 +229,8 @@ Only runs if epistemic tracking hooks were detected in Phase 1.
 
 ## 3.1 If Epistemic Tracking IS detected
 
-1. Check if `.empirica/` directory exists in project root
-2. If not, create it: `mkdir -p .empirica`
+1. Check if `.epistemic/` directory exists in project root
+2. If not, create it: `mkdir -p .epistemic`
 3. Verify hooks are wired:
    ```bash
    test -f "$HOME/.claude/hooks/epistemic-preflight.sh" && echo "HOOKS_OK" || echo "HOOKS_MISSING"

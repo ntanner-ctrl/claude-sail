@@ -12,6 +12,12 @@
 
 set +e
 
+# Hook runtime toggle — skip if disabled via env var
+HOOK_NAME="$(basename "${BASH_SOURCE[0]}" .sh)"
+if [[ ",${SAIL_DISABLED_HOOKS}," == *",${HOOK_NAME},"* ]]; then
+    exit 0
+fi
+
 # --- Parse all input fields in one jq call (tab-separated) ---
 IFS=$'\t' read -r MODEL CTX_PCT CTX_SIZE CACHE_READ CACHE_CREATE INPUT_TOKENS \
     DURATION_MS LINES_ADD LINES_REM STYLE RATE_SESSION < <(jq -r '[

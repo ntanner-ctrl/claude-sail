@@ -14,7 +14,7 @@ Manages the lifecycle of findings from isolated observation to codified CLAUDE.m
 
 ```
 Tier 1: ISOLATED     — Single observation, one session
-                        Source: `.empirica/insights.jsonl`, vault notes
+                        Source: `.epistemic/insights.jsonl`, vault notes
 
 Tier 2: CONFIRMED    — Observed 2+ times across sessions
                         Source: Cross-referencing vault findings by similarity
@@ -116,7 +116,7 @@ Search vault for ALL notes related to the selected finding:
 - Search by key phrases from the finding text
 - Search by matching tags
 - Search by related project names
-- Check `.empirica/insights.jsonl` for additional findings
+- Check `.epistemic/insights.jsonl` for additional findings
 
 ### Independence assessment
 
@@ -143,7 +143,7 @@ Evidence trail for "[finding summary]":
       Source: Engineering/Findings/2026-02-15-hook-fail-open.md
 
   [2] 2026-02-28 — Session def456 — Blueprint: api-refactor    [INDEPENDENT]
-      Source: .empirica/insights.jsonl
+      Source: .epistemic/insights.jsonl
 
   [3] 2026-03-01 — Session def456 — Reflection from [2]        [CORRELATED with #2]
       Source: Engineering/Findings/2026-03-01-hook-pattern-reflection.md
@@ -226,7 +226,7 @@ Select entry to retire [1-N, or 0]:
 A CLAUDE.md entry is "stale" if:
 - It was added > 90 days ago AND
 - No recent vault notes reference the rule text (fuzzy search, last 60 days) AND
-- No recent `.empirica/insights.jsonl` entries reference the rule text (fuzzy search, last 60 days)
+- No recent `.epistemic/insights.jsonl` entries reference the rule text (fuzzy search, last 60 days)
 
 Staleness is advisory — the user decides what to retire.
 
@@ -324,7 +324,7 @@ promoted_rule: "[rule text summary]"
 
 ### Log to epistemic tracking (if session active)
 
-Append to `.empirica/insights.jsonl`:
+Append to `.epistemic/insights.jsonl`:
 ```json
 {"timestamp": "ISO-8601", "type": "finding", "input": {"finding": "[Promotion] Finding promoted to CLAUDE.md: [rule text summary]. Evidence: N independent observations across N sessions."}}
 ```
@@ -358,9 +358,9 @@ Append to `.empirica/insights.jsonl`:
 
 | Available Systems | Behavior |
 |-------------------|----------|
-| Vault + disk insights | Full workflow — vault for evidence trail, `.empirica/insights.jsonl` for session correlation |
+| Vault + disk insights | Full workflow — vault for evidence trail, `.epistemic/insights.jsonl` for session correlation |
 | Vault only | Full workflow — evidence trail from vault notes only. Skip disk insight logging at end. |
-| Disk insights only | Reduced workflow — search `.empirica/insights.jsonl` for evidence. No vault promotion record. Apply CLAUDE.md change only. |
+| Disk insights only | Reduced workflow — search `.epistemic/insights.jsonl` for evidence. No vault promotion record. Apply CLAUDE.md change only. |
 | Neither available | Minimal workflow — user provides evidence verbally. Warn: "Limited evidence trail — promotion based on user attestation only." Apply CLAUDE.md change. No vault record. |
 
 ---

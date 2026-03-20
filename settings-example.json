@@ -87,6 +87,10 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/tdd-guardian.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/freeze-guard.sh"
           }
         ]
       }

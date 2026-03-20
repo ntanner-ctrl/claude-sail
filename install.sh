@@ -337,6 +337,7 @@ echo "  ~/.claude/hooks/statusline.sh         - Toolkit-aware status line displa
 echo "  ~/.claude/hooks/session-end-vault.sh  - Safety-net vault export on session end"
 echo "  ~/.claude/hooks/failure-escalation.sh  - Track consecutive test/build failures"
 echo "  ~/.claude/hooks/session-end-cleanup.sh - Clean up signal files on session end"
+echo "  ~/.claude/hooks/freeze-guard.sh       - Block edits to frozen files"
 echo "  ~/.claude/hooks/vault-config.sh       - Shared vault configuration (sourced by vault hooks)"
 echo ""
 echo -e "${YELLOW}Agents installed:${NC}"

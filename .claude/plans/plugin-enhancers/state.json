@@ -3,7 +3,7 @@
   "name": "plugin-enhancers",
   "challenge_mode": "debate",
   "execution_preference": "auto",
-  "current_stage": "execute",
+  "current_stage": "complete",
   "path": "full",
   "revision": 1,
   "regression_count": 1,
@@ -32,7 +32,7 @@
       "started": "2026-02-07T20:28:00Z",
       "completed": "2026-02-08T01:45:00Z",
       "confidence": 0.88,
-      "confidence_note": "Revalidation: PASS_WITH_NOTES. 0 critical, 0 high. 2 medium (circuit breaker, agent detection) and 2 low (messaging, install docs) — all non-blocking. All original criticals resolved. Both debate chains converged.",
+      "confidence_note": "Revalidation: PASS_WITH_NOTES. 0 critical, 0 high. 2 medium (circuit breaker, agent detection) and 2 low (messaging, install docs) \u2014 all non-blocking. All original criticals resolved. Both debate chains converged.",
       "debate_progress": {
         "rounds_completed": [
           "challenger",
@@ -48,7 +48,7 @@
       "started": "2026-02-08T01:50:00Z",
       "completed": "2026-02-08T02:15:00Z",
       "confidence": 0.85,
-      "confidence_note": "PASS_WITH_NOTES. 23 boundaries analyzed, 0 critical. 4 medium findings (logging, prefix matching, parse errors, agent name handling) — all UX fixes, no architectural changes. Synthesizer correctly recalibrated Stress Tester's over-estimated security risks for markdown-command architecture."
+      "confidence_note": "PASS_WITH_NOTES. 23 boundaries analyzed, 0 critical. 4 medium findings (logging, prefix matching, parse errors, agent name handling) \u2014 all UX fixes, no architectural changes. Synthesizer correctly recalibrated Stress Tester's over-estimated security risks for markdown-command architecture."
     },
     "premortem": {
       "status": "complete",
@@ -66,7 +66,7 @@
       "status": "complete",
       "started": "2026-02-08T02:40:00Z",
       "completed": "2026-02-08T03:00:00Z",
-      "confidence": 0.80,
+      "confidence": 0.8,
       "confidence_note": "68 spec-blind tests generated across 8 categories: registry (10), blueprint (15), review (7), dispatch (9), docs (5), state (4), logging (6), preservation (8), integration (6), edge (10). P0 blockers (14) cover detection and preservation. Some test agent assertions on agent/slot names will need alignment to actual implementation."
     },
     "execute": {
@@ -101,7 +101,7 @@
       "to_stage": "specify",
       "trigger_type": "automatic",
       "trigger": "debate_judge_regress_verdict",
-      "reason": "2 critical findings: F1 (detection mechanism undefined), F2 (registry maintenance unsustainable). Both are foundational — every component depends on them.",
+      "reason": "2 critical findings: F1 (detection mechanism undefined), F2 (registry maintenance unsustainable). Both are foundational \u2014 every component depends on them.",
       "timestamp": "2026-02-07T20:35:00Z",
       "revision": 1
     }

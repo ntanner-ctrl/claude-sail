@@ -4,6 +4,7 @@ enabled: true
 event: bash
 pattern: (curl|wget|nc|netcat)\s+.*\.(env|pem|key|secret|credentials|p12|pfx)
 action: block
+baseline: true
 ---
 
 **BLOCKED: Potential secret exfiltration detected**

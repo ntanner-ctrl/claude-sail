@@ -27,10 +27,11 @@
       "status": "pending"
     }
   },
-  "current_stage": "specify",
+  "current_stage": "archived",
   "regressions": [],
   "confidence": {
     "describe": 0.9,
     "specify": 0.85
-  }
+  },
+  "archived_reason": "Stale \u2014 insufficient progress to justify resuming. Can be re-planned fresh if needed."
 }

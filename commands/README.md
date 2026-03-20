@@ -62,6 +62,8 @@ Complete reference for all Claude Sail commands.
 |---------|-----------|
 | `/log-error` | Structured self-interview after mistakes — identifies what YOU did wrong |
 | `/log-success` | Capture what went unusually well and why, so you can reproduce it |
+| `/evolve` | Synthesize patterns from error/success logs into hookify rules or CLAUDE.md additions |
+| `/retro` | Retrospective across recent sessions — commits, errors, successes, hook blocks |
 
 ### Execution
 
@@ -72,6 +74,10 @@ Complete reference for all Claude Sail commands.
 | `/checkpoint` | Manual context-save for session continuity |
 | `/end` | Graceful session close with epistemic postflight and vault export |
 | `/push-safe` | Safe git push with secret scanning |
+| `/freeze` | Lock directories from edits during a session |
+| `/unfreeze` | Unlock frozen directories |
+| `/budget` | Session turn awareness — track and set advisory thresholds |
+| `/audit` | Review hook block history with filters and stats |
 
 ### Vault Integration
 
@@ -728,6 +734,32 @@ Cross-references with error logs to reveal your personal skill profile — stren
 
 ---
 
+### `/evolve`
+
+**Synthesize patterns into workflow improvements.** Reads error logs, success logs, and vault findings. Clusters recurring patterns by category (prompting, context, harnessing, architecture) and proposes actionable changes — hookify rules, CLAUDE.md additions, or hook modifications.
+
+```
+/evolve
+```
+
+Uses maturation tiers: patterns seen 2+ times get action proposals, 3+ get strong recommendations. Integrates with `/promote-finding` for CLAUDE.md additions.
+
+---
+
+### `/retro`
+
+**Retrospective across recent sessions.** Synthesizes data from git log, budget.jsonl, error/success logs, audit trail, and vault findings into a structured retrospective.
+
+```
+/retro                    # Last 7 days
+/retro --days 14          # Last 2 weeks
+/retro --project myapp    # Filter to specific project
+```
+
+Produces: activity summary, what worked, what didn't, safety summary (hook blocks), patterns, and recommendations. Optionally exports to vault.
+
+---
+
 ## Execution Commands
 
 ### `/push-safe`
@@ -736,6 +768,57 @@ Cross-references with error logs to reveal your personal skill profile — stren
 
 ```
 /push-safe
+```
+
+---
+
+### `/freeze`
+
+**Lock directories from edits.** Prevents accidental changes to directories during a session. Enforced by a PreToolUse hook — deterministic, not behavioral.
+
+```
+/freeze src/auth                         # Freeze with prompted reason
+/freeze src/auth --reason "Refactoring"  # Freeze with explicit reason
+/freeze                                  # List frozen directories
+```
+
+Paths are normalized to absolute at write time. Use `/unfreeze` to unlock.
+
+---
+
+### `/unfreeze`
+
+**Unlock frozen directories.**
+
+```
+/unfreeze src/auth    # Unfreeze specific directory
+/unfreeze --all       # Clear all freezes
+```
+
+---
+
+### `/budget`
+
+**Session turn awareness.** Tracks approximate session usage and sets advisory thresholds. Not enforcement — heuristic turn counts that help you notice patterns.
+
+```
+/budget                # View session history
+/budget threshold 50   # Set ~50 turn awareness target
+```
+
+Budget entries are logged automatically by `/end`.
+
+---
+
+### `/audit`
+
+**Review hook block history.** Shows what hooks blocked, when, and why — with filters and summary stats.
+
+```
+/audit                              # Last 30 days
+/audit --days 7                     # Last week
+/audit --hook dangerous-commands    # Filter by hook
+/audit --category SECURITY          # Filter by category
 ```
 
 ---

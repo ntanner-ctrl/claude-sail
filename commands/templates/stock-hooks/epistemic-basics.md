@@ -29,7 +29,7 @@ This nudge applies when you just made a change AND one of these is true:
 
 ## How to Log
 
-Append to `.empirica/insights.jsonl` at the git root (or current directory):
+Append to `.epistemic/insights.jsonl` at the git root (or current directory):
 
 ```json
 {"timestamp": "ISO-8601", "type": "finding", "input": {"finding": "[Insight] your finding text here"}}

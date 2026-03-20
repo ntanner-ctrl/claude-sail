@@ -2,7 +2,7 @@
   "blueprint_version": 2,
   "name": "empirica-extraction",
   "created_at": "2026-03-19T11:00:00Z",
-  "current_stage": "test",
+  "current_stage": "complete",
   "challenge_mode": "family",
   "execution_preference": "auto",
   "revision": 3,
@@ -84,8 +84,9 @@
       "confidence_note": "36 spec-blind tests across 9 categories. Cover all 10 success criteria, 4 preservation invariants, 9 failure modes. Anti-tautology review: zero red flags. Some tests (T6, T7, T8, T20) need invocation syntax adapted once commands are implemented."
     },
     "execute": {
-      "status": "in_progress",
+      "status": "complete",
       "started_at": "2026-03-20T07:40:00Z",
+      "completed_at": "2026-03-20T12:00:00Z",
       "units_complete": [
         "schema-init",
         "calibration-compute",
@@ -98,13 +99,12 @@
         "smoke-test",
         "tests",
         "install",
-        "claude-md"
-      ],
-      "units_remaining": [
+        "claude-md",
         "migration",
         "deprecation"
       ],
-      "notes": "Core system implemented and tested (68/68 test.sh, 13/13 smoke test). Migration and deprecation are the remaining units."
+      "units_remaining": [],
+      "notes": "Complete. Full rename: empirica_* -> epistemic_*, .empirica/ -> .epistemic/ across 14 command files, README, and global CLAUDE.md. 65/65 test.sh checks pass."
     }
   }
 }

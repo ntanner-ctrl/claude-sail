@@ -1,0 +1,40 @@
+{
+  "blueprint_version": 2,
+  "name": "inspired-features",
+  "created_at": "2026-03-20T17:50:00Z",
+  "updated_at": "2026-03-20T18:00:00Z",
+  "revision": 0,
+  "challenge_mode": "family",
+  "execution_preference": "speed",
+  "epistemic_session_id": "38424cec-8674-4b6e-b424-92dfd80cbd3d",
+  "current_stage": "specify",
+  "stages_complete": [
+    "describe"
+  ],
+  "stages_pending": [
+    "specify",
+    "challenge",
+    "edge_cases",
+    "premortem",
+    "review",
+    "test",
+    "execute"
+  ],
+  "spec_digest": "7 features, 18 work units, 3 parallel waves, 6 new commands, 1 new hook, 1 utility, 4 hookify baseline marks",
+  "key_decisions": [
+    "Budget tracking is advisory (heuristic turns, not tokens) because Claude Code doesn't expose token data to hooks",
+    "Baseline hookify enforcement is a convention — we add frontmatter but can't modify the hookify plugin source",
+    "audit-log.sh is a sourced utility, not a wired hook — doesn't increment hook count",
+    "SAIL_DISABLED_HOOKS uses filename matching (without .sh extension) for ergonomics"
+  ],
+  "risk_flags": [
+    "user-facing behavior change",
+    "security-sensitive"
+  ],
+  "artifacts": {
+    "describe": "describe.md",
+    "prior_art": "prior-art.md",
+    "spec": "spec.md",
+    "work_graph": "work-graph.json"
+  }
+}

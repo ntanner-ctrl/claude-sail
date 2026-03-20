@@ -3,7 +3,7 @@
   "name": "toolkit-rebrand",
   "challenge_mode": "debate",
   "execution_preference": "auto",
-  "current_stage": "challenge",
+  "current_stage": "archived",
   "revision": 2,
   "regressions_used": 1,
   "max_regressions": 3,
@@ -73,5 +73,6 @@
   "empirica_session_id": "ee6cd69c-d6a2-4d87-a7fa-a3c35e3a58d5",
   "empirica_preflight_complete": false,
   "manifest_stale": false,
-  "work_graph_stale": true
+  "work_graph_stale": true,
+  "archived_reason": "Stale \u2014 insufficient progress to justify resuming. Can be re-planned fresh if needed."
 }

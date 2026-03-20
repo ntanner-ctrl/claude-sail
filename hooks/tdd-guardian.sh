@@ -8,6 +8,16 @@
 #
 set +e
 
+# Hook runtime toggle — skip if disabled via env var
+HOOK_NAME="$(basename "${BASH_SOURCE[0]}" .sh)"
+if [[ ",${SAIL_DISABLED_HOOKS}," == *",${HOOK_NAME},"* ]]; then
+    exit 0
+fi
+
+# Audit logging — no-op fallback if utility not installed
+audit_block() { :; }
+source ~/.claude/hooks/_audit-log.sh 2>/dev/null || true
+
 # Read tool input from stdin
 input=$(cat)
 
@@ -87,4 +97,5 @@ if [ "$MODE" = "aggressive" ]; then
     echo "   ⚠️  Aggressive mode: continued violations will trigger code deletion." >&2
 fi
 
+audit_block "$HOOK_NAME" "TDD" "Implementation edit blocked during RED phase ($MODE mode)" "Edit|Write" "${file_path:0:100}"
 exit 2  # Block

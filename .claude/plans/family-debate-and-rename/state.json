@@ -2,7 +2,7 @@
   "blueprint_version": 2,
   "name": "family-debate-and-rename",
   "created": "2026-03-03T20:00:00Z",
-  "current_stage": "execute",
+  "current_stage": "complete",
   "challenge_mode": "vanilla",
   "execution_preference": "auto",
   "revision": 1,
@@ -22,7 +22,7 @@
     "specify": {
       "status": "complete",
       "confidence": 0.85,
-      "confidence_note": "Comprehensive spec drawn from extensive session discussion. Agent prompts well-defined. Open questions documented and deferred. Main risk: the family mode is novel — no prior art in this toolkit to validate against.",
+      "confidence_note": "Comprehensive spec drawn from extensive session discussion. Agent prompts well-defined. Open questions documented and deferred. Main risk: the family mode is novel \u2014 no prior art in this toolkit to validate against.",
       "completed": "2026-03-03T20:12:00Z"
     },
     "challenge": {
@@ -39,11 +39,11 @@
     },
     "premortem": {
       "status": "skipped",
-      "skip_reason": "Toolkit change — markdown + shell, no deployment surface. Challenge and edge case stages were thorough."
+      "skip_reason": "Toolkit change \u2014 markdown + shell, no deployment surface. Challenge and edge case stages were thorough."
     },
     "review": {
       "status": "skipped",
-      "skip_reason": "Local adversarial thorough — 9 findings all addressed. Saving context for implementation."
+      "skip_reason": "Local adversarial thorough \u2014 9 findings all addressed. Saving context for implementation."
     },
     "test": {
       "status": "complete",
