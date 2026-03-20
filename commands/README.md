@@ -18,6 +18,7 @@ Complete reference for all Claude Sail commands.
 
 | Command | One-liner |
 |---------|-----------|
+| `/clarify [topic]` | Pre-planning — walks through what's fuzzy before you plan |
 | `/blueprint [name]` | Full planning workflow — walks through all stages |
 | `/review [target]` | Adversarial review workflow — challenge a blueprint |
 | `/test [name]` | Testing workflow — spec to tests to verification |
@@ -122,6 +123,15 @@ Complete reference for all Claude Sail commands.
 |---------|-----------|
 | `/pipeline [name]` | Run a named YAML pipeline or list available pipelines |
 
+Stock pipelines (run via `/pipeline run <name>`):
+
+| Pipeline | Steps |
+|----------|-------|
+| `ship-feature` | describe-change → blueprint → test → push-safe |
+| `quality-check` | quality-sweep → security-checklist → quality-gate → push-safe |
+| `quick-fix` | describe-change → test |
+| `learn-from-failure` | debug → log-error → evolve |
+
 ### Documentation
 
 | Command | One-liner |
@@ -135,6 +145,26 @@ Complete reference for all Claude Sail commands.
 ## Workflow Wizards
 
 Guided paths through the toolkit for common scenarios.
+
+### `/clarify [topic]`
+
+**Pre-planning workflow.** Walks through what's fuzzy before you commit to a plan. Assesses which dimensions are unclear, then selectively runs `/brainstorm`, `/requirements-discovery`, `/design-check`, and `/prior-art` — skipping what's already resolved.
+
+```
+/clarify user-avatars
+```
+
+Steps (conditional):
+1. **Assess** — What's fuzzy? (approaches, requirements, boundaries, prior art)
+2. **Brainstorm** — If multiple viable approaches exist
+3. **Requirements** — If requirements lack testable criteria
+4. **Design Check** — If scope/components are uncertain
+5. **Prior Art** — If building something that might already exist
+6. **Summary** — Present findings, recommend next step
+
+**When to use:** Before `/blueprint` when the problem isn't well-understood yet.
+
+---
 
 ### `/blueprint [name]`
 

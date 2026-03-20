@@ -5,6 +5,9 @@ steps:
   - command: quality-sweep
     args: "$INPUT"
     description: "Structured review sweep with all reviewer agents"
+  - command: security-checklist
+    pass-output-as: context
+    description: "8-point OWASP-style security audit"
   - command: quality-gate
     pass-output-as: context
     description: "Score against quality rubric"

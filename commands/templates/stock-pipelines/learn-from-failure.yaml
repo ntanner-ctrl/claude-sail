@@ -1,0 +1,14 @@
+# toolkit-version: 0.9.0
+name: learn-from-failure
+description: Post-debug learning loop — capture the mistake and synthesize patterns
+steps:
+  - command: debug
+    args: "$INPUT"
+    description: "Scientific debugging to find root cause"
+  - command: log-error
+    pass-output-as: context
+    description: "Structured self-interview — what did YOU do wrong?"
+  - command: evolve
+    pass-output-as: context
+    description: "Synthesize patterns into hookify rules or CLAUDE.md additions"
+on-error: stop

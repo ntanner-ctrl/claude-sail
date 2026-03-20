@@ -71,7 +71,7 @@ echo ""
 bold "3. File Counts (vs README claims)"
 
 # Expected counts from README.md
-CMD_EXPECTED=61
+CMD_EXPECTED=62
 AGENT_EXPECTED=6
 HOOK_EXPECTED=19
 HOOKIFY_EXPECTED=7
@@ -86,7 +86,7 @@ HOOKIFY_ACTUAL=$(ls "$SCRIPT_DIR"/hookify-rules/*.local.md 2>/dev/null | wc -l)
 STOCK_HOOK_ACTUAL=$(ls "$SCRIPT_DIR"/commands/templates/stock-hooks/*.md 2>/dev/null | wc -l)
 STOCK_AGENT_ACTUAL=$(ls "$SCRIPT_DIR"/commands/templates/stock-agents/*.md 2>/dev/null | wc -l)
 STOCK_CMD_ACTUAL=$(ls "$SCRIPT_DIR"/commands/templates/stock-commands/*.md 2>/dev/null | wc -l)
-STOCK_PIPELINE_EXPECTED=3
+STOCK_PIPELINE_EXPECTED=4
 STOCK_PIPELINE_ACTUAL=$(ls "$SCRIPT_DIR"/commands/templates/stock-pipelines/*.yaml 2>/dev/null | wc -l)
 STOCK_TOTAL=$((STOCK_HOOK_ACTUAL + STOCK_AGENT_ACTUAL + STOCK_CMD_ACTUAL))
 

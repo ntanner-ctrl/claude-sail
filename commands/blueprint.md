@@ -58,10 +58,13 @@ Cross-cutting:
 
 ### Pre-Stage: Before Starting
 
-If the problem is complex or requirements are unclear, suggest pre-stage commands:
+If the problem is complex or requirements are unclear, suggest pre-stage clarification:
 
 ```
 Before planning, consider:
+  /clarify [topic]               — Guided pre-planning (walks through what's fuzzy)
+
+Or invoke individual steps directly:
   /brainstorm [topic]            — If the problem has multiple viable approaches
   /requirements-discovery [topic] — If requirements are unclear or complex
   /design-check [topic]          — If implementation boundaries are fuzzy

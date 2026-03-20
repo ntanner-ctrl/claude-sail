@@ -107,8 +107,19 @@ Complexity: [Quick/Medium/Significant]
 - Budget awareness target: ~N turns (/budget to review)
 [If .claude/error-logs/ or .claude/success-logs/ has 5+ files:]
 - Consider running /evolve to synthesize patterns from logged errors/successes
+- Or run /pipeline run learn-from-failure for a full debug → learn → evolve loop
 [If .claude/budget.jsonl has 5+ entries:]
 - Consider running /retro for a retrospective on recent sessions
+
+## Available Pipelines
+[Check for pipelines in .claude/pipelines/, ~/.claude/pipelines/, ~/.claude/commands/templates/stock-pipelines/]
+[If any found, list them:]
+  /pipeline run ship-feature        — Plan, test, and push
+  /pipeline run quality-check       — Quality sweep + security + gate + push
+  /pipeline run quick-fix           — Fast path for small changes
+  /pipeline run learn-from-failure  — Debug → log error → evolve
+  [+ any project/global pipelines found]
+[If none found: omit section]
 ```
 
 ---

@@ -17,6 +17,7 @@ Present this reference card:
 
 WORKFLOW WIZARDS (guided paths)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  /clarify [topic]   Pre-planning — walks through what's fuzzy before you plan
   /blueprint [name]  Full planning workflow — walks through all stages
   /review [name]     Adversarial review workflow — challenge a blueprint
   /test [name]       Testing workflow — spec to tests to verification
@@ -81,8 +82,17 @@ SETUP & STATUS
   /blueprints        List all in-progress blueprints
   /overrides         Review override patterns
 
+PIPELINES (predefined command sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  /pipeline list                    Show all available pipelines
+  /pipeline run ship-feature        Plan, test, and push a feature
+  /pipeline run quality-check       Quality sweep + security + gate + push
+  /pipeline run quick-fix           Fast path — triage then test
+  /pipeline run learn-from-failure  Debug → log error → evolve patterns
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Don't know where to start? Run /describe-change
+  Requirements fuzzy? Run /clarify [topic]
   Want guided help? Run /blueprint [name]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```

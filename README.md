@@ -26,7 +26,7 @@ claude
 
 | Component | Purpose |
 |-----------|---------|
-| [**Commands**](commands/README.md) | 61 workflow commands for planning, review, testing, execution, vault integration + plugin integration |
+| [**Commands**](commands/README.md) | 62 workflow commands for planning, review, testing, execution, vault integration + plugin integration |
 | [**Agents**](agents/) | 6 specialized review agents (spec, quality, security, performance, architecture, CloudFormation) |
 | [**Planning Infrastructure**](docs/PLANNING-STORAGE.md) | Staged planning with triage, specs, and adversarial challenge |
 | [**Shell Hooks**](hooks/) | 19 shell files (18 hooks + 1 audit utility) for safety, session lifecycle, epistemic tracking, toolkit hardening |
