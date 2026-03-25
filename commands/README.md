@@ -18,7 +18,7 @@ Complete reference for all Claude Sail commands.
 
 | Command | One-liner |
 |---------|-----------|
-| `/clarify [topic]` | Pre-planning — walks through what's fuzzy before you plan |
+| `/clarify [topic]` | Pre-planning — walks through what's fuzzy before you plan (deprecated) |
 | `/blueprint [name]` | Full planning workflow — walks through all stages |
 | `/prism [target]` | Holistic code health — parallel paradigm lens swarm + serial domain reviews |
 | `/review [target]` | Adversarial review workflow — challenge a blueprint |
@@ -37,6 +37,7 @@ Complete reference for all Claude Sail commands.
 | `/design-check` | Pre-implementation prerequisite check (6-point) |
 | `/requirements-discovery` | Extract validated requirements |
 | `/prior-art` | Search for existing solutions before building custom |
+| `/research [topic]` | Pre-planning research pipeline — structured exploration with vault-first storage and optional blueprint linkage |
 
 ### Adversarial (Challenge Your Blueprint)
 

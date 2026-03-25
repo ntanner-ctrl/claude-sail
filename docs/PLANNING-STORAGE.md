@@ -25,6 +25,7 @@ How Claude Sail stores planning state and artifacts.
 │   │   ├── work-graph.json     # Parallelization dependency graph
 │   │   ├── spec.diff.md        # Revision history (on regression)
 │   │   ├── preflight.md        # Pre-flight checklist
+│   │   ├── research.md         # Pre-planning research output (from /research)
 │   │   └── tests.md            # Generated test specs
 │   └── bugfix-y/
 │       └── ...
@@ -923,6 +924,7 @@ human-readable only — no schema dependency on numbering.
 | Work graph | `work-graph.json` | `/spec-change` (Stage 2), `/blueprint` (regeneration) |
 | Spec revision log | `spec.diff.md` | `/blueprint` (on regression) |
 | Pre-flight check | `preflight.md` | `/preflight` |
+| Research output | `research.md` | `/research` |
 | External review | `review.md` | `/gpt-review` |
 | Test specifications | `tests.md` | `/spec-to-tests` |
 | Decision records | `decisions/[name].md` | `/decision` |
@@ -932,6 +934,29 @@ human-readable only — no schema dependency on numbering.
 `adversarial.md` is the **canonical source of truth** for all findings.
 `debate-log.md` is the debug artifact (raw transcript). Manifest digests are
 compressed indexes for recovery only.
+
+### research.md Frontmatter
+
+The `/research` command produces `research.md` with YAML frontmatter for structured metadata:
+
+```yaml
+---
+topic: "user authentication strategies"       # Free-text research topic
+topic_slug: "user-authentication-strategies"  # Slugified topic (used for directory naming)
+date: "2026-03-25"                            # Research date (ISO-8601 date)
+mode: "explore"                               # Research mode: explore | deep-dive | survey
+linked_blueprint: "feature-auth"              # Blueprint name if linked (null if standalone)
+coverage:                                     # Coverage dimensions assessed
+  - approaches
+  - tradeoffs
+  - prior_art
+  - open_questions
+gate_score: 0.75                              # Research quality gate score (0.0-1.0)
+vault_findings: 3                             # Count of findings exported to vault
+---
+```
+
+When `linked_blueprint` is set, the research artifact is stored in the blueprint's plan directory (`.claude/plans/<name>/research.md`). Standalone research is stored in `.claude/plans/<topic_slug>/research.md`.
 
 ---
 

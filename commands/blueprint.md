@@ -59,19 +59,46 @@ Cross-cutting:
 
 ### Pre-Stage: Before Starting
 
-If the problem is complex or requirements are unclear, suggest pre-stage clarification:
+#### Research Brief Detection (Optional Enrichment)
 
+Before showing pre-stage suggestions, check for a research brief:
+
+1. Check `.claude/plans/[name]/research.md` for direct path match
+2. If not found: search `.claude/plans/*/research.md` for briefs where `linked_blueprint` matches this blueprint name
+3. If mismatch (brief exists at different path but `linked_blueprint` matches): prompt user to confirm
+
+**If research brief found:**
+```
+Research brief detected: .claude/plans/[name]/research.md
+  Coverage: [brainstorm ✓/✗] [prior-art ✓/✗] [requirements ✓/✗]
+  Gate score: [X/5.0]  Mode: [quick/standard/deep]
+
+  Investigative steps covered by research — skipping pre-stage suggestions.
+  /design-check remains available if needed (implementation readiness).
+
+Proceeding to Stage 1: Describe (solution scoping).
+```
+
+Re-check for research brief at the start of each stage (not just first invocation), so mid-session research is consumed on the next stage transition.
+
+**If no research brief found:**
 ```
 Before planning, consider:
-  /clarify [topic]               — Guided pre-planning (walks through what's fuzzy)
 
-Or invoke individual steps directly:
-  /brainstorm [topic]            — If the problem has multiple viable approaches
-  /requirements-discovery [topic] — If requirements are unclear or complex
-  /design-check [topic]          — If implementation boundaries are fuzzy
+  Complex or unfamiliar problem?
+    /research [topic]              — Structured investigation (recommended)
 
-These are optional. Proceed to /blueprint when you have a clear enough picture.
+  Quick question, low stakes?
+    /brainstorm [topic]            — Problem analysis (5-10 min)
+    /requirements-discovery [topic] — Requirements check
+
+  Implementation boundaries fuzzy?
+    /design-check [topic]          — Architecture & interface readiness
+
+  Prior art will be checked during planning (standard/full path).
 ```
+
+This is a soft nudge — never blocks progress. Displayed once per blueprint invocation.
 
 ### Vault Awareness (if vault available)
 
@@ -224,9 +251,14 @@ Each stage invokes its corresponding command or inline logic:
 | 7. Execute | Exit wizard | No | Never |
 | 8. Debrief | Inline (see below) | No | Never |
 
-### Ambiguity Gate (Between Stage 1 → Stage 2)
+### Solution-Clarity Gate (Between Stage 1 → Stage 2)
 
-After Stage 1 (Describe) completes and before Stage 2 (Specify) begins, run a clarity check on the description output. This front-loads ambiguity detection before it becomes baked into the spec.
+After Stage 1 (Describe) completes and before Stage 2 (Specify) begins, run a **solution-clarity** check on the description output. This front-loads ambiguity detection before it becomes baked into the spec.
+
+> **Note:** This gate focuses on solution clarity — "is the desired outcome clear enough to specify?"
+> Problem-space clarity is the concern of `/research` (which has its own problem-clarity gate).
+> If a research brief was consumed in the pre-stage, the problem space has already been validated.
+> This gate checks only whether the solution scope is well-defined.
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -303,20 +335,24 @@ On Light path, run a **shortened gate**: score Goal Clarity only (the single mos
 
 **Known gap:** Constraint Clarity and Success Criteria are intentionally not checked on Light path.
 
-### Prior Art Gate (Between Stage 1 → Stage 2)
+### Prior Art Gate (Between Stage 1 → Stage 2) — Conditional
 
-After the Ambiguity Gate passes and before Stage 2 (Specify) begins, run a prior art search.
-This is ENFORCED — cannot proceed to Stage 2 without completing it.
+After the Solution-Clarity Gate passes and before Stage 2 (Specify) begins, the prior-art gate runs **conditionally based on research brief coverage**.
 
-1. Run `/prior-art` with the problem description from describe.md
-2. Write output to `.claude/plans/[name]/prior-art.md`
-3. Gate behavior:
-   - **Adopt** recommendation → prompt user to supersede blueprint or continue
-   - **Adapt/Inform/Build** → proceed to Stage 2, prior-art report available as context
-4. Record in state.json: `"prior_art_gate": { "status": "complete", "recommendation": "[adopt/adapt/inform/build]", "override": false, "run_at": "YYYY-MM-DDTHH:MM:SSZ" }`
+**If research brief present with `coverage.prior_art: true`:**
+- Prior art was done during research. Skip the gate.
+- Record in state.json: `"prior_art_gate": { "status": "covered-by-research", "research_brief": ".claude/plans/[name]/research.md" }`
+
+**If no research brief OR `coverage.prior_art: false`:**
+- Run `/prior-art` inline with the problem description from describe.md
+- Write output to `.claude/plans/[name]/prior-art.md`
+- Gate behavior:
+  - **Adopt** recommendation → prompt user to supersede blueprint or continue
+  - **Adapt/Inform/Build** → proceed to Stage 2, prior-art report available as context
+- Record in state.json: `"prior_art_gate": { "status": "complete", "recommendation": "[adopt/adapt/inform/build]", "override": false, "run_at": "YYYY-MM-DDTHH:MM:SSZ" }`
 
 On Light path: skip prior-art gate entirely (Light path skips Stages 2-6, prior art is a pre-Stage-2 gate).
-On Standard/Full path: enforced.
+On Standard/Full path: conditional as described above.
 
 If WebSearch is unavailable: log skip with reason, proceed to Stage 2.
 

@@ -71,7 +71,7 @@ echo ""
 bold "3. File Counts (vs README claims)"
 
 # Expected counts from README.md
-CMD_EXPECTED=64
+CMD_EXPECTED=65
 AGENT_EXPECTED=12
 HOOK_EXPECTED=19
 HOOKIFY_EXPECTED=7
@@ -162,7 +162,7 @@ for f in "$SCRIPT_DIR"/commands/templates/stock-pipelines/*.yaml; do
 done
 
 # Wizard structural section checks
-WIZARD_FILES="blueprint.md prism.md clarify.md review.md test.md"
+WIZARD_FILES="blueprint.md prism.md clarify.md review.md test.md research.md"
 WIZARD_SECTIONS="Cognitive Traps:Failure Modes|What Could Fail:Known Limitations:vault-config.sh"
 
 wizard_ok=true
@@ -182,21 +182,85 @@ if $wizard_ok; then
 fi
 
 # Check all wizard commands reference state management
-for wizard in prism review test clarify; do
+for wizard in prism review test clarify research; do
     grep -q "wizards/" "$SCRIPT_DIR/commands/${wizard}.md" || warn "${wizard}.md missing wizard state reference"
 done
 
 # Check all wizard commands have stage progression display
-for wizard in prism review test clarify; do
+for wizard in prism review test clarify research; do
     grep -q '✓' "$SCRIPT_DIR/commands/${wizard}.md" && grep -q '→' "$SCRIPT_DIR/commands/${wizard}.md" && grep -q '○' "$SCRIPT_DIR/commands/${wizard}.md" \
         || warn "${wizard}.md missing stage progression markers"
 done
 
 # Check all wizard commands have resume protocol
-for wizard in prism review test clarify; do
+for wizard in prism review test clarify research; do
     grep -q 'Resume' "$SCRIPT_DIR/commands/${wizard}.md" && grep -q 'Abandon' "$SCRIPT_DIR/commands/${wizard}.md" \
         || warn "${wizard}.md missing resume/abandon protocol"
 done
+
+# /research description must NOT contain MUST or REQUIRED (tier 2.5)
+if [ -f "$SCRIPT_DIR/commands/research.md" ]; then
+    research_desc=$(grep "^description:" "$SCRIPT_DIR/commands/research.md" || true)
+    if echo "$research_desc" | grep -qiE "MUST|REQUIRED|STOP"; then
+        fail "research.md — description uses process-critical language (should be tier 2.5)"
+    else
+        pass "research.md — description uses correct tier 2.5 language"
+    fi
+else
+    fail "research.md — file does not exist"
+fi
+
+# /clarify description must start with DEPRECATED:
+if [ -f "$SCRIPT_DIR/commands/clarify.md" ]; then
+    clarify_desc=$(grep "^description:" "$SCRIPT_DIR/commands/clarify.md" | sed 's/^description: *//;s/^"//;s/"$//' || true)
+    if echo "$clarify_desc" | grep -q "^DEPRECATED:"; then
+        pass "clarify.md — description starts with DEPRECATED:"
+    else
+        fail "clarify.md — description does not start with DEPRECATED:"
+    fi
+else
+    fail "clarify.md — file does not exist"
+fi
+
+# Research command structural checks
+if [ -f "$SCRIPT_DIR/commands/research.md" ]; then
+    # Check research.md exists (explicit pass)
+    pass "commands/research.md exists"
+
+    # Topic sanitization reference
+    if grep -qiE "sanitiz|slug" "$SCRIPT_DIR/commands/research.md"; then
+        pass "research.md — references topic sanitization"
+    else
+        fail "research.md — missing topic sanitization reference (sanitiz/slug)"
+    fi
+
+    # Overwrite handling reference
+    if grep -qiE "already exists|overwrite|conflict" "$SCRIPT_DIR/commands/research.md"; then
+        pass "research.md — references overwrite handling"
+    else
+        fail "research.md — missing overwrite handling reference"
+    fi
+
+    # Multi-session handling reference
+    if grep -qiE "multiple|list all" "$SCRIPT_DIR/commands/research.md"; then
+        pass "research.md — references multi-session handling"
+    else
+        fail "research.md — missing multi-session handling reference"
+    fi
+else
+    fail "commands/research.md does not exist"
+fi
+
+# docs/OPTIONAL-ENRICHMENT.md exists
+if [ -f "$SCRIPT_DIR/docs/OPTIONAL-ENRICHMENT.md" ]; then
+    pass "docs/OPTIONAL-ENRICHMENT.md exists"
+else
+    fail "docs/OPTIONAL-ENRICHMENT.md does not exist"
+fi
+
+# NOTE: Behavioral evals for research-pipeline (E-NEW-1 through E-NEW-4)
+# are planned but require fixture files to be created separately.
+# See .claude/plans/research-pipeline/tests.md for fixture specs.
 
 echo ""
 

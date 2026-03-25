@@ -1,0 +1,131 @@
+{
+  "blueprint_version": 2,
+  "name": "research-pipeline",
+  "challenge_mode": "family",
+  "execution_preference": "auto",
+  "current_stage": "debrief",
+  "revision": 1,
+  "regression_count": 0,
+  "regression_log": [],
+  "completed": true,
+  "completed_at": "2026-03-25T15:30:00Z",
+  "manifest_stale": false,
+  "work_graph_stale": false,
+  "epistemic_session_id": null,
+  "epistemic_preflight_complete": false,
+  "stages": {
+    "describe": {
+      "status": "complete",
+      "started_at": "2026-03-25T13:00:00Z",
+      "completed_at": "2026-03-25T13:15:00Z",
+      "confidence": 0.85,
+      "confidence_note": "Strong pre-session brief + vault context.",
+      "path": "full"
+    },
+    "specify": {
+      "status": "complete",
+      "started_at": "2026-03-25T13:15:00Z",
+      "completed_at": "2026-03-25T13:40:00Z",
+      "confidence": 0.8,
+      "confidence_note": "Comprehensive spec covering all 5 design areas."
+    },
+    "challenge": {
+      "status": "complete",
+      "started_at": "2026-03-25T13:40:00Z",
+      "completed_at": "2026-03-25T14:10:00Z",
+      "confidence": 0.78,
+      "confidence_note": "Family debate converged round 1. 7 spec revisions, 2 critical."
+    },
+    "edge_cases": {
+      "status": "complete",
+      "started_at": "2026-03-25T14:10:00Z",
+      "completed_at": "2026-03-25T14:45:00Z",
+      "confidence": 0.86,
+      "confidence_note": "3 MUST FIX (1 new, 2 unmerged), 4 SHOULD FIX. No regression. Vault-validated."
+    },
+    "premortem": {
+      "status": "complete",
+      "started_at": "2026-03-25T14:45:00Z",
+      "completed_at": "2026-03-25T14:55:00Z",
+      "confidence": 0.87,
+      "confidence_note": "2 medium NEW findings (evals + vault dir). No critical operational failures."
+    },
+    "review": {
+      "status": "skipped",
+      "skip_reason": "10 subagents across family debate rounds provided thorough adversarial coverage"
+    },
+    "execute": {
+      "status": "complete",
+      "started_at": "2026-03-25T15:10:00Z",
+      "completed_at": "2026-03-25T15:25:00Z",
+      "confidence": 0.9,
+      "confidence_note": "82 pass, 0 fail, 3 warnings. All WUs complete."
+    },
+    "debrief": {
+      "status": "complete",
+      "started_at": "2026-03-25T15:25:00Z",
+      "completed_at": "2026-03-25T15:30:00Z",
+      "ship_commits": [],
+      "discoveries": [
+        "Deferred items invisible without structured capture",
+        "Unmerged adversarial findings as a failure class",
+        "Elder Council vault integration delivers calibration, not just validation"
+      ]
+    },
+    "test": {
+      "status": "complete",
+      "started_at": "2026-03-25T14:55:00Z",
+      "completed_at": "2026-03-25T15:10:00Z",
+      "confidence": 0.88,
+      "confidence_note": "19 new test specs: 8 lint, 4 evals, 4 edge case, 2 docs, 1 count. Comprehensive spec-blind coverage."
+    }
+  },
+  "family_progress": {
+    "stage": "edge_cases",
+    "round": 1,
+    "agents_completed": [
+      "child_defend",
+      "child_assert",
+      "mother",
+      "father",
+      "elder_council"
+    ],
+    "current_agent": null,
+    "rounds_total": 1,
+    "elder_verdicts": [
+      {
+        "round": 1,
+        "verdict": "CONVERGED",
+        "confidence": 0.78,
+        "stage": "challenge"
+      },
+      {
+        "round": 1,
+        "verdict": "CONVERGED",
+        "confidence": 0.86,
+        "stage": "edge_cases"
+      }
+    ]
+  },
+  "ambiguity_gate": {
+    "goal_clarity": 4,
+    "constraint_clarity": 4,
+    "success_criteria": 4,
+    "composite": 4.0,
+    "result": "pass",
+    "override": false,
+    "override_reason": null
+  },
+  "prior_art_gate": {
+    "status": "complete",
+    "recommendation": "build",
+    "override": false,
+    "run_at": "2026-03-25T13:12:00Z"
+  },
+  "premortem": {
+    "status": "complete",
+    "overlap": "moderate",
+    "new_findings": 2,
+    "covered_findings": 2
+  }
+}

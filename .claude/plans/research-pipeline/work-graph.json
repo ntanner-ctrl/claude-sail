@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "work_units": {
+    "WU1": {
+      "name": "Create /research command",
+      "files": [
+        "commands/research.md"
+      ],
+      "complexity": "high",
+      "tdd": false,
+      "depends_on": [],
+      "status": "pending"
+    },
+    "WU2": {
+      "name": "Define research brief artifact format",
+      "files": [],
+      "complexity": "low",
+      "tdd": false,
+      "depends_on": [
+        "WU1"
+      ],
+      "status": "pending",
+      "note": "Format is defined in spec and validated by tests; no standalone file needed"
+    },
+    "WU3": {
+      "name": "Document optional-enrichment pattern",
+      "files": [
+        "docs/OPTIONAL-ENRICHMENT.md"
+      ],
+      "complexity": "low",
+      "tdd": false,
+      "depends_on": [],
+      "status": "pending"
+    },
+    "WU4": {
+      "name": "Restructure blueprint pre-stage + describe",
+      "files": [
+        "commands/blueprint.md"
+      ],
+      "complexity": "high",
+      "tdd": false,
+      "depends_on": [
+        "WU2"
+      ],
+      "status": "pending"
+    },
+    "WU5": {
+      "name": "Restructure blueprint ambiguity gate",
+      "files": [
+        "commands/blueprint.md"
+      ],
+      "complexity": "medium",
+      "tdd": false,
+      "depends_on": [
+        "WU4"
+      ],
+      "status": "pending"
+    },
+    "WU6": {
+      "name": "Remove/conditionalize prior-art gate in blueprint",
+      "files": [
+        "commands/blueprint.md"
+      ],
+      "complexity": "medium",
+      "tdd": false,
+      "depends_on": [
+        "WU4"
+      ],
+      "status": "pending"
+    },
+    "WU7": {
+      "name": "Deprecate /clarify",
+      "files": [
+        "commands/clarify.md"
+      ],
+      "complexity": "low",
+      "tdd": false,
+      "depends_on": [
+        "WU1"
+      ],
+      "status": "pending"
+    },
+    "WU8": {
+      "name": "Update docs + READMEs",
+      "files": [
+        "commands/README.md",
+        "README.md",
+        "docs/PLANNING-STORAGE.md"
+      ],
+      "complexity": "low",
+      "tdd": false,
+      "depends_on": [
+        "WU1",
+        "WU4",
+        "WU7"
+      ],
+      "status": "pending"
+    },
+    "WU9": {
+      "name": "Update tests",
+      "files": [
+        "test.sh"
+      ],
+      "complexity": "medium",
+      "tdd": true,
+      "depends_on": [
+        "WU1",
+        "WU4",
+        "WU7",
+        "WU8"
+      ],
+      "status": "pending"
+    }
+  },
+  "graph": {
+    "parallelizable": [
+      [
+        "WU1",
+        "WU3"
+      ]
+    ],
+    "critical_path": [
+      "WU1",
+      "WU2",
+      "WU4",
+      "WU5",
+      "WU8",
+      "WU9"
+    ],
+    "critical_path_length": 6,
+    "width": 2
+  },
+  "checksum": "9wu-v1-research-pipeline"
+}
