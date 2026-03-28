@@ -72,18 +72,19 @@ Every change starts with `/describe-change`, which determines planning depth:
 
 ### The `/blueprint` Wizard
 
-Guided workflow through all stages with four challenge modes:
+Guided workflow through all stages with five challenge modes:
 
 ```
-/blueprint feature-auth                     # family mode (default)
-/blueprint feature-auth --challenge=vanilla # single-agent (original)
-/blueprint feature-auth --challenge=debate  # sequential debate chain
-/blueprint feature-auth --challenge=team    # agent teams (experimental)
+/blueprint feature-auth                      # critique mode (default)
+/blueprint feature-auth --challenge=vanilla  # single-agent (original)
+/blueprint feature-auth --challenge=debate   # sequential debate chain
+/blueprint feature-auth --challenge=critique # phased analysis pipeline
+/blueprint feature-auth --challenge=team     # agent teams (experimental)
 
 Stage 1: Describe     → Triage the change
 Stage 2: Specify      → Full specification + work graph
-Stage 3: Challenge    → Debate / vanilla / family / agent team
-Stage 4: Edge Cases   → Debate / vanilla / family / agent team
+Stage 3: Challenge    → Critique / vanilla / debate / agent team
+Stage 4: Edge Cases   → Critique / vanilla / debate / agent team
 Stage 4.5: Pre-Mortem → Operational failure exercise (optional)
 Stage 5: Review       → External perspective (optional)
 Stage 6: Test         → Spec-blind test generation
@@ -382,7 +383,7 @@ Claude Sail adapts to project maturity:
 | [docs/ENFORCEMENT-PATTERNS.md](docs/ENFORCEMENT-PATTERNS.md) | Reference | Command description enforcement tiers |
 | [docs/PLANNING-STORAGE.md](docs/PLANNING-STORAGE.md) | Reference | Planning state and storage schemas (v2) |
 | [docs/WIZARD-STATE.md](docs/WIZARD-STATE.md) | Reference | Wizard workflow state schema and content contracts |
-| [docs/BLUEPRINT-MODES.md](docs/BLUEPRINT-MODES.md) | Explanation | Challenge mode comparison (vanilla, debate, family, team) |
+| [docs/BLUEPRINT-MODES.md](docs/BLUEPRINT-MODES.md) | Explanation | Challenge mode comparison (vanilla, debate, critique, family-deprecated, team) |
 | [docs/CREATING-DOMAIN-KITS.md](docs/CREATING-DOMAIN-KITS.md) | How-to | Build your own domain kit |
 | [ops-starter-kit/README.md](ops-starter-kit/README.md) | Reference | Ops-specific extensions |
 

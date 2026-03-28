@@ -1,14 +1,14 @@
 # Blueprint Challenge Modes
 
-How the `/blueprint` command challenges your plans — four modes for different needs.
+How the `/blueprint` command challenges your plans — five modes for different needs.
 
 ---
 
-## The Four Modes
+## The Five Modes
 
 The blueprint workflow includes adversarial stages (Challenge and Edge Cases) that
 stress-test your specification before implementation. These stages can operate in
-four modes, selected once at blueprint creation.
+five modes, selected once at blueprint creation.
 
 ### Vanilla Mode
 
@@ -37,13 +37,55 @@ creating escalating depth.
 3. **Synthesizer** — Prioritizes by impact x likelihood, flags architectural implications
 
 **When to use:** Good for token-constrained reviews or when historical vault context isn't needed.
-The debate structure catches issues that single-perspective review misses — the Defender's
-response to the Challenger is particularly valuable because it forces nuanced assessment
-instead of a raw list of complaints.
 
 **Cost:** ~3 subagent calls per stage (6 total for Stages 3+4). Uses sonnet model.
 
-### Family Mode (Default — Generational Debate)
+### Critique Mode (Default — Phased Analysis Pipeline)
+
+A four-phase analytical pipeline grounded in multi-agent debate research. Uses three
+analytical lenses (Correctness / Completeness / Coherence) with sparse cross-examination,
+bounded refinement, and model heterogeneity.
+
+**Pipeline:**
+```
+Orient (1, sonnet) → Diverge (3, parallel, sonnet) → Interaction Scan
+  → Clash (3, parallel, sonnet) → Refine (0-2, conditional) → Converge (1, opus)
+```
+
+**Key design principles:**
+- Diversity of analytical lens over diversity of persona
+- Sparse interaction (each agent only responds to intersecting findings)
+- Anonymized Clash inputs (structural conformity mitigation)
+- Three-point anti-sycophancy intervention (pre-Diverge calibration, pre-Clash convergence
+  flag, post-Clash coverage check)
+- Bounded refinement (one conditional cycle on contested items, not unbounded looping)
+- Model heterogeneity (opus for synthesis where reasoning depth matters most)
+
+**Tier selection (auto from work graph):**
+
+| Tier | Phases | Agent Calls | When |
+|------|--------|-------------|------|
+| Light | Orient → Diverge → Converge | 5 per stage | ≤3 WUs, no High-complexity |
+| **Standard** | Orient → Diverge → Scan → Clash → Converge | 8 per stage | 4-5 WUs or 1+ High |
+| Full | All phases including Refine | ≤10 per stage | ≥6 WUs |
+
+Risk-pattern override: auth, security, data migration, external API, or schema changes
+force minimum Standard tier regardless of WU count.
+
+**When to use:** Most work. Provides structured multi-perspective analysis with compound
+failure detection, historical context (via Orient), and actionable verdicts. The tier
+system scales cost to complexity — Light tier is comparable to debate for simple specs.
+
+**Cost:** 5-10 agents per stage depending on tier (10-20 total for Stages 3+4).
+
+**Output:** `adversarial.md` leads with verdict summary table (not buried at end).
+`debate-log.md` has per-entry schema (lens + round + position + confidence + outcome).
+Converge produces structured JSON with disposition requirements per finding.
+
+### Family Mode (Deprecated — Generational Debate)
+
+> **Deprecated:** `--challenge=family` now maps to critique mode. Existing in-progress
+> family blueprints continue with the family architecture until completion.
 
 A multi-round generational critique structure with five specialized agents. Each round
 builds on the previous, with an Elder Council that queries historical vault data to
@@ -65,49 +107,13 @@ Round N:
             Children receive: refined spec + elder's carry_forward context
 ```
 
-**Agents:**
-- **Child-Defend** — Argues the spec is sound, defends design decisions
-- **Child-Assert** — Argues the spec has gaps, attacks design decisions
-- **Mother** — Synthesizes strengths from both children's positions
-- **Father** — Identifies weaknesses and provides directional guidance
-- **Elder Council** — Queries the Obsidian vault for historical analogies, validates against
-  past decisions, and issues a CONVERGED or CONTINUE verdict
-
-**Stage 3 (Challenge):** Children debate **design decisions**. Mother synthesizes design
-strengths. Father finds design weaknesses. Elders validate against historical design decisions.
-
-**Stage 4 (Edge Cases):** Children debate **boundary behavior**. Child-Defend argues
-boundaries and error handling are sufficient. Child-Assert finds inputs, states, and
-conditions that will break the system.
-
-**When to use:** Deep specifications where historical context matters. The vault integration
-means the Elder Council can surface lessons from past projects, making this mode particularly
-valuable for teams with an established Obsidian vault of engineering findings.
+**Why deprecated:** Critique mode preserves family mode's strengths (compound failure
+detection, historical context, multi-perspective analysis) while fixing structural gaps:
+front-loaded Orient phase instead of end-loaded Elder Council, sparse cross-examination
+instead of sequential produce-consume chains, and bounded refinement instead of
+unbounded looping. See the research brief for empirical comparison.
 
 **Cost:** ~5 agents per round, up to 3 rounds per stage (max ~30 agent calls for Stages 3+4).
-Highest token usage of all modes, but produces the deepest analysis.
-
-**Hard limits:**
-- Maximum rounds: 3 per stage (hardcoded)
-- Per-agent timeout: 3 minutes
-- Round timeout: 10 minutes (all 5 agents combined)
-- Total mode timeout: 25 minutes (all rounds combined)
-
-**Convergence:** The Elder Council issues CONVERGED when: (1) no historical red flags remain
-unaddressed, (2) Father's proposed changes are directionally sound, and (3) no critical
-unresolved tensions between children's positions. If max rounds are exhausted without
-convergence, confidence is set to 0.3 and regression is suggested if critical items remain.
-
-**Output:** Same structure as debate mode — curated findings to `adversarial.md` (organized
-by round), raw transcript to `debate-log.md`. Progress tracked via `family_progress` in
-`state.json`.
-
-### Guided Walkthrough (Planned — Not Yet Implemented)
-
-A future Stage 7 implementation option that would provide interactive human review at each
-work unit boundary. Deferred pending design of the interactive protocol (pause/resume state,
-permission inheritance, context accumulation management). When implemented, this would be
-the third implementation option alongside Sequential and Parallel dispatch.
 
 ### Team Mode (Experimental)
 
@@ -124,45 +130,48 @@ on a consensus list.
 **When to use:** Large, security-sensitive, or high-risk changes where concurrent diverse
 perspectives justify the cost. Experimental — behavior may evolve.
 
-**Cost:** 3 concurrent agents per stage (6 total). Highest token usage.
+**Cost:** 3 concurrent agents per stage (6 total).
 
 ---
 
 ## Comparison
 
-| Aspect | Vanilla | Debate | Family | Team |
-|--------|---------|--------|--------|------|
-| Perspectives | 1 | 3 (sequential) | 5 (generational, multi-round) | 3 (concurrent) |
-| Token cost | Low (~2 calls) | Medium (~6 calls) | High (~10-30 calls) | High (~6 agents) |
-| Depth | Surface | Deep (escalating context) | Deepest (historical + generational) | Broad (diverse views) |
-| Speed | Fast | Moderate | Slow (multi-round convergence) | Depends on agent coordination |
-| Best for | Quick reviews | Token-constrained reviews | Most work (default) | High-risk, security-critical |
-| Requires | Nothing | Nothing | Obsidian vault (recommended) | Experimental flag |
-| Relative cost | 1x | 3x | 5-15x (complexity-adaptive) | 3x |
+| Aspect | Vanilla | Debate | Critique | Family (deprecated) | Team |
+|--------|---------|--------|----------|---------------------|------|
+| Perspectives | 1 | 3 (sequential) | 3 lenses (phased) | 5 (generational) | 3 (concurrent) |
+| Token cost | Low (~2 calls) | Medium (~6 calls) | Medium-High (~10-20 calls) | High (~10-30 calls) | High (~6 agents) |
+| Depth | Surface | Deep (escalating) | Deep (structured analysis) | Deepest (historical + generational) | Broad (diverse) |
+| Speed | Fast | Moderate | Moderate (tier-dependent) | Slow (multi-round) | Depends on coordination |
+| Best for | Quick reviews | Token-constrained | Most work (default) | In-progress legacy plans | High-risk, security |
+| Requires | Nothing | Nothing | Nothing (vault optional) | Obsidian vault (recommended) | Experimental flag |
+| Relative cost | 1x | 3x | 5-10x (tier-adaptive) | 5-15x (round-adaptive) | 3x |
 
 ---
 
 ## Output Format
 
-All four modes produce the same output structure:
+All modes produce the same output structure:
 
 - **`adversarial.md`** — Canonical source of truth. Curated findings with severity ratings.
-- **`debate-log.md`** — Raw transcript (debate/family/team mode only). Debug artifact, not primary.
+  Critique mode leads with a verdict summary table for readability.
+- **`debate-log.md`** — Raw transcript. Critique mode uses per-entry schema
+  (lens + round + position + confidence + outcome) for downstream parseability.
 
-The Judge/Synthesizer in debate mode, Elder Council in family mode, and the lead agent in
-team mode produce structured JSON output that feeds automatic regression triggers. See
-`docs/PLANNING-STORAGE.md` for the schema.
+The Judge in debate mode, Converge agent in critique mode, Elder Council in family mode,
+and lead agent in team mode produce structured JSON output that feeds automatic regression
+triggers. See `docs/PLANNING-STORAGE.md` for the schema.
 
 ---
 
 ## Mode Selection
 
 ```bash
-/blueprint feature-auth                      # family mode (default)
-/blueprint feature-auth --challenge=vanilla  # single-agent
-/blueprint feature-auth --challenge=debate   # sequential debate chain
-/blueprint feature-auth --challenge=family   # explicit family (same as default)
-/blueprint feature-auth --challenge=team     # experimental teams
+/blueprint feature-auth                       # critique mode (default)
+/blueprint feature-auth --challenge=critique  # phased analysis pipeline
+/blueprint feature-auth --challenge=vanilla   # single-agent
+/blueprint feature-auth --challenge=debate    # sequential debate chain
+/blueprint feature-auth --challenge=family    # DEPRECATED — maps to critique
+/blueprint feature-auth --challenge=team      # experimental teams
 ```
 
 The mode is set once at creation and locked for the blueprint's lifecycle.
@@ -172,46 +181,53 @@ On regression, the same mode is reused — no re-prompting.
 
 ## Backward Compatibility
 
-- Pre-v2 plans (created before this enhancement) default to `vanilla` mode on migration
-- The vanilla mode output is identical to the pre-v2 challenge behavior
-- No existing workflows are broken — debate is additive
+- Pre-v2 plans default to `critique` mode on migration (previously defaulted to vanilla)
+- `--challenge=family` maps to critique mode with a deprecation notice
+- In-progress family blueprints (with `family_progress` in state.json) continue with
+  family architecture until completion
+- Vanilla and debate modes are unchanged
 
 ---
 
 ## FAQ
 
-**Q: Why is family the default instead of debate?**
-A: Family mode catches significantly more critical bugs than debate — in testing, it found
-6 critical/high bugs that debate/vanilla would have missed (0.90 empirical confidence).
-The Mother's synthesis role catches compound failures where two individually-safe things
-interact dangerously. The token cost is managed by complexity-adaptive rounds (S-1):
-simple specs run only 1 round (~5 agent calls), comparable to debate's 3.
+**Q: Why is critique the default instead of family?**
+A: Critique mode was designed as a direct improvement over family mode, based on academic
+research (DMAD, CortexDebate) and empirical data from 8+ family mode blueprints. It fixes
+four structural gaps: information loss in sequential produce-consume chains, no cross-examination
+between perspectives, vault-blind Round 1 (now Orient is first), and unbounded looping
+(now bounded Refine). The tier system scales cost to complexity — Light tier is comparable
+to debate for simple specs.
 
-**Q: Family mode is more expensive than debate. Why make it the default?**
-A: Complexity-adaptive rounds (S-1) scale cost to complexity: simple specs (≤3 WUs) get
-1 round, medium specs get 2, complex specs get 3. For simple specs, the cost difference
-vs debate is minimal (~5 agents vs ~3). For complex specs, the deeper analysis is worth
-the additional tokens — these are the specs where critical bugs are most likely to hide.
-Use `--challenge=debate` if you need to minimize token usage.
+**Q: Critique mode seems more expensive than debate. Is it?**
+A: Tier-adaptive: Light tier (5 agents) is comparable to debate (6 agents). Standard tier
+(8 agents) costs more but provides structured cross-examination. Full tier (≤10 agents) is
+for complex/high-risk specs where the depth is justified. Use `--challenge=debate` if you
+need to minimize token usage.
+
+**Q: Can I still use family mode?**
+A: Existing in-progress family blueprints continue with the family architecture. New blueprints
+cannot select family mode — `--challenge=family` maps to critique. The family architecture
+remains in `blueprint.md` for backward compatibility but is not actively maintained.
 
 **Q: Can I switch modes mid-blueprint?**
 A: No. The mode is locked at creation to ensure consistent adversarial depth across
 the blueprint's lifecycle. Create a new blueprint if you need a different mode.
 
-**Q: What happens if a debate agent times out?**
-A: Each agent has a 5-minute timeout, each stage has 15 minutes total. On timeout,
-the system falls back to vanilla mode for the remainder, preserving any completed rounds.
+**Q: What happens if a Clash agent times out or fails?**
+A: Critique mode uses progressive capture — each agent writes to debate-log.md immediately
+on completion. Failed agents are skipped; Converge synthesizes over available evidence.
+Turn-level checkpointing in state.json enables resume after session interruption.
 
-**Q: How does family mode differ from debate mode?**
-A: Debate uses a linear Challenger→Defender→Judge chain. Family uses a generational
-structure (Children→Mother→Father→Elder Council) that can run multiple rounds and
-queries the Obsidian vault for historical context. Family mode produces deeper analysis
-but costs significantly more tokens.
+**Q: Does critique mode require an Obsidian vault?**
+A: No. The Orient phase searches the vault for historical context if available but operates
+in fail-open mode — no vault means grounding from spec and research brief only.
 
-**Q: Does family mode require an Obsidian vault?**
-A: No, but it's recommended. The Elder Council queries the vault for historical analogies
-and past decisions. Without a vault, the Elder Council still synthesizes based on the
-current round's findings but lacks historical grounding.
+**Q: What's the Interaction Scan?**
+A: A lightweight prompt-instruction step (not a full agent) that runs between Diverge and
+Clash. It scans the full findings matrix for compound interaction failures — cases where
+two individually-safe findings combine into something dangerous. This preserves the compound
+failure detection capability that was family mode's signature strength.
 
 **Q: Why is team mode experimental?**
 A: It requires Claude Code's experimental agent teams feature, which is still evolving.

@@ -1,0 +1,141 @@
+{
+  "units": {
+    "WU-1": {
+      "depends_on": [],
+      "complexity": "medium",
+      "batch": 1,
+      "tdd": false
+    },
+    "WU-2": {
+      "depends_on": [
+        "WU-1"
+      ],
+      "complexity": "high",
+      "batch": 2,
+      "tdd": false
+    },
+    "WU-3": {
+      "depends_on": [
+        "WU-2"
+      ],
+      "complexity": "high",
+      "batch": 3,
+      "tdd": false
+    },
+    "WU-4": {
+      "depends_on": [
+        "WU-3"
+      ],
+      "complexity": "medium",
+      "batch": 4,
+      "tdd": false
+    },
+    "WU-5": {
+      "depends_on": [
+        "WU-4"
+      ],
+      "complexity": "high",
+      "batch": 5,
+      "tdd": false
+    },
+    "WU-6": {
+      "depends_on": [
+        "WU-5"
+      ],
+      "complexity": "medium",
+      "batch": 6,
+      "tdd": false
+    },
+    "WU-7": {
+      "depends_on": [
+        "WU-6"
+      ],
+      "complexity": "low",
+      "batch": 6,
+      "tdd": false
+    },
+    "WU-8": {
+      "depends_on": [
+        "WU-5"
+      ],
+      "complexity": "low",
+      "batch": 6,
+      "tdd": false
+    },
+    "WU-9": {
+      "depends_on": [
+        "WU-6"
+      ],
+      "complexity": "low",
+      "batch": 7,
+      "tdd": false
+    },
+    "WU-10": {
+      "depends_on": [
+        "WU-9"
+      ],
+      "complexity": "low",
+      "batch": 7,
+      "tdd": false
+    }
+  },
+  "critical_path": [
+    "WU-1",
+    "WU-2",
+    "WU-3",
+    "WU-4",
+    "WU-5",
+    "WU-6",
+    "WU-9",
+    "WU-10"
+  ],
+  "max_parallelism": 3,
+  "batches": [
+    {
+      "batch": 1,
+      "units": [
+        "WU-1"
+      ]
+    },
+    {
+      "batch": 2,
+      "units": [
+        "WU-2"
+      ]
+    },
+    {
+      "batch": 3,
+      "units": [
+        "WU-3"
+      ]
+    },
+    {
+      "batch": 4,
+      "units": [
+        "WU-4"
+      ]
+    },
+    {
+      "batch": 5,
+      "units": [
+        "WU-5"
+      ]
+    },
+    {
+      "batch": 6,
+      "units": [
+        "WU-6",
+        "WU-7",
+        "WU-8"
+      ]
+    },
+    {
+      "batch": 7,
+      "units": [
+        "WU-9",
+        "WU-10"
+      ]
+    }
+  ],
+  "checksum": null
+}

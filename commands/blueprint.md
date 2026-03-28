@@ -5,7 +5,7 @@ arguments:
     description: Name for this blueprint (required for new, optional to resume)
     required: false
   - name: challenge
-    description: "Challenge mode: vanilla, debate, family (default), team"
+    description: "Challenge mode: vanilla, debate, critique (default), family (deprecated), team"
     required: false
   - name: parallel
     description: "Parallelization: sequential, parallel, auto (default)"
@@ -36,8 +36,8 @@ Guided planning workflow that walks through all stages. Use this for full planni
 ```
 Stage 1: Describe    → /describe-change (triage, path, execution_preference)
 Stage 2: Specify     → /spec-change (spec + work units + work graph)
-Stage 3: Challenge   → Family (default) / Vanilla / Debate / Agent team
-Stage 4: Edge Cases  → Family (default) / Vanilla / Debate / Agent team
+Stage 3: Challenge   → Critique (default) / Vanilla / Debate / Family (deprecated) / Agent team
+Stage 4: Edge Cases  → Critique (default) / Vanilla / Debate / Family (deprecated) / Agent team
 Stage 4.5: Pre-Mortem → Operational failure exercise
 Stage 5: Review      → /gpt-review (external perspective) [optional]
 Stage 6: Test        → /spec-to-tests (spec-blind tests)
@@ -167,14 +167,27 @@ The challenge mode is selected once at blueprint creation and **locked for the b
 It applies to both Stage 3 (Challenge) and Stage 4 (Edge Cases).
 
 ```
-/blueprint feature-auth                      # family mode (DEFAULT)
-/blueprint feature-auth --challenge=vanilla  # original single-agent
-/blueprint feature-auth --challenge=debate   # sequential debate chain
-/blueprint feature-auth --challenge=family   # generational debate (deep specs)
-/blueprint feature-auth --challenge=team     # agent team (experimental)
+/blueprint feature-auth                       # critique mode (DEFAULT)
+/blueprint feature-auth --challenge=critique  # phased analysis pipeline
+/blueprint feature-auth --challenge=vanilla   # original single-agent
+/blueprint feature-auth --challenge=debate    # sequential debate chain
+/blueprint feature-auth --challenge=family    # DEPRECATED — maps to critique
+/blueprint feature-auth --challenge=team      # agent team (experimental)
 ```
 
 The mode is stored in `state.json` as `"challenge_mode"`. On regression, the same mode is reused.
+
+**When `--challenge=family` is explicitly passed:**
+```
+Note: --challenge=family has been renamed to --challenge=critique.
+Using critique mode (Orient→Diverge→Clash→Converge architecture).
+```
+
+**Migration for existing blueprints with `challenge_mode: "family"` in state.json:**
+- If challenge stages are NOT yet started: silently use critique architecture
+- If challenge stages are IN PROGRESS with `family_progress`: continue with family architecture
+- Display one-line notice on plan load: `"This plan was created with family mode. Continuing with critique mode."`
+  (only for not-yet-started plans; in-progress family plans show no notice)
 
 ### Pre-v2 Migration
 
@@ -197,7 +210,7 @@ When resuming a blueprint that lacks `blueprint_version` in state.json:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-Apply defaults: `blueprint_version: 2`, `challenge_mode: "vanilla"`, `execution_preference: "auto"`,
+Apply defaults: `blueprint_version: 2`, `challenge_mode: "critique"`, `execution_preference: "auto"`,
 `epistemic_session_id: null`, `manifest_stale: false`, `work_graph_stale: false`,
 `premortem: { "status": "skipped", "skip_reason": "created before blueprint-v2" }`.
 
@@ -559,7 +572,759 @@ The Judge/Synthesizer output is processed as follows:
 The curated output goes to `adversarial.md` (canonical source of truth).
 Raw debate transcript preserved in `debate-log.md` (debug artifact only).
 
-### Family Mode (Default — Generational Debate)
+### Critique Mode (Default — Phased Analysis Pipeline)
+
+A four-phase analytical pipeline that replaces family mode as the default challenge architecture.
+Designed around research-backed principles: diversity of analytical lens over persona (DMAD, ICLR 2025),
+sparse interaction over dense all-to-all (CortexDebate, ACL 2025), structural conformity mitigations,
+bounded refinement, and model heterogeneity where reasoning is most complex.
+
+```
+Input: spec.md + (optional) research.md + describe.md + stage_context
+
+┌─────────────────────────────────────────────────────┐
+│  Phase 1: ORIENT (1 agent, sonnet)                  │
+│  Vault search + research brief + constraint summary │
+│  Output: context brief (tier-scaled word cap)       │
+└───────────────────────┬─────────────────────────────┘
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│  Phase 2: DIVERGE (3 agents, parallel, sonnet)      │
+│  Correctness / Completeness / Coherence             │
+│  Partially correlated probes (not orthogonal axes)  │
+│  Each receives: input + Orient brief + stage context│
+└───────────────────────┬─────────────────────────────┘
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│  Phase 2.5: INTERACTION SCAN (prompt, not agent)    │
+│  Read-only scan of full findings matrix             │
+│  Flags compound interaction failures                │
+│  Output persisted to state.json before Clash        │
+└───────────────────────┬─────────────────────────────┘
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│  Phase 3: CLASH (up to 3 agents, parallel, sonnet)  │
+│  Sparse: each responds to intersecting findings     │
+│  from other two perspectives (anonymized inputs)    │
+│  Skipped on Light tier                              │
+└───────────────────────┬─────────────────────────────┘
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│  Phase 3.5: REFINE (conditional, 0-2 agents)        │
+│  Two branches:                                      │
+│    Uncertainty (0.4-0.6 conf) → resolve             │
+│    Contested (both ≥0.6, opposing) → articulate     │
+│  Full tier only                                     │
+└───────────────────────┬─────────────────────────────┘
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│  Phase 4: CONVERGE (1 agent, opus)                  │
+│  Reads ALL prior output (tier-conditional)          │
+│  Dedup (preserving agreement_count) → compound      │
+│  detection → false-known flagging → verdict         │
+│  Verdict: READY / REWORK / REDIRECT                 │
+└─────────────────────────────────────────────────────┘
+```
+
+#### Tier Selection
+
+Tier is auto-selected from work graph complexity and risk patterns. Computed once at the
+start of the challenge/edge_cases stage and stored in `critique_progress.tier`. On resume,
+read tier from state.json — do not recompute.
+
+**Tier selection depends on completed Stage 2 output.** If Stage 2 was interrupted, resume
+to Stage 2 completion before proceeding.
+
+| Signal | Condition | Tier |
+|--------|-----------|------|
+| Simple | ≤3 WUs AND no High-complexity WUs | Light |
+| Medium | 4-5 WUs OR 1+ High-complexity WU | Standard |
+| Complex | ≥6 WUs | Full |
+
+**Risk-pattern override:** If any WU touches auth, security, data migration, external API
+contracts, or schema changes, the minimum tier is Standard regardless of WU count.
+`tier = max(scope_tier, risk_tier)`.
+
+The risk-pattern list can be extended via project CLAUDE.md or `.claude/critique-config.yaml`.
+
+| Tier | Phases | Agent Calls | When |
+|------|--------|-------------|------|
+| Light | Orient → Diverge → Converge | 5 per stage | Simple specs |
+| **Standard** (default) | Orient → Diverge → Interaction Scan → Clash → Converge | 8 per stage | Most work |
+| Full | All phases including Refine | ≤10 per stage | High-risk, complex |
+
+User can override with `--tier=light|standard|full`.
+
+#### Context Budget Check (Operational Safety)
+
+Before dispatching Clash agents, estimate accumulated context (command overhead + Orient
+artifacts + all Diverge positions + Interaction Scan output). If the estimate exceeds 60%
+of the model's effective context window:
+
+1. Compress Diverge positions to summaries (top 5 findings per lens, ≤100 words each)
+2. Log compression to debate-log.md: `## Context Compression Applied`
+3. Proceed with compressed input
+
+This prevents the silent degradation failure mode where Clash agents lose earlier threads
+from working context and produce locally coherent but globally disconnected responses.
+
+#### Anti-Sycophancy: Three-Point Layered Intervention
+
+Same-model agents share distributional priors. Anonymization addresses social conformity
+but not distributional conformity. Three structural interventions at different pipeline stages:
+
+**1. Pre-Diverge Independence Calibration:**
+
+Each Diverge lens receives this preamble (addresses prompt-similarity risk, not cross-contamination
+— lenses genuinely run in parallel and cannot see each other's output):
+
+```
+You are operating independently. Your output will be compared to two
+other analytical perspectives. Do not optimize for agreement.
+If this specification were genuinely problematic in your domain,
+what would the most serious issues be, regardless of whether other
+reviewers would agree?
+```
+
+**2. Pre-Clash Convergence Flag:**
+
+After Diverge completes, check: if all three lenses produce findings in the same severity
+tier (e.g., all Medium), flag this as a convergence indicator before Clash begins:
+
+```
+⚠ Convergence signal: all three lenses produced [tier]-severity findings.
+  This may indicate genuine agreement OR distributional conformity.
+  Clash agents should probe whether this agreement is substantive.
+```
+
+**3. Post-Clash Coverage Check (Full tier only):**
+
+The Converge agent notes which spec sections received no adversarial scrutiny from any lens
+and records why. This is a diagnostic output, not manufactured disagreement.
+
+---
+
+#### Phase 1: Orient (1 agent, sonnet)
+
+**Purpose:** Comprehend the input and bring external context so every downstream lens is grounded.
+
+**Input:**
+- `spec.md` (always)
+- `research.md` (if exists — use as primary context, supplement with vault)
+- `describe.md` (always)
+- Stage context: `"CHALLENGE"` or `"EDGE_CASES"`
+
+**Process:**
+1. If `research.md` exists: extract key findings, constraints, prior art as primary context
+2. If vault available: search for related findings, decisions, patterns (limit: 5 most relevant per query)
+3. If neither: extract constraints from spec.md + describe.md only
+4. Summarize into context brief (tier-scaled word cap)
+
+**Tier-scaled context brief:**
+
+| Tier | Word Cap | Structure Requirement |
+|------|----------|-----------------------|
+| Light | 300 words | Free-form distillation |
+| Standard | 500 words | Free-form distillation |
+| Full | 800 words | Required schema: Problem Statement / Prior Art / Known Risks |
+
+**Sourcing constraint:** At Standard+, the Orient brief must categorize at least one known risk
+(operational, technical, integration, or domain) to force specificity. At Full tier, the user
+may approve or supplement the Orient inputs before Diverge begins.
+
+**Agent prompt:**
+```
+You are the Orient agent. Your job is to COMPREHEND this specification
+and GROUND it with relevant context. You do NOT critique — you understand.
+
+INPUT DOCUMENTS:
+[spec.md content]
+[research.md content if available]
+[describe.md content]
+
+STAGE CONTEXT: [CHALLENGE: evaluate design decisions | EDGE_CASES: evaluate boundary behavior]
+
+YOUR TASK:
+1. RESTATE the spec's intent in 2-3 sentences
+2. MAP the constraints (what limits apply? what can't change?)
+3. IDENTIFY the scope boundaries (in-scope vs out-of-scope)
+4. SURFACE relevant historical context:
+   [If research brief: extract key findings and constraints]
+   [If vault available: search Engineering/Findings/, Decisions/, Patterns/]
+   [If neither: "no external context — grounding from spec only"]
+5. FLAG unvalidated assumptions the spec makes
+6. CATEGORIZE at least one known risk (operational/technical/integration/domain)
+
+OUTPUT FORMAT:
+## Context Brief
+
+### Intent
+[2-3 sentence restatement]
+
+### Constraints
+- [constraint 1]
+...
+
+### Scope Boundaries
+- In: [what's covered]
+- Out: [what's not covered]
+
+### Historical Context
+[Relevant findings, decisions, patterns — or "none available"]
+
+### Unvalidated Assumptions
+- [assumption]: [why it matters]
+
+### Known Risks
+- [risk] (category: operational|technical|integration|domain)
+
+CRITICAL: Keep total output under [TIER_WORD_CAP] words.
+```
+
+**Output:** Written to `debate-log.md` as `## Orient Phase`.
+
+**Vault search:** `source ~/.claude/hooks/vault-config.sh 2>/dev/null`. If available:
+search Engineering/Findings/, Decisions/, Patterns/ for spec's key terms. Limit: 5 per query.
+If unavailable: skip silently (fail-open).
+
+---
+
+#### Phase 2: Diverge (3 agents, parallel, sonnet)
+
+**Purpose:** Three partially correlated analytical probes examine the spec independently.
+Not orthogonal axes — overlap produces convergent signals that increase confidence.
+
+**Input (each agent receives):** spec.md + Orient context brief + stage context header
+
+**Stage context header:**
+- CHALLENGE: `"You are evaluating DESIGN DECISIONS."`
+- EDGE_CASES: `"You are evaluating BOUNDARY BEHAVIOR."`
+
+**Each agent receives the independence calibration preamble** (see Anti-Sycophancy above).
+
+##### Correctness Lens
+
+```
+You analyze this specification for CORRECTNESS — are the claims
+and assumptions true?
+
+CONTEXT BRIEF:
+[Orient output]
+
+STAGE: [CHALLENGE or EDGE_CASES]
+
+SPECIFICATION:
+[spec.md content]
+
+For each section of the spec, ask:
+  - Are the stated constraints actually constraints?
+  - Are the claimed behaviors achievable with the described approach?
+  - Are there implicit assumptions that aren't validated?
+  - Is anything stated as fact that is actually uncertain?
+  - [CHALLENGE]: Is this design approach sound?
+  - [EDGE_CASES]: Are the boundary claims true?
+
+For each finding, produce EXACTLY this format:
+
+FINDING-C[N]:
+  Summary: [one-line summary]
+  Section: [which spec section]
+  Claim: [what the spec asserts]
+  Assessment: TRUE | FALSE | UNCERTAIN
+  Evidence: [why you believe this]
+  Severity: critical | high | medium | low
+  Confidence: [0.0-1.0]
+  False-known: [yes|no] — yes if the spec is CONFIDENTLY WRONG
+  Adjacent-risks: [optional — items outside your domain noticed in passing]
+
+Prioritize findings by severity. Limit to your top 10 findings.
+Do NOT pad with low-confidence theoretical concerns.
+```
+
+##### Completeness Lens
+
+```
+You analyze this specification for COMPLETENESS — what's missing
+that should be there?
+
+CONTEXT BRIEF:
+[Orient output]
+
+STAGE: [CHALLENGE or EDGE_CASES]
+
+SPECIFICATION:
+[spec.md content]
+
+For each section of the spec, ask:
+  - What inputs, states, or conditions are not addressed?
+  - What error paths are not handled?
+  - What dependencies are not documented?
+  - [CHALLENGE]: What design decisions are implied but not stated?
+  - [EDGE_CASES]: What happens at boundaries (empty, max, concurrent, timeout)?
+
+For each finding, produce EXACTLY this format:
+
+FINDING-M[N]:
+  Summary: [one-line summary]
+  Section: [where this should be addressed]
+  Gap: [what's missing]
+  Impact: [what fails if this isn't addressed]
+  Severity: critical | high | medium | low
+  Confidence: [0.0-1.0]
+  False-known: [yes|no] — yes if spec claims "this is covered" but it isn't
+  Adjacent-risks: [optional — items outside your domain noticed in passing]
+
+Prioritize findings by severity. Limit to your top 10 findings.
+```
+
+##### Coherence Lens
+
+```
+You analyze this specification for COHERENCE — do the parts work
+together?
+
+CONTEXT BRIEF:
+[Orient output]
+
+STAGE: [CHALLENGE or EDGE_CASES]
+
+SPECIFICATION:
+[spec.md content]
+
+For the spec as a whole, ask:
+  - Do any sections contradict each other?
+  - Are there circular dependencies between components?
+  - Does the execution order match the dependency order?
+  - Are naming conventions and terminology consistent?
+  - [CHALLENGE]: Do the stated requirements match the proposed solution?
+  - [EDGE_CASES]: Do boundary handlers conflict with each other?
+
+For each finding, produce EXACTLY this format:
+
+FINDING-H[N]:
+  Summary: [one-line summary]
+  Sections: [which sections are in tension]
+  Contradiction: [what conflicts]
+  Resolution: [which section should yield, or how to reconcile]
+  Severity: critical | high | medium | low
+  Confidence: [0.0-1.0]
+  False-known: [yes|no] — yes if spec claims internal consistency that doesn't exist
+  Adjacent-risks: [optional — items outside your domain noticed in passing]
+
+Prioritize findings by severity. Limit to your top 10 findings.
+```
+
+**Output:** Each agent's output written to `debate-log.md` immediately upon completion (progressive capture).
+
+**Convergence check:** After all three Diverge agents complete, check if all findings fall
+in the same severity tier. If so, emit pre-Clash convergence flag (see Anti-Sycophancy above).
+
+---
+
+#### Phase 2.5: Interaction Scan (prompt instruction, not sub-agent)
+
+**Purpose:** Flag compound interaction failures before Clash begins. Runs in the Judge/orchestrator
+context — not a separate agent dispatch. Read-only scan: identifies, does not synthesize.
+
+**Input:** Full findings matrix from all three Diverge perspectives.
+
+**Process:**
+1. Read all Diverge findings
+2. For each pair of findings from DIFFERENT perspectives that reference the SAME component
+   or section: flag as a candidate compound interaction
+3. Ask: "If both findings are present, do they create a failure mode neither creates alone?"
+4. Write flagged interactions to `state.json` under `critique_progress.interaction_flags`
+5. Pass flag list as additional input to Clash
+
+**Persistence:** Interaction flags are written to `state.json` (not just working memory)
+so they survive context compaction. The ID mapping table (see Phase 3 anonymization) is also
+written to `state.json` at this point.
+
+**On Light tier:** Interaction Scan still runs (it's cheap — prompt instruction, not agent).
+Its output goes directly to Converge since Clash is skipped.
+
+---
+
+#### Phase 3: Clash (up to 3 agents, parallel, sonnet)
+
+**Purpose:** Cross-examination. Each perspective engages with findings from other lenses that
+intersect its domain. Sparse interaction — not all-to-all.
+
+**Skipped entirely on Light tier.** (AC-15)
+
+**Input preparation (ANONYMIZED):**
+
+Before dispatching Clash agents, the orchestrator:
+1. Collects all findings from Diverge
+2. Strips perspective labels but **preserves finding IDs**: `FINDING-C3` → `FINDING-03`,
+   `FINDING-M7` → `FINDING-07`. The sequential number is stable; the lens prefix is removed.
+3. Writes the `id_mapping` table to `state.json` under `critique_progress.id_mapping`:
+   `{"03": "C3", "07": "M7", ...}`. This mapping survives compaction and is passed to Converge
+   for label restoration before deduplication.
+4. Groups findings by spec section
+5. For each Clash agent: provides ONLY findings that share a section reference with that
+   agent's own Diverge findings (sparse interaction)
+6. **Null-intersection handling:** If sparse intersection produces zero other-perspective
+   findings for a Clash agent, that agent is skipped (not dispatched). Record
+   `clash_skipped_no_intersection: true` for that lens in `critique_progress`. This is
+   distinct from AC-14 (skipped because Diverge produced zero findings). Converge receives
+   a note that perspectives found no overlapping concerns — itself a meaningful signal
+   about spec modularity.
+
+If a Diverge perspective produced zero findings, its corresponding Clash agent is skipped (AC-14).
+
+**Clash agent prompt (same for all three, with different finding sets):**
+
+```
+You are a cross-examiner. You have produced findings about this
+specification. Now you see findings from other perspectives that
+touch the SAME sections of the spec.
+
+YOUR FINDINGS:
+[This agent's Diverge findings, with original labels]
+
+OTHER FINDINGS (touching your sections):
+[Anonymized findings from other perspectives]
+
+INTERACTION FLAGS:
+[Any compound interaction flags from Phase 2.5 involving your findings]
+
+For each other finding that intersects your work:
+
+REBUTTAL (if you disagree):
+  Finding: [ID]
+  Your position: [why this finding is wrong or overstated]
+  Evidence: [specific evidence from the spec]
+  Rebuttal confidence: [0.0-1.0]
+
+REINFORCEMENT (if you independently found the same issue):
+  Finding: [ID]
+  Your finding: [your corresponding finding ID]
+  Agreement: [what you both see]
+  Combined confidence: [boosted confidence]
+
+GAP (something neither you nor they mentioned):
+  Gap: [what was missed]
+  Section: [where it belongs]
+  Severity: critical | high | medium | low
+  Confidence: 0.50 (default for newly identified gaps)
+
+IMPORTANT: Only respond to findings that genuinely intersect your
+analysis. Do NOT comment on findings outside your domain.
+Silence on a finding = no opinion (not agreement).
+```
+
+**Turn-level checkpointing:** Each Clash agent writes a completion entry to `state.json`
+(`critique_progress.agents_completed`) before the next agent's output is processed.
+On resume after compaction, skip completed agents and continue from the last incomplete.
+
+**Output:** Written to `debate-log.md` as `## Clash Phase`.
+
+---
+
+#### Phase 3.5: Refine (conditional, 0-2 agents, sonnet)
+
+**Purpose:** Targeted re-examination of contested findings. **Full tier only.**
+
+**Trigger evaluation:** After ALL Clash agents have written to `debate-log.md`, the
+orchestrator evaluates Refine eligibility. Not before — this is the synchronization barrier.
+
+**Confidence update rules (post-Clash):**
+
+| Condition | Adjustment | Cap/Floor |
+|-----------|-----------|-----------|
+| Reinforced by 1 perspective | +0.15 | Cap 0.95 |
+| Reinforced by 2 perspectives | +0.25 | Cap 0.95 |
+| Rebutted (strong, conf > 0.6) | -0.20 | Floor 0.10 |
+| Rebutted (weak, conf ≤ 0.6) | No change | — |
+| No engagement | No change | — |
+| New gap from Clash | Starts at 0.50 | — |
+
+**Two Refine branches:**
+
+| Branch | Trigger | Goal | Prompt |
+|--------|---------|------|--------|
+| **Uncertainty** | Post-Clash confidence 0.4-0.6 AND substantive rebuttal (conf > 0.3) | Resolve: converge on one position | "Provide additional evidence for ONE side. Either the finding stands or the rebuttal holds." |
+| **Contested** | Two lenses with opposing verdicts, both ≥0.6 confidence | Articulate: document the tension, do NOT force convergence | "Explain WHY two well-grounded analyses reached opposite conclusions. Surface the underlying assumption difference." |
+
+**Conflict classification (Judge vocabulary for Converge):**
+
+When identifying contested findings, the Judge classifies the disagreement type:
+- **(a) Severity disagreement:** Same claim, different severity rating. Resolution: disposition tagging.
+- **(b) Existence disagreement:** One lens says X is present, another says X is absent. Escalation priority.
+- **(c) Direction disagreement:** One says change Y would help, another says it would harm. Escalation priority.
+
+Types (b) and (c) receive escalation priority in Converge. Type (a) is a weighting disagreement
+handled by disposition tagging.
+
+**Maximum agents:** 2 per stage. Only the perspectives involved in the specific contest are re-dispatched.
+Select top 3 findings by severity.
+
+**If no contested findings at mid-range confidence AND no high-confidence-contested:** Refine is skipped.
+
+---
+
+#### Phase 4: Converge (1 agent, opus)
+
+**Purpose:** Synthesize all prior output into prioritized findings and a verdict.
+
+**Input:** ALL prior output (Orient brief, all Diverge findings with original labels restored
+via `id_mapping`, all Clash results, Interaction Scan flags, Refine results if any).
+
+**Tier-conditional input:**
+
+```
+[IF Light tier]:
+  Note: Clash phase was skipped. Confidence values are Diverge baselines only.
+  Do not apply reinforcement adjustments. Deduplication is by section overlap
+  across Diverge perspectives only.
+[ELSE]:
+  [Full Clash provenance and reinforcement logic]
+```
+
+**Agent prompt:**
+
+```
+You are the Converge agent. You synthesize the entire critique
+pipeline into a final verdict.
+
+ORIENT BRIEF:
+[Orient output]
+
+DIVERGE FINDINGS:
+[All findings from all three lenses, with original labels restored]
+
+CLASH RESULTS:
+[All rebuttals, reinforcements, and gaps — omitted on Light tier]
+
+INTERACTION SCAN FLAGS:
+[Compound interaction candidates from Phase 2.5]
+
+REFINE RESULTS (if any):
+[Contested finding verdicts]
+
+YOUR TASK:
+
+1. DEDUPLICATE: Merge findings that describe the same issue from
+   different angles. When deduplicating, KEEP ALL source finding IDs
+   in source_findings. Do not drop references when merging.
+   The source_findings count is the agreement_count — it drives
+   compound severity escalation.
+
+2. PRIORITIZE: For each unique finding, compute final confidence:
+   - Base: original Diverge confidence
+   - Reinforced by 1 perspective: +0.15
+   - Reinforced by 2 perspectives: +0.25
+   - Rebutted (strong): -0.20
+   - Rebutted (weak): no change
+   - Refine verdict (if available): use Refine's revised confidence
+   - Cap at 0.95, floor at 0.10
+
+3. DETECT COMPOUND FAILURES: Review the Interaction Scan flags.
+   For each flagged pair: are both findings present in the final list?
+   If yes, do they combine into something more dangerous than either
+   alone? Flag as compound with elevated severity.
+
+4. FLAG FALSE KNOWNS: Any finding where the spec is CONFIDENTLY WRONG
+   (false-known: yes) gets special attention.
+
+5. DISPOSITION: Every finding must carry a disposition:
+   accept | mitigate | watch | escalate
+   Plus a trigger condition: what would change this disposition?
+   Deduplication rule: merge findings with same disposition AND
+   same primary subject (same component/pattern/concern). When in
+   doubt, keep separate with cross-reference.
+
+6. COVERAGE CHECK (Full tier only): Note which spec sections received
+   no adversarial scrutiny from any lens and record why.
+
+7. PRESERVE UNRESOLVED TENSIONS: If lenses reached genuinely
+   incompatible conclusions on any point, name that incompatibility
+   explicitly. Do not resolve it for narrative coherence. List in
+   unresolved_tensions with the underlying assumption difference.
+
+8. PRODUCE VERDICT:
+
+OUTPUT FORMAT (JSON):
+{
+  "findings": [
+    {
+      "id": "CF-[N]",
+      "summary": "one-line",
+      "source_findings": ["C3", "M7"],
+      "agreement_count": 2,
+      "severity": "critical|high|medium|low",
+      "confidence": 0.0-1.0,
+      "false_known": true|false,
+      "compound": true|false,
+      "conflict_type": "a|b|c|null",
+      "section": "spec section",
+      "direction": "what to do (not how)",
+      "disposition": "accept|mitigate|watch|escalate",
+      "disposition_trigger": "what would change this",
+      "addressed": "already-in-spec|needs-update|needs-new-section"
+    }
+  ],
+  "verdict": "READY|REWORK|REDIRECT",
+  "verdict_rationale": "why this verdict",
+  "critical_count": 0,
+  "false_known_count": 0,
+  "compound_count": 0,
+  "unresolved_tensions": [
+    "description of tension + underlying assumption difference"
+  ],
+  "uncovered_sections": ["sections with no lens scrutiny"],
+  "regression_target": "specify|null"
+}
+
+VERDICT MEANINGS:
+  READY    — No critical findings. Proceed to next stage.
+  REWORK   — Critical findings in specific sections. Targeted revision.
+  REDIRECT — Fundamental approach is flawed. Rethink required.
+```
+
+**Output processing:**
+1. Parse JSON (same fallback chain as debate mode — pattern match if JSON fails)
+2. Write curated findings to `adversarial.md` (verdict summary table FIRST, then details)
+3. Write verdict to state.json
+4. If REWORK/REDIRECT: trigger regression prompt
+
+---
+
+#### Critique Mode Output Format
+
+**adversarial.md (Curated) — verdict summary leads:**
+
+```markdown
+# Critique Analysis: [stage name]
+
+## Verdict: [READY/REWORK/REDIRECT]
+[One-paragraph rationale]
+
+## Findings Summary
+| ID | Finding | Severity | Confidence | Disposition | Compound? |
+|----|---------|----------|-----------|-------------|-----------|
+| CF-1 | ... | critical | 0.85 | escalate | Yes |
+| CF-2 | ... | high | 0.72 | mitigate | No |
+...
+
+## Unresolved Tensions
+- [tension + underlying assumption difference]
+
+## Detailed Findings
+
+### Critical
+[Full detail per finding including direction and disposition trigger]
+
+### High
+...
+
+### Medium
+...
+
+## Orient Context
+[Brief summary of grounding context]
+
+## Complexity Review
+[/overcomplicated output, appended post-challenge as before]
+```
+
+**debate-log.md (Raw Transcript) — per-entry schema:**
+
+```markdown
+# Critique Transcript: [stage name]
+
+## Orient Phase
+[Full Orient agent output]
+
+## Diverge Phase
+### Correctness
+[Full output]
+### Completeness
+[Full output]
+### Coherence
+[Full output]
+
+## Convergence Check
+[Same-severity flag if triggered, or "No convergence signal"]
+
+## Interaction Scan
+[Flagged compound candidates]
+
+## Clash Phase
+### Correctness Cross-Examination
+[Full output — or "Skipped: null intersection" or "Skipped: zero findings"]
+### Completeness Cross-Examination
+[Full output — or skip reason]
+### Coherence Cross-Examination
+[Full output — or skip reason]
+
+## Context Compression
+[If applied: what was compressed and why]
+
+## Refine Phase (if triggered)
+[Full output per contested finding, labeled by branch: uncertainty|contested]
+
+## Converge Phase
+[Full JSON output]
+```
+
+Each agent writes to debate-log.md immediately upon completion (progressive capture).
+
+---
+
+#### Critique Mode State Tracking
+
+```json
+{
+  "critique_progress": {
+    "stage": "challenge",
+    "tier": "standard",
+    "phase": "clash",
+    "agents_completed": ["orient", "diverge_correctness", "diverge_completeness", "diverge_coherence"],
+    "current_agent": "clash_correctness",
+    "findings_count": 12,
+    "contested_count": 0,
+    "refine_triggered": false,
+    "interaction_flags": [
+      {"finding_a": "C3", "finding_b": "M7", "component": "auth", "flagged": true}
+    ],
+    "id_mapping": {"03": "C3", "07": "M7"},
+    "clash_skipped_no_intersection": {"coherence": true},
+    "convergence_flag": false,
+    "context_compressed": false,
+    "verdict": null,
+    "confidence": null
+  }
+}
+```
+
+On resume: skip completed agents, continue from `current_agent`. Read completed agents'
+output from `debate-log.md`.
+
+#### Critique Mode for Stage 3 vs Stage 4
+
+Both stages use the same architecture but with shifted focus via the stage context header:
+
+**Stage 3 (Challenge):** Lenses evaluate **design decisions**. "Is the design approach
+correct / complete / coherent?"
+
+**Stage 4 (Edge Cases):** Lenses evaluate **boundary behavior**. "Is boundary handling
+correct / complete / coherent?"
+
+Orient, Clash, Refine, and Converge prompts remain the same — they naturally adapt based on
+what the Diverge lenses present.
+
+#### Critique Mode Regression Triggers
+
+- Converge verdict is REWORK or REDIRECT → suggest regression to Stage 2
+- Any finding with `false_known: true` AND severity critical → suggest regression to Stage 2
+- Compound failure with severity critical → suggest regression to Stage 2
+- All regression prompts follow existing blueprint regression flow
+
+---
+
+### Family Mode (Deprecated — Generational Debate)
 
 A six-role generational debate architecture with three tiers. Designed for deep specification
 review where the dialectical (thesis/antithesis/synthesis) approach produces better results

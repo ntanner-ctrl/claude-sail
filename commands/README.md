@@ -190,10 +190,12 @@ Stages:
 
 Challenge modes for Stages 3 and 4:
 ```
-/blueprint feature-auth                      # family mode (default)
-/blueprint feature-auth --challenge=vanilla  # single-agent
-/blueprint feature-auth --challenge=debate   # sequential debate chain
-/blueprint feature-auth --challenge=team     # agent teams (experimental)
+/blueprint feature-auth                       # critique mode (default)
+/blueprint feature-auth --challenge=critique  # phased analysis pipeline
+/blueprint feature-auth --challenge=vanilla   # single-agent
+/blueprint feature-auth --challenge=debate    # sequential debate chain
+/blueprint feature-auth --challenge=family    # DEPRECATED — maps to critique
+/blueprint feature-auth --challenge=team      # agent teams (experimental)
 ```
 
 See [docs/BLUEPRINT-MODES.md](../docs/BLUEPRINT-MODES.md) for mode comparison.
