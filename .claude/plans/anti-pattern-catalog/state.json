@@ -4,8 +4,9 @@
   "challenge_mode": "vanilla",
   "execution_preference": "auto",
   "created_at": "2026-04-30T19:06:21Z",
-  "current_stage": "execute",
-  "completed": false,
+  "current_stage": "debrief",
+  "completed": true,
+  "completed_at": "2026-04-30T21:35:00Z",
   "revision": 4,
   "regression_count": 1,
   "regression_log": [
@@ -83,12 +84,33 @@
       ]
     },
     "debrief": {
-      "status": "pending"
+      "status": "complete",
+      "completed_at": "2026-04-30T21:35:00Z",
+      "ship_commits": [
+        "36bff79",
+        "e53a7d2"
+      ],
+      "discoveries": [
+        "Sister-site remediation incomplete — first sweep found 4 unfixed instances commit 318e09f missed",
+        "Rev4 additionalContext mechanism is strictly cleaner than rev3 stderr would have been — empirical failure led to better design",
+        "AC6 80-line cap was load-bearing; topic-grep coverage prevented gutting required content during compression",
+        "Bash multiline-string concatenation: `+=` with real newlines preserves; $(printf...) strips trailing — caught at test 5/5",
+        "set -euo pipefail incompatible with `if cmd1 | cmd2` assertion patterns — silent die in test.sh Cat 9 first run"
+      ],
+      "deferred_items": [
+        "AC14 form-2 manual gate in fresh session",
+        "detection_kind v2 schema for multi-line patterns",
+        "--full --prune flag for orphaned events (E22)",
+        "Per-project recent_window_days config (F8/S-4)",
+        "Sister-site remediation in scripts/epistemic-{compute,feedback}.sh"
+      ],
+      "confidence": 0.85,
+      "confidence_note": "All in-session ACs pass (AC1-13 + AC14 form-1). AC14 form-2 deferred to fresh-session manual gate per spec. Sister-site finding (epistemic data-loss pattern still in 4 places) is itself a validation that the catalog earned its keep on day 1."
     }
   },
   "premortem": {
     "status": "complete",
     "overlap": "low (0%)"
   },
-  "updated_at": "2026-04-30T21:25:00Z"
+  "updated_at": "2026-04-30T21:35:00Z"
 }
