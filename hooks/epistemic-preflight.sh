@@ -119,6 +119,9 @@ EOF
 
     if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/epistemic-feedback.sh" ]; then
         source "$SCRIPT_DIR/epistemic-feedback.sh"
+        # Source the atomic-write helper from the same script dir if present.
+        # The session_count update below uses epistemic_safe_swap when available.
+        [ -f "$SCRIPT_DIR/epistemic-safe-write.sh" ] && source "$SCRIPT_DIR/epistemic-safe-write.sh"
         epistemic_format_calibration_block "$SESSION_ID" "$PROJECT_NAME" "$familiarity" >&2
     else
         # Inline fallback if feedback script not found
@@ -136,7 +139,8 @@ Submit preflight vectors using /epistemic-preflight with 13 scores (0.0-1.0):
 EOF
     fi
 
-    # Update project session count
+    # Update project session count — validate before swap to avoid
+    # silent file wipe (see epistemic-safe-write.sh for rationale).
     jq --arg p "$PROJECT_NAME" --arg now "$NOW" \
         '.projects[$p].session_count = ((.projects[$p].session_count // 0) + 1) |
          .projects[$p].last_session = $now |
@@ -145,8 +149,20 @@ EOF
            elif (.projects[$p].session_count >= 3) then "medium"
            else "low" end
          )' \
-        "$EPISTEMIC_FILE" > "${EPISTEMIC_FILE}.tmp" 2>/dev/null && \
-        mv "${EPISTEMIC_FILE}.tmp" "$EPISTEMIC_FILE" 2>/dev/null
+        "$EPISTEMIC_FILE" > "${EPISTEMIC_FILE}.tmp" 2>/dev/null
+    local _jq_exit=$?
+    if command -v epistemic_safe_swap >/dev/null 2>&1; then
+        epistemic_safe_swap "$EPISTEMIC_FILE" "${EPISTEMIC_FILE}.tmp" "$_jq_exit" 2>/dev/null
+    else
+        # Inline fallback (helper not sourced — keep the hook self-contained).
+        if [ "$_jq_exit" -eq 0 ] && [ -s "${EPISTEMIC_FILE}.tmp" ] && \
+           jq -e . "${EPISTEMIC_FILE}.tmp" >/dev/null 2>&1; then
+            cp "$EPISTEMIC_FILE" "${EPISTEMIC_FILE}.bak" 2>/dev/null
+            mv "${EPISTEMIC_FILE}.tmp" "$EPISTEMIC_FILE" 2>/dev/null
+        else
+            rm -f "${EPISTEMIC_FILE}.tmp" 2>/dev/null
+        fi
+    fi
 }
 
 # Run with timeout (1.5s budget)
