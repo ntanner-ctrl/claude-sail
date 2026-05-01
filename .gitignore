@@ -26,3 +26,9 @@ Thumbs.db
 .claude/anti-patterns/.events.jsonl
 .claude/anti-patterns/.events.archive.jsonl
 .claude/anti-patterns/.last-sweep.json
+
+# Per-machine runtime state (hook logs, wizard sessions, epistemic calibration)
+.claude/audit.jsonl
+.claude/budget.jsonl
+.claude/wizards/
+.epistemic/
