@@ -25,14 +25,15 @@ Note the result. If vault is unavailable, continue anyway — disk writes can st
 ### Step 2: Check for Active Epistemic Session
 
 ```bash
-if [ -f "$HOME/.claude/.current-session" ]; then
-    cat "$HOME/.claude/.current-session"
+source "$HOME/.claude/scripts/epistemic-marker.sh" 2>/dev/null
+if epistemic_session_active; then
+    epistemic_get_session_id
 else
     echo "NO_SESSION"
 fi
 ```
 
-Note the session ID. If no session, session-linked writes will be skipped (fail-soft).
+Note the session ID (from per-claude-PID marker). If no session, session-linked writes will be skipped (fail-soft).
 
 ### Step 3: Gather Insights from Disk
 

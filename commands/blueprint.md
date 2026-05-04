@@ -397,7 +397,7 @@ This is not optional. The confidence data feeds regression decisions.
 The blueprint-stage-gate hook will flag missing epistemic data.
 
 **Before starting Stage 1:**
-- The `epistemic-preflight.sh` SessionStart hook auto-creates a session in `~/.claude/.current-session`
+- The `epistemic-preflight.sh` SessionStart hook auto-creates a per-claude-PID marker under `~/.claude/.current-session/` (one file per active claude process; session_id stored inside)
 - Run `/epistemic-preflight` for honest self-assessment
 - Store session_id in state.json under `epistemic_session_id`
 - Store session_id in manifest.json under `epistemic_session_id` (dual storage)
@@ -418,7 +418,7 @@ The blueprint-stage-gate hook will flag missing epistemic data.
 
 **Session recovery:** If session_id is missing on resume:
 1. Check state.json first, then manifest.json
-2. If both missing: read `~/.claude/.current-session` for the active session
+2. If both missing: resolve session_id via `epistemic_get_session_id` (reads the per-claude-PID marker under `~/.claude/.current-session/`)
 3. Log discontinuity: `"epistemic_session_note": "Continuation session — original lost"`
 
 ---

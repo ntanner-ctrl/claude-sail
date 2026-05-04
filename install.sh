@@ -113,7 +113,7 @@ if [ -f "${SCRIPT_DIR}/commands/bootstrap-project.md" ]; then
     # Epistemic tracking scripts (sourced by hooks at runtime)
     if [ -d "${SCRIPT_DIR}/scripts" ]; then
         mkdir -p "${CLAUDE_HOME}/scripts"
-        for script in epistemic-init.sh epistemic-compute.sh epistemic-feedback.sh epistemic-safe-write.sh; do
+        for script in epistemic-init.sh epistemic-compute.sh epistemic-feedback.sh epistemic-safe-write.sh epistemic-marker.sh; do
             [ -f "${SCRIPT_DIR}/scripts/${script}" ] && cp "${SCRIPT_DIR}/scripts/${script}" "${CLAUDE_HOME}/scripts/"
         done
         chmod +x "${CLAUDE_HOME}/scripts/"*.sh 2>/dev/null || true
@@ -235,7 +235,7 @@ else
     # Epistemic tracking scripts (sourced by hooks at runtime)
     if [ -d "${REPO_DIR}/scripts" ]; then
         mkdir -p "${CLAUDE_HOME}/scripts"
-        for script in epistemic-init.sh epistemic-compute.sh epistemic-feedback.sh epistemic-safe-write.sh; do
+        for script in epistemic-init.sh epistemic-compute.sh epistemic-feedback.sh epistemic-safe-write.sh epistemic-marker.sh; do
             [ -f "${REPO_DIR}/scripts/${script}" ] && cp "${REPO_DIR}/scripts/${script}" "${CLAUDE_HOME}/scripts/"
         done
         chmod +x "${CLAUDE_HOME}/scripts/"*.sh 2>/dev/null || true

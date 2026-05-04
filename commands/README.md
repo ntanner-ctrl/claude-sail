@@ -604,7 +604,7 @@ Location: `.claude/plans/[name]/checkpoints/` (if blueprint active) or `.claude/
 ```
 
 Steps:
-1. Reads active epistemic session from `~/.claude/.current-session`
+1. Reads active epistemic session via `epistemic_get_session_id` (per-claude-PID marker under `~/.claude/.current-session/`)
 2. Claude self-assesses current epistemic state (13 vectors)
 3. Submits postflight assessment (captures learning delta)
 4. Exports session artifacts to Obsidian vault (decisions, findings, blueprints, session summary)

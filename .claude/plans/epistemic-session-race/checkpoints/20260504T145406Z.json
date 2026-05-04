@@ -1,0 +1,69 @@
+{
+  "timestamp": "2026-05-04T14:54:06Z",
+  "summary": "Planning phase (Stages 1 - 4.5) complete for epistemic-session-race blueprint. Spec at rev2 with 15 WUs and ~50 findings absorbed across critique pipeline. Ready to resume at Stage 6 (Test → /spec-to-tests) then Stage 7 (Execute) in a fresh session for clean context window.",
+  "decisions": [
+    "Marker scheme (rev2): per-claude-PID file, claude PID resolved via process-tree traversal in shared scripts/epistemic-marker.sh helper. Decided against session_id-keyed marker + by-PID index — more moving parts for no correctness gain. Probe v2 archived as evidence.",
+    "Process-tree traversal MUST parse /proc/$PID/status PPid line, NOT /proc/$PID/stat field 4 (E1 patch — comm names with spaces/parens corrupt field-position parsing).",
+    "Atomic write tmpfile MUST land on same filesystem as marker (E2 patch — mktemp -p $(dirname \"$marker_path\")).",
+    "uuidgen fallback REMOVED entirely (CF-7). If stdin parse fails, hook continues fail-open with stderr warning, no marker written, no fallback.",
+    "Source-branching in WU2: startup → write fresh marker; resume → unconditionally write new marker (NOT 'reuse if matches' — prior marker already deleted by SessionEnd); clear/unrecognized → treat as startup with stderr warning. CRITICAL: do NOT auto-resubmit preflight on resume/clear (NEW-2 constraint).",
+    "WU5 split into 5a/b/c/d for per-file consumer fixes (rev1 underspecified). Each consumer site gets explicit fix type: rewrite create-fallback (5a), rewrite Step 6 cleanup (5b), rewrite line-284 grep that doesn't match UUIDs (5c), replace -f directory checks with epistemic_session_active (5d).",
+    "Stage 3 critique used Standard tier (Orient + 3 Diverge + Interaction Scan + 3 Clash + Converge). REWORK on rev1 (4 critical findings) → spec rewritten → READY on rev2 (19/20 fixed, 4 minor new patches absorbed inline).",
+    "Stage 4 (Edge Cases) applied 6 inline patches (E1, E2, E3, E5, E6, E8) — no architectural rework needed.",
+    "Stage 4.5 (Pre-Mortem) absorbed PM-Fix-1 (post-install verification) and PM-Fix-3 (marker visibility in /start) into existing WUs. PM-Fix-2 (epistemic.json health probe) deferred to follow-up blueprint. PM-2 (tmpfs reboot loss) accepted as known limitation.",
+    "Stage 5 (Review) skipped with reason: ~50 findings already absorbed across earlier critique stages; reviewer plugin profiles don't match shell-hook refactor work shape; diminishing returns. /gpt-review remains available if desired before Stage 7."
+  ],
+  "next_action": "On resume in fresh session: run `/blueprint epistemic-session-race` to load manifest. Workflow will surface checkpoint and resume at Stage 6 (Test). Run `/spec-to-tests` to generate spec-blind tests, THEN advance to Stage 7 (Execute). Critical path: WU1 (helper) → WU2 (preflight refactor) → WU3 (postflight) in batch 1 → WU4/WU5a-d in parallel (or sequential per simplicity preference) → WU8/WU9/WU10/WU11 evals (sequential due to evals.json file conflict) → WU7 smoke test → WU12 test.sh extensions.",
+  "blockers": [],
+  "context": {
+    "active_plan": "epistemic-session-race",
+    "active_plan_stage": "test (Stage 6 of 8)",
+    "active_plan_revision": 2,
+    "regression_count": 1,
+    "active_tdd_phase": null,
+    "files_in_progress": [],
+    "key_artifacts": {
+      "spec": ".claude/plans/epistemic-session-race/spec.md",
+      "work_graph": ".claude/plans/epistemic-session-race/work-graph.json",
+      "adversarial": ".claude/plans/epistemic-session-race/adversarial.md",
+      "premortem": ".claude/plans/epistemic-session-race/premortem.md",
+      "manifest": ".claude/plans/epistemic-session-race/manifest.json",
+      "state": ".claude/plans/epistemic-session-race/state.json",
+      "probe_v1": ".claude/plans/epistemic-session-race/probe-sessionstart-stdin.log",
+      "probe_v2": ".claude/plans/epistemic-session-race/probe-v2-process-tree-and-sessionend.log",
+      "rev1_backup": ".claude/plans/epistemic-session-race/spec.md.revision-1.bak"
+    },
+    "load_bearing_files_to_modify": [
+      "scripts/epistemic-marker.sh (NEW)",
+      "hooks/epistemic-preflight.sh",
+      "hooks/epistemic-postflight.sh",
+      "hooks/_audit-log.sh",
+      "commands/{epistemic-preflight,epistemic-postflight,end,start,collect-insights,vault-curate}.md",
+      "commands/{checkpoint,log-success,log-error,evolve,blueprint,README}.md",
+      "docs/PLANNING-STORAGE.md",
+      "scripts/epistemic-smoke-test.sh",
+      "scripts/behavioral-smoke.sh",
+      "evals/evals.json",
+      "test.sh",
+      "install.sh"
+    ]
+  },
+  "epistemic": {
+    "session_id_original": "c2bbe8ed-727b-435c-a93b-932585a6eef1",
+    "session_id_marker_status": "CLOBBERED — do NOT read ~/.claude/.current-session for session_id at /end of THIS session. Marker was overwritten by parallel claude session at 17:08:43Z on 2026-05-01.",
+    "preflight_complete": true,
+    "preflight_snapshot": ".claude/plans/epistemic-session-race/preflight-snapshot-original-2026-05-01T17-11-37Z.json",
+    "recovery_instructions": ".claude/plans/epistemic-session-race/RECOVERY-INSTRUCTIONS.md",
+    "last_finding_count": 6,
+    "findings_logged_at": ".epistemic/insights.jsonl"
+  },
+  "operational_notes_for_next_session": [
+    "Loading via /blueprint epistemic-session-race will surface this checkpoint via session-sail hook.",
+    "On resume, READ manifest.json (token-dense recovery format) — do NOT re-read full markdown artifacts unless current stage's work requires them.",
+    "Stage 6 next: /spec-to-tests is meant to run BEFORE seeing implementation (spec-blind). Resist the urge to peek at hooks/epistemic-preflight.sh before generating test cases.",
+    "Stage 7 execution: WU1 is highest-leverage (helper file is the foundation). Critical path WU1 → WU2 → WU8.",
+    "Eval simulation (WU8) carries known risk: subshell-with-PPID-propagation is the planned approach but worked example wasn't drafted in spec. Allow extra time.",
+    "Three confirmed parallel-session incidents on 2026-05-01 — new sessions you start while testing this blueprint WILL collide markers until WU1+WU2 are deployed. Use snapshot pattern documented in RECOVERY-INSTRUCTIONS.md if you /end any session before this fix is in place."
+  ],
+  "compaction_context": null
+}

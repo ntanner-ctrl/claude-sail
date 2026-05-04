@@ -311,7 +311,7 @@ After all proposals are processed:
 
 ### Epistemic Capture
 
-If an epistemic session is active (`~/.claude/.current-session` exists), and any CONVICTION-tier patterns were found, append to `.epistemic/insights.jsonl`:
+If an epistemic session is active (`epistemic_session_active` returns 0 — checks the per-claude-PID marker in `~/.claude/.current-session/`), and any CONVICTION-tier patterns were found, append to `.epistemic/insights.jsonl`:
 
 ```json
 {"timestamp": "ISO-8601", "type": "finding", "input": {"finding": "[Evolve] CONVICTION pattern identified: [pattern description]. N occurrences across error/success logs. Action: [proposed action type]."}}

@@ -10,9 +10,9 @@ fixture_good: |
 fixture_bad: |
   jq '.' input.json > "$TMP" && mv "$TMP" "$FILE"
 first_seen: 2026-04-30
-last_seen: 2026-04-30T21:09:57Z
-total_hits: 5
-recent_hits: 5
+last_seen: 2026-05-04T16:22:15Z
+total_hits: 6
+recent_hits: 6
 recent_window_days: 60
 locations_remedied: 0
 related_hookify: []

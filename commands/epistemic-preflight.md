@@ -11,17 +11,19 @@ Capture your preflight self-assessment vectors and store them in `~/.claude/epis
 ### Step 1: Read Session Context
 
 ```bash
-cat ~/.claude/.current-session 2>/dev/null || echo "NO_SESSION"
+source ~/.claude/scripts/epistemic-marker.sh 2>/dev/null
+if epistemic_session_active; then
+    epistemic_get_session_id
+else
+    echo "NO_SESSION"
+fi
 ```
 
-If no session marker exists, create one:
-```bash
-mkdir -p ~/.claude
-SESSION_ID="session-$(date +%Y%m%d-%H%M%S)-$$"
-PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || basename "$(pwd)")
-NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-printf "SESSION_ID=%s\nPROJECT=%s\nSTARTED=%s\n" "$SESSION_ID" "$PROJECT" "$NOW" > ~/.claude/.current-session
-```
+If no session marker exists, the SessionStart hook should have created one from
+its stdin JSON. If you're running this command standalone (no SessionStart fired
+yet — rare), the marker can't be synthesised: SessionStart's stdin contains
+Claude Code's canonical session_id, and we don't have it here. Skip the
+preflight — it cannot pair correctly without the canonical ID.
 
 ### Step 2: Self-Assess
 
@@ -54,12 +56,18 @@ set +e
 EPISTEMIC_FILE="${HOME}/.claude/epistemic.json"
 EPISTEMIC_TMP="${EPISTEMIC_FILE}.tmp"
 EPISTEMIC_BAK="${EPISTEMIC_FILE}.bak"
-SESSION_FILE="${HOME}/.claude/.current-session"
 
-# Read session context (strip CR for CRLF-tolerant marker files)
-SESSION_ID=$(grep "^SESSION_ID=" "$SESSION_FILE" 2>/dev/null | cut -d= -f2 | tr -d '\r')
-PROJECT=$(grep "^PROJECT=" "$SESSION_FILE" 2>/dev/null | cut -d= -f2 | tr -d '\r')
-STARTED=$(grep "^STARTED=" "$SESSION_FILE" 2>/dev/null | cut -d= -f2 | tr -d '\r')
+# Source the marker helper for per-claude-PID resolution.
+source "${HOME}/.claude/scripts/epistemic-marker.sh" 2>/dev/null
+if [ -z "$(type -t epistemic_get_session_id 2>/dev/null)" ]; then
+    echo "ERROR: epistemic-marker.sh not found. Reinstall claude-sail." >&2
+    exit 1
+fi
+
+# Read session context via helper (per-claude-PID marker).
+SESSION_ID=$(epistemic_get_session_id 2>/dev/null)
+PROJECT=$(epistemic_get_marker_field PROJECT 2>/dev/null)
+STARTED=$(epistemic_get_marker_field STARTED 2>/dev/null)
 
 if [ -z "$SESSION_ID" ]; then
     echo "ERROR: No session ID found. Run SessionStart hook first." >&2

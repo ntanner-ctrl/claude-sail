@@ -4,11 +4,26 @@
 #   audit_block() { :; }  # no-op fallback
 #   source ~/.claude/hooks/_audit-log.sh 2>/dev/null || true
 
+# Source the epistemic-marker helper for session_id resolution.
+# Fail-open: if helper is missing, session_id remains empty.
+if [ -z "$(type -t epistemic_get_session_id 2>/dev/null)" ]; then
+    for _audit_try_dir in \
+        "$(cd "$(dirname "${BASH_SOURCE[0]}")/../scripts" 2>/dev/null && pwd)" \
+        "${HOME}/.claude/scripts"; do
+        if [ -f "$_audit_try_dir/epistemic-marker.sh" ]; then
+            # shellcheck disable=SC1091
+            source "$_audit_try_dir/epistemic-marker.sh" 2>/dev/null
+            break
+        fi
+    done
+    unset _audit_try_dir
+fi
+
 audit_block() {
     local hook_name="$1" category="$2" reason="$3" tool="${4:-Bash}" snippet="${5:-}"
     local session_id=""
-    if [[ -f ~/.claude/.current-session ]]; then
-        session_id=$(grep "^SESSION_ID=" ~/.claude/.current-session | cut -d= -f2 | tr -d '\r')
+    if command -v epistemic_get_session_id >/dev/null 2>&1; then
+        session_id=$(epistemic_get_session_id 2>/dev/null)
     fi
     local project_root
     project_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"

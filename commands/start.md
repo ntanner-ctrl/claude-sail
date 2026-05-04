@@ -29,7 +29,7 @@ Quickly assess project state and recommend the optimal next task.
      - Present vault context summary (see output format below)
    - If vault is unavailable, note: "No vault configured — skipping prior knowledge lookup"
    - If vault is available but no matches found, note: "No prior vault knowledge for this project"
-   - If an epistemic session is active (`~/.claude/.current-session` exists), suggest submitting preflight with vault context:
+   - If an epistemic session is active (`epistemic_session_active` returns 0 — checks per-claude-PID marker under `~/.claude/.current-session/`), suggest submitting preflight with vault context:
      ```
      Epistemic session active. Submit /epistemic-preflight now with prior vault context:
        - N findings (M high-confidence, K need verification)
@@ -39,7 +39,12 @@ Quickly assess project state and recommend the optimal next task.
 3. **Check epistemic calibration** (fail-soft — skip if unavailable):
    - Check for epistemic data:
      ```bash
-     cat ~/.claude/.current-session 2>/dev/null || echo "NO_SESSION"
+     source ~/.claude/scripts/epistemic-marker.sh 2>/dev/null
+     if epistemic_session_active; then
+         echo "Marker: $(epistemic_marker_path) (session_id=$(epistemic_get_session_id))"
+     else
+         echo "NO_SESSION"
+     fi
      jq -r '.calibration | to_entries[] | select((.value.observation_count >= 5) and ((.value.correction > 0.05) or (.value.correction < -0.05))) | "\(.key): correction \(.value.correction) — \(.value.behavioral_instruction)"' ~/.claude/epistemic.json 2>/dev/null || echo "NO_CALIBRATION"
      ```
    - If calibration data exists, note any corrections (e.g., "You tend to overestimate `know` — read more files before rating high")

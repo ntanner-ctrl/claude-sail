@@ -1,0 +1,247 @@
+{
+  "blueprint_version": 2,
+  "name": "epistemic-session-race",
+  "created_at": "2026-05-01T17:10:00Z",
+  "current_stage": "debrief",
+  "path": "full",
+  "challenge_mode": "critique",
+  "execution_preference": "simplicity",
+  "epistemic_session_id": "c2bbe8ed-727b-435c-a93b-932585a6eef1",
+  "epistemic_preflight_complete": true,
+  "manifest_stale": false,
+  "work_graph_stale": false,
+  "completed": true,
+  "completed_at": "2026-05-04T15:40:00Z",
+  "revision": 2,
+  "regression_count": 1,
+  "regression_log": [
+    {
+      "from_stage": "challenge",
+      "to_stage": "specify",
+      "trigger_type": "automatic",
+      "trigger": "critique_verdict_REWORK",
+      "reason": "Stage 3 critique returned REWORK with 4 critical findings, the most severe being CF-1 (hook PPID = sh, not claude main — invalidates load-bearing empirical claim). CF-3 (WU1 missing process-tree traversal helper) and CF-4 (4 post-migration consumer breakage sites) require WU1 and WU5 to be reshaped. CF-5 (source='clear' unhandled), CF-6 (Q2 unverified empirically), CF-7 (uuidgen contradiction), CF-9 (rollback silently fails) require targeted spec patches. Empirical re-validation needed: SessionStart probe extension (full process tree), SessionEnd stdin probe, compaction probe.",
+      "timestamp": "2026-05-04T10:08:00Z",
+      "revision": 2
+    }
+  ],
+  "stages": {
+    "describe": {
+      "status": "complete",
+      "completed_at": "2026-05-01T17:10:00Z",
+      "confidence": 0.90,
+      "confidence_note": "Brief + 2 vault findings + source survey gave a high-confidence triage. 7 steps cleanly decomposed. Open questions are correctly deferred to Stage 2 (empirical gates, not describe-stage items)."
+    },
+    "specify": {
+      "status": "complete",
+      "rev1_completed_at": "2026-05-01T17:35:00Z",
+      "rev1_confidence": 0.85,
+      "rev1_confidence_note": "[REGRESSED rev1→rev2] Comprehensive but load-bearing empirical claim was wrong. See spec.md.revision-1.bak.",
+      "rev2_completed_at": "2026-05-04T10:15:00Z",
+      "rev2_confidence": 0.90,
+      "rev2_confidence_note": "Rev2 addresses all 4 critical findings + 5 high + medium/low cleanups. Process-tree traversal helper (epistemic_claude_main_pid) replaces wrong PPID assumption. WU5 split into 5a-5d for per-file consumer fixes (CF-4). uuidgen fallback removed (CF-7). Rollback Plan made non-misleading (CF-9). AC4 rewritten with valid grep (CF-11). Probe v2 archived. 15 WUs. Confidence higher than rev1 because empirical foundation is now grounded; held below 0.95 because OQ-rev2-2 (eval simulation fidelity) is still a Stage 7 risk.",
+      "addressed_findings": [
+        "CF-1, CF-2, CF-3 (PPID cascade) — process-tree traversal in helper",
+        "CF-4 (consumer breakage) — WU5 split 5a/b/c/d with per-file fix types",
+        "CF-5 (source=clear) — defensive default branch in WU2",
+        "CF-6 (Q2) — confirmed by probe v2; WU3 stdin fallback validated",
+        "CF-7 (uuidgen) — removed entirely",
+        "CF-8 (PPID=1) — moot under traversal",
+        "CF-9 (rollback) — explicit cleanup commands",
+        "CF-10 (FM4) — single helper mechanism, no per-file inline fallbacks",
+        "CF-11/15/18 (AC quality) — AC4 rewritten, test.sh extended, AC9/WU9 corrected",
+        "CF-12/13 (OQ1/FM impossible) — closed and rewritten",
+        "CF-14 (migration race) — ENOENT explicitly handled",
+        "CF-16 (TESTED/VERIFIED) — vocabulary applied per row in AC table",
+        "CF-17 (PLANNING-STORAGE.md) — added to WU6",
+        "CF-19 (describe 7-vs-9) — WU6 fixes",
+        "CF-20 (sweep placement traceability) — recorded in failure modes table"
+      ]
+    },
+    "challenge": {
+      "status": "complete",
+      "rev1_completed_at": "2026-05-04T10:07:00Z",
+      "rev1_verdict": "REWORK",
+      "rev1_critical_count": 4,
+      "rev1_total_findings": 20,
+      "rev2_completed_at": "2026-05-04T10:18:00Z",
+      "rev2_verdict": "READY",
+      "rev2_findings_resolution": "19/20 FIXED, 1 PARTIAL (CF-20 trivial — recorded as OQ-rev2-3)",
+      "rev2_new_findings": "4 (NEW-1 medium resume wording, NEW-2 medium preflight re-submission constraint, NEW-3 low /proc unavailable warning, NEW-4 low manifest_stale)",
+      "rev2_new_findings_resolution": "NEW-1 + NEW-2 + NEW-3 patched inline (Failure Modes + OQ-rev2-3); NEW-4 fixed by manifest.json regeneration on 2026-05-04T10:15Z",
+      "confidence": 0.88,
+      "confidence_note": "rev2 vanilla critique returned READY with strong finding-resolution audit. Inline patches applied for 4 minor new findings — none warranted regression. Critique pipeline produced clean signal both directions: REWORK on rev1 (well-grounded), READY on rev2 (well-grounded). System validated."
+    },
+    "edge_cases": {
+      "status": "complete",
+      "completed_at": "2026-05-01T00:00:00Z",
+      "verdict": "NEEDS_PATCHES",
+      "mode": "vanilla",
+      "edge_case_count": 12,
+      "patches_required": 6,
+      "high_priority_cases": [
+        "E1 (stat vs status parsing — traversal returns wrong PPid)",
+        "E2 (cross-filesystem atomic write — EXDEV on mv)"
+      ],
+      "confidence": 0.87,
+      "confidence_note": "12 boundaries enumerated, 2 genuine spec gaps found (E1/E2), 4 medium patches for hygiene/correctness (E3/E5/E6/E8), 6 low/watch items. No architectural rework required. Patches are inline WU1/WU2 constraints."
+    },
+    "premortem": {
+      "status": "complete",
+      "completed_at": "2026-05-04T10:25:00Z",
+      "findings_count": 4,
+      "covered_count": 0,
+      "partial_count": 2,
+      "new_count": 4,
+      "overlap_ratio": 0.5,
+      "regressions_triggered": 0,
+      "absorbed_inline": [
+        "PM-Fix-1 → WU12",
+        "PM-Fix-3 → WU5d-extended",
+        "PM-Fix-4 → WU12"
+      ],
+      "deferred_to_followup": [
+        "PM-Fix-2 (epistemic.json health probe — separate blueprint)"
+      ],
+      "documented_as_limitation": [
+        "PM-2 (tmpfs reboot loss)"
+      ],
+      "confidence": 0.85,
+      "confidence_note": "Pre-mortem produced 4 actionable operational findings. Top concern (PM-1 silent corrupt install) absorbed inline via PM-Fix-1 + PM-Fix-4 (post-install verification). Overlap with prior stages 50% — confirming pre-mortem is finding new operational angles, not repeating Stage 3/4 design/boundary findings. No regression."
+    },
+    "review": {
+      "status": "skipped",
+      "skip_reason": "Stage 3 Standard-tier critique (7 agents, 3 lenses) + Stage 4 vanilla edge-cases + Stage 4.5 pre-mortem produced ~50 findings already absorbed. Diminishing returns on additional external review for a shell hook refactor that doesn't match security/performance/frontend reviewer profiles. /gpt-review remains available if desired before Stage 7 execution.",
+      "skipped_at": "2026-05-04T10:30:00Z"
+    },
+    "test": {
+      "status": "complete",
+      "completed_at": "2026-05-04T15:05:00Z",
+      "artifact": "tests.md",
+      "test_count": 34,
+      "categories": {
+        "behavior": 16,
+        "contract": 6,
+        "failure_mode": 9,
+        "edge_case_constraints": 4
+      },
+      "spec_blind": true,
+      "confidence": 0.85,
+      "confidence_note": "Spec-blind tests derived only from AC table, Preservation Contract, Failure Modes, and Edge Case Constraints sections. Anti-tautology review applied; T-AC4 grep tests are intentionally adoption-checking (architectural invariant per AC4). Tests live as behavioral specs; eval fixtures (WU8-11) and test.sh extensions (WU12) provide automated execution. Manual checks (T-AC3 authoritative + T-AC10 timing) deferred to debrief verification."
+    },
+    "execute": {
+      "status": "complete",
+      "started_at": "2026-05-04T15:05:00Z",
+      "completed_at": "2026-05-04T15:35:00Z",
+      "wu_completed": [
+        "WU1",
+        "WU2",
+        "WU3",
+        "WU4",
+        "WU5a",
+        "WU5b",
+        "WU5c",
+        "WU5d",
+        "WU6",
+        "WU7",
+        "WU12"
+      ],
+      "wu_consolidated_into_smoke_test": [
+        "WU8",
+        "WU9",
+        "WU10",
+        "WU11"
+      ],
+      "wu_consolidation_note": "WU8-11 specified evals.json fixtures, but evals.json is fixture-regression format (regex on captured text), not behavioral simulation. Implemented as Phase 9-11 of scripts/epistemic-smoke-test.sh which performs actual subshell execution with EPISTEMIC_CLAUDE_MAIN_PID_OVERRIDE for parallel-isolation, resume-pairing, and migration. Wired into test.sh as Category 8.5. Behavioral coverage equivalent or stronger than fixture-based approach.",
+      "test_results": {
+        "test_sh": "112 passed, 0 failed, 3 warnings (all pre-existing — shellcheck unavailable + unrelated clarify.md content)",
+        "epistemic_smoke_test": "29 passed, 0 failed across 11 phases",
+        "ac_status": {
+          "AC1": "TESTED — Phase 9 verifies parallel isolation",
+          "AC2": "TESTED — Phase 9 verifies postflight attribution",
+          "AC3": "TESTED (proxy) — Phase 10; manual run authoritative (deferred to live /end)",
+          "AC4": "TESTED — test.sh AC4 grep checks: 17 helper consumers (>= 9), no direct reads outside helper+test",
+          "AC5": "TESTED — Phase 8 sweep behavior (fake-PID + non-claude-PID)",
+          "AC6": "TESTED — Phase 11 migration including idempotence",
+          "AC7": "TESTED — bash test.sh exit 0",
+          "AC8": "TESTED — bash scripts/epistemic-smoke-test.sh exit 0",
+          "AC9": "TESTED — test.sh Category 5 extended for new helper",
+          "AC10": "VERIFIED (manual, deferred) — measure SessionStart timing on live session",
+          "AC11": "TESTED — Phase 6 fail-open paths including empty-stdin"
+        }
+      },
+      "deviations_from_spec": [
+        "WU8-11 evals.json fixtures were folded into smoke-test phases instead of fixtures — see wu_consolidation_note. Spec assumed evals.json could host behavioral assertions; runtime found it is regex-on-text only.",
+        "Added EPISTEMIC_SKIP_SWEEP=1 env var to helper for test-only sweep bypass. Production behavior unchanged (var defaults off). This was needed because parallel-isolation tests use fake PIDs that the production sweep would correctly remove.",
+        "Phase 9-11 of smoke test use real bash subshells with override PIDs — same effect as the originally specified eval fixtures, slightly different host."
+      ],
+      "discoveries": [
+        "/proc/$PID/status PPid line is tab-delimited (key:\\tvalue). awk -F'\\t' is robust; whitespace-split would break on comm names with spaces.",
+        "Hook ran during session: simulating preflight against live PID 2889563 clobbered the live session's marker. Required manual restoration. Future smoke tests should use EPISTEMIC_CLAUDE_MAIN_PID_OVERRIDE — added to debrief items.",
+        "Anti-pattern hooks fired twice during implementation: bash-rm-rf-with-variable on cleanup() preserved from original file, and bash-missing-fail-fast on test assertions. Both were addressed (guarded rm-rf, added -z guards). bash-missing-fail-fast continued to flag because the regex matches the shape regardless of guard presence — catalog notes this is expected (false positives intentional).",
+        "Manifest's current_stage field was 38 minutes stale relative to state.json — manifest_stale=false didn't catch it. Suggests manifest regeneration should run on every state.json stage transition, not just on regression."
+      ]
+    },
+    "debrief": {
+      "status": "complete",
+      "completed_at": "2026-05-04T15:40:00Z",
+      "artifact": "debrief.md",
+      "ship_commits": [],
+      "ship_commit_note": "Implementation in working tree; commit pending user approval per CLAUDE.md (do not commit unless asked).",
+      "live_verification": "This session's /end invocation IS the end-to-end test. Marker at ~/.claude/.current-session/2889563 contains session_id 593d965a-9883-4c3b-8027-f2a7287e91cf. New hooks installed via bash install.sh.",
+      "discoveries": [
+        "/proc/$PID/status is canonical PPid source — robust to comm names with spaces",
+        "Test-time clobber: simulating preflight against live PID overwrites your own marker — must use EPISTEMIC_CLAUDE_MAIN_PID_OVERRIDE",
+        "Sweep is correct; test fidelity bends via EPISTEMIC_SKIP_SWEEP=1, not by weakening sweep",
+        "Anti-pattern hooks fire on shape, not intent — guards added but hooks keep flagging (expected per catalog)",
+        "Manifest staleness not caught by manifest_stale=false — flag should flip on every stage transition, not just regression"
+      ],
+      "deferred_items": [
+        "OQ-rev2-1 subagent compatibility — out of scope, untested",
+        "AC10 timing budget — manual verification on live session deferred",
+        "PM-Fix-2 epistemic.json health probe — separate blueprint",
+        "macOS / non-Linux support — separate blueprint"
+      ],
+      "wrong_assumptions": [
+        "Rev1 PPID claim was wrong — fixed in rev2 by process-tree traversal",
+        "evals/evals.json could host behavioral tests — it's regex-on-text only; rerouted to smoke test"
+      ],
+      "confidence": 0.88,
+      "confidence_note": "Implementation passes 112 test.sh checks + 29 smoke-test phases. Live verification (this session's /end) is the final acceptance gate. Held below 0.95 because (1) AC10 timing not yet measured and (2) AC3 manual resume verification deferred."
+    }
+  },
+  "ambiguity_gate": {
+    "goal_clarity": 5,
+    "constraint_clarity": 5,
+    "success_criteria": 4,
+    "composite": 4.7,
+    "result": "pass",
+    "override": false,
+    "rationale": "Goal: 5 — 'replace single-file marker with per-process markers' is unambiguous; describe.md and brief converge. Constraint: 5 — in/out scope explicit including 'no compat shim' and 'no schema changes.' Success: 4 — behavioral eval is testable but Q1 (env-var existence) gates one criterion until Stage 2 resolves it."
+  },
+  "prior_art_gate": {
+    "status": "deferred-to-spec",
+    "reason": "Prior art for this blueprint is 'what does Claude Code itself expose at hook fire time' — that's step 1 of the work breakdown and lives in Stage 2 (Q1 env-var investigation), not as a separate /prior-art run. No external library question to evaluate."
+  },
+  "context": {
+    "source_brief": "memory/project_epistemic_session_race.md",
+    "vault_findings": [
+      "Engineering/Findings/2026-05-01-current-session-marker-race-confirmed-incident.md",
+      "Engineering/Findings/2026-05-01-current-session-marker-single-file-race.md"
+    ],
+    "incident_count": 3,
+    "first_incident": "2026-05-01 (test-debt-in-prism session)",
+    "second_incident": "2026-05-01 (same day, slims-device-updater parallel session)",
+    "third_incident": "2026-05-01T17:08:43Z — DURING planning of this fix; marker clobbered by parallel claude PID 2533857; defensive snapshot at .claude/plans/epistemic-session-race/preflight-snapshot-original-2026-05-01T17-11-37Z.json; recovery instructions at RECOVERY-INSTRUCTIONS.md"
+  },
+  "empirical_findings": {
+    "Q1_PPID_is_claude_main": "RETRACTED 2026-05-04 — Original measurement was Bash-tool context only. Probe v2 (probe-v2-process-tree-and-sessionend.log) confirmed two distinct hierarchies: hook = bash → sh → claude (claude is PPID's PPID); Bash tool turn = bash → claude (claude is direct PPID). Resolution: process-tree traversal in shared helper finds claude main PID in both contexts (max 2 hops).",
+    "Q1_resume_session_id": "CONFIRMED 2026-05-04 — claude --resume preserves session_id but spawns new claude process with new PID. Marker contents (SESSION_ID from stdin) preserve identity across resume; marker filename (per-claude-PID) is just discovery scaffolding. Original preflight + resumed postflight pair correctly in epistemic.json under same session_id.",
+    "Q2_sessionend_stdin": "CONFIRMED 2026-05-04 — SessionEnd hook receives stdin JSON: {session_id, transcript_path, cwd, hook_event_name, reason}. No 'source' field (SessionEnd uses 'reason' instead). Reason values observed: 'other'. WU3 stdin fallback for session_id is reliable.",
+    "Q3_compaction_unverified": "DEFERRED — /compact source-value probe not run. CF-5 mitigation: defensive default branch in WU2 (any unrecognized source treated as startup with stderr warning).",
+    "Q1_stdin_session_id_present": "CONFIRMED via SessionStart probe (2026-05-01T17:30:55Z, archived at probe-sessionstart-stdin.log). Stdin JSON contains: session_id (UUIDv4), transcript_path, cwd, hook_event_name, source ('startup'|'resume'|'clear'), model. Claude Code's own session_id is reusable as our key — no need for uuidgen.",
+    "Q1_hook_env_has_extras": "CLAUDE_PROJECT_DIR and CLAUDE_ENV_FILE env vars are set FOR HOOKS but NOT for Claude turn Bash tool invocations. Confirmed by both probes. Hooks have richer env than turns.",
+    "marker_anchor_decision_rev2": "DECIDED 2026-05-04 — Option (A): per-claude-PID marker as discovery key, with claude main PID resolved via process-tree traversal (walk /proc/$PID/stat PPid chain until comm=claude). SESSION_ID from stdin JSON stored INSIDE marker as the canonical data identity. Rationale: (1) probe v2 confirms process tree is consistent (hook = bash→sh→claude, max 2 hops); (2) resume case works correctly because session_id is the data, marker filename is scaffolding; (3) smaller delta from existing session-end-cleanup.sh:18 convention; (4) no CLAUDE_ENV_FILE coupling (probe showed that var is per-hook-fire, not per-session). Option (B) session_id-keyed marker + by-PID index was considered and rejected — more moving parts for no correctness gain.",
+    "claude_print_cleanup_works": "Probe SessionStart fired correctly via `claude --print 'ping'`. SessionEnd cleanup deleted marker cleanly (single-session case). Demonstrates current cleanup logic works when scope is correct — fix is about scoping, not adding cleanup."
+  }
+}

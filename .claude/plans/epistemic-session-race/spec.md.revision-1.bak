@@ -1,0 +1,141 @@
+# Change Specification: epistemic-session-race
+
+## Summary
+
+Replace the single-file `~/.claude/.current-session` marker with per-PPID markers under `~/.claude/.current-session/` (directory), keyed by Claude main process PID and storing Claude Code's own `session_id` from SessionStart stdin JSON, plus a shared `epistemic_get_session_id` helper used by every reader — eliminating cross-session clobber that has caused 3 confirmed incidents on 2026-05-01 (including one during planning of this fix).
+
+## What Changes
+
+### Files/Components Touched
+
+| File | Nature of Change |
+|------|------------------|
+| `scripts/epistemic-marker.sh` | **NEW** — shared helper: `epistemic_marker_path`, `epistemic_get_session_id`, `epistemic_sweep_orphans` |
+| `hooks/epistemic-preflight.sh` | Modify — read stdin JSON for session_id, write per-PPID marker via helper, sweep stale PIDs on entry, handle `source: "resume"` |
+| `hooks/epistemic-postflight.sh` | Modify — read per-PPID marker via helper (stdin fallback), scope `rm -f` to own marker only |
+| `hooks/_audit-log.sh` | Modify — source helper, resolve session_id via `epistemic_get_session_id` |
+| `commands/epistemic-preflight.md` | Modify — bash block reads marker via helper |
+| `commands/epistemic-postflight.md` | Modify — bash block reads marker via helper, scoped delete |
+| `commands/end.md` | Modify — bash block reads marker via helper |
+| `commands/start.md` | Modify — bash block reads marker via helper |
+| `commands/collect-insights.md` | Modify — bash block reads marker via helper |
+| `commands/vault-curate.md` | Modify — bash block reads marker via helper |
+| `commands/checkpoint.md` | Modify — prose reference to new path |
+| `commands/log-success.md` | Modify — prose reference to new path |
+| `commands/log-error.md` | Modify — prose reference to new path |
+| `commands/evolve.md` | Modify — prose reference to new path |
+| `commands/blueprint.md` | Modify — prose reference to new path |
+| `commands/README.md` | Modify — prose reference to new path |
+| `scripts/epistemic-smoke-test.sh` | Modify — assert per-PPID marker created/removed correctly |
+| `evals/evals.json` | Modify — add parallel-preflight-isolation eval fixture |
+| `scripts/behavioral-smoke.sh` | Modify (if needed) — add helpers for parallel-session simulation |
+| `install.sh` | Verify only — tarball extract auto-includes new `scripts/epistemic-marker.sh` |
+
+### External Dependencies
+
+- [x] None — pure shell + jq, both already required.
+
+### Database/State Changes
+
+- **Marker location**: `~/.claude/.current-session` (file) → `~/.claude/.current-session/` (directory) with one file per active Claude main process keyed by PID.
+- **Marker contents**: K=V format unchanged (`SESSION_ID=`, `PROJECT=`, `STARTED=`). The `SESSION_ID` value source changes from `uuidgen` to Claude Code's stdin-supplied `session_id`. Backward-compat: if stdin is missing/malformed, fall back to `uuidgen` (preserves single-shell-test path).
+- **`epistemic.json` schema**: unchanged — markers are routing, not data.
+- **Migration**: on first new-scheme write, if legacy file `~/.claude/.current-session` exists (non-directory), it is renamed to `~/.claude/.current-session.legacy-${TS}` and the directory is created in its place. Single rename + mkdir; no data lost.
+
+## Preservation Contract (What Must NOT Change)
+
+- **Single-session behavior**: in the dominant case (one active Claude process), preflight → postflight pairing must work identically to today. Calibration feedback continues to fire on first read.
+- **Fail-open semantics**: hooks must never block session start/end — exit 0 on any error path, including helper-source failure. Preserves `set +e` discipline.
+- **Hook timeout budget**: SessionStart hook must still complete under 2 seconds (current spec: 1.5s for calibration). Sweep must be O(active sessions), bounded.
+- **Public-facing UX**: SessionStart calibration block layout and `/end` postflight prompt remain unchanged.
+- **`epistemic.json` schema**: writes preserve existing structure (`sessions`, `paired`, `deltas`). No new top-level fields.
+- **`SAIL_DISABLED_HOOKS` toggle**: continues to disable both hooks atomically.
+- **Subagent behavior**: out of scope. Subagent Bash invocations may or may not have `$PPID` = main claude — this fix does not change that. If subagents currently work for epistemic tracking, they continue; if they don't, they continue not to. Subagent support is a separate blueprint if needed.
+
+## Success Criteria
+
+| Criterion | How to Verify |
+|-----------|---------------|
+| AC1 — Concurrent isolation | Behavioral eval: simulate two parallel SessionStart hooks (different PPIDs), each writes own marker; verify each can submit postflight without affecting the other's `epistemic.json` entry. **TEST**, not assertion. |
+| AC2 — Postflight under correct ID | Eval: session A submits preflight, session B starts (would have clobbered marker under old scheme), session A submits postflight, assert A's postflight `task_summary` lands in A's preflight entry — NOT in B's. |
+| AC3 — Resume preserves session_id | Eval: SessionStart with `source: "startup"` records session_id X; second SessionStart with `source: "resume"` and same session_id X re-creates the marker; postflight pairs correctly with original preflight. |
+| AC4 — All 13 readers resolve via helper | Static check: `grep -c "epistemic_get_session_id\|epistemic_marker_path" hooks/ commands/ scripts/` returns >= number of touched files; `grep -c "/.current-session\b"` (excluding directory references and migration code) returns 0. |
+| AC5 — Orphan cleanup works | Eval: write marker for fake PID 99999 (no `/proc/99999`), trigger sweep, verify marker removed. |
+| AC6 — Migration is non-destructive | Eval: pre-create legacy single-file `~/.claude/.current-session`, run new SessionStart, verify file is renamed to `.legacy-<TS>` (NOT deleted), directory is created, new marker writes succeed. |
+| AC7 — Existing test suite passes | `bash test.sh` exits 0. |
+| AC8 — Smoke test passes | `bash scripts/epistemic-smoke-test.sh` exits 0 against new marker scheme. |
+| AC9 — No `set -e` regressions in hooks | Stage 6 spec-blind tests check that hooks still use `set +e`. |
+| AC10 — SessionStart timing | Manual verification (Stage 7): time the SessionStart hook end-to-end with sweep included. Must complete under 2.0s on Nick's WSL2 instance. **VERIFY**, not assert (timing is environment-dependent). |
+
+**Verification vocabulary** (per `feedback_verification_word_precision.md`): AC1-AC9 are TESTED via eval/static-check. AC10 is VERIFIED via measurement, not asserted via test, because hardware variance makes a hard threshold unreliable in CI.
+
+## Failure Modes
+
+| What Could Fail | Detection Method | Recovery Action |
+|-----------------|------------------|-----------------|
+| Stdin JSON missing/malformed at SessionStart (CC version regression, hook re-wired wrong) | `jq` parse fails, no session_id | Fall back to `uuidgen`; log to stderr "stdin session_id unavailable, using uuidgen fallback" — preserves today's behavior. |
+| `/proc` filesystem unavailable (non-Linux: macOS, BSD) | `[ -d /proc ]` test | Sweep skips orphan check, only writes own marker. Markers accumulate harmlessly until manual cleanup. Document in failure-modes section of spec. |
+| Marker directory creation fails (filesystem full, permissions) | `mkdir -p` exits non-zero | Hook continues fail-open with stderr warning; epistemic tracking degrades but session continues. |
+| Helper file missing (`scripts/epistemic-marker.sh` not installed) | `source` returns non-zero | Each hook/command has inline fallback that does the same lookup; warns to stderr but continues. |
+| PPID reuse across short window (PID wraparound on long-running system, or claude crash + restart with same PID) | Sweep on next SessionStart removes orphan whose `/proc/<pid>` is gone, BEFORE writing new marker | Sweep order: orphan-clean → write own marker. Race window is one SessionStart fire; impact is at most one stale marker overwritten — same data loss surface as the bug we're fixing, except in a vastly rarer edge case. |
+| Two SessionStart hooks fire simultaneously (impossible — one per claude process) | N/A | Each writes own PPID-keyed file; no contention. |
+| Bash tool subshell PPID differs from claude main on some platform | Stage 6 spec-blind test runs `[ "$(cat /proc/$PPID/comm)" = "claude" ]` and skips behavioral eval if false, with explicit reason | Document and accept platform limit; PPID approach known-good on WSL2 + Linux. macOS verification is a follow-up blueprint. |
+
+## Rollback Plan
+
+If post-deployment issues surface (e.g., a Claude Code update changes hook stdin format):
+
+1. **Revert hooks**: `git revert <commit-sha>` — single commit reverts all hooks + helper + commands.
+2. **Restore single-file marker on existing systems**: no action needed — `epistemic-preflight.sh` rewrite restores original write-to-`~/.claude/.current-session`-file behavior. The migration step's `.legacy-<TS>` file is left in place as forensic record (delete manually if desired).
+3. **Per-PPID directory cleanup**: `rm -rf ~/.claude/.current-session/` after revert is safe — directory is no longer used by reverted code. Optional cleanup; not blocking.
+4. **`epistemic.json`**: untouched by this change — no rollback needed.
+5. **Notification**: none required (single-user tool, no external consumers).
+
+Rollback testable: `bash test.sh` should pass against the reverted state in <1 min.
+
+## Dependencies (Preconditions)
+
+- [x] Q1 resolved: stdin JSON format confirmed via probe (`probe-sessionstart-stdin.log` archived)
+- [x] Q2 resolved: postflight gets session_id via marker (helper) OR stdin (fallback)
+- [x] PPID-as-Claude-main-PID confirmed on WSL2 + bash via process ancestry probe
+- [x] Existing per-PPID convention found (`session-end-cleanup.sh:18`) — established pattern
+- [ ] Defensive snapshot of current session preflight intact at `.claude/plans/epistemic-session-race/preflight-snapshot-original-2026-05-01T17-11-37Z.json` (verified at Stage 1)
+- [ ] No active parallel session at install time (or: Nick is OK with parallel session getting its marker re-keyed at next SessionStart fire)
+
+## Open Questions
+
+- **OQ1 — Sweep ownership**: should sweep run in `epistemic-preflight.sh` (eager: cleans up at every SessionStart) or `session-end-cleanup.sh` (lazy: cleans up at SessionEnd)? **Tentative answer**: SessionStart, because it's the synchronous gate before writing own marker. SessionEnd cleanup of OWN marker is separate and remains in `epistemic-postflight.sh`. Decision can flip based on Stage 3 (challenge) findings.
+- **OQ2 — Orphan threshold**: how stale before sweep? **Tentative answer**: any marker whose `/proc/<pid>` directory does not exist is considered orphan, no time threshold. PID-existence check is binary and faster than mtime comparison. If `/proc` unavailable, fall back to mtime > 24h.
+- **OQ3 — Subagent compatibility**: do subagent Bash invocations have `$PPID` = main claude PID, or some intermediate PID? Unknown. **Decision**: out of scope. If subagent epistemic tracking is currently broken (or untested), this blueprint does not regress it. Verify in Stage 7 acceptance, document in debrief.
+- **OQ4 — Eval simulation mechanism**: behavioral eval can't actually launch two `claude` processes (would clobber test runner's own session). **Tentative answer**: simulate by directly invoking the hook with crafted stdin + controlled `$PPID` via `bash -c` subshells with explicit PPID propagation. Worked example to be designed in Stage 7.
+
+## Senior Review Simulation
+
+- **They'd ask about**: *"Why a directory of files instead of a single JSON file with a sessions array?"* Answer: file-per-session avoids read-modify-write race entirely (each writer touches a different file). A JSON sessions array would re-introduce the same multiple-writer-on-single-file problem.
+- **Non-obvious risk**: PID wraparound on long-running systems. Linux pid_t is 32-bit (~4M PIDs), system rolls over after ~4M process spawns. If claude PID reuses an orphan marker's PID, sweep happens BEFORE write — but the gap between sweep and write is a race window. Mitigation: write is `>` (truncate), idempotent. If two claude processes briefly share PPID, last writer wins. Same surface as today's bug, but vastly rarer.
+- **Standard approach I might be missing**: `flock` file locking. Considered and rejected — the fix is to remove contention, not synchronize on it. flock would add complexity (lock acquisition, timeout, deadlock paths) for no gain over per-PID files.
+- **What bites first-timers**: hook stdin can be consumed only once. If both `epistemic-preflight.sh` AND another SessionStart hook (e.g., `session-sail.sh`) try to read stdin, the second gets EOF. Mitigation: only `epistemic-preflight.sh` reads stdin for session_id; downstream consumers read from the marker file. Document this in helper file header.
+- **Another first-timer trap**: `set -e` is forbidden in hooks (existing convention). The new helper file MUST also avoid `set -e` — it gets sourced by hooks, and any inherited `set -e` would break fail-open semantics. Helper file uses `set +e` explicitly.
+
+## Work Units
+
+| WU | Description | Files | Dependencies | Complexity | TDD |
+|----|-------------|-------|--------------|------------|-----|
+| WU1 | Create shared helper script with `epistemic_marker_path`, `epistemic_get_session_id`, `epistemic_sweep_orphans` functions; explicit `set +e`; doc-block on stdin-once contract | `scripts/epistemic-marker.sh` (NEW) | — | Medium | true |
+| WU2 | Refactor `epistemic-preflight.sh`: read stdin JSON for session_id, source helper, write per-PPID marker, run orphan sweep before write, handle migration of legacy single-file marker, handle `source: "resume"` | `hooks/epistemic-preflight.sh` | WU1 | High | true |
+| WU3 | Refactor `epistemic-postflight.sh`: source helper, read marker via `epistemic_get_session_id`, fall back to stdin session_id if marker missing, scope `rm -f` to own PPID marker only | `hooks/epistemic-postflight.sh` | WU1 | Medium | true |
+| WU4 | Refactor `_audit-log.sh`: source helper, replace inline marker grep with `epistemic_get_session_id` | `hooks/_audit-log.sh` | WU1 | Low | true |
+| WU5 | Refactor command bash blocks to source helper and use `epistemic_get_session_id` | `commands/{epistemic-preflight,epistemic-postflight,end,start,collect-insights,vault-curate}.md` | WU1 | Medium | false (mechanical, covered by AC1-2 indirectly) |
+| WU6 | Update prose references in command/README docs to describe new path scheme | `commands/{checkpoint,log-success,log-error,evolve,blueprint,README}.md` | — | Trivial | false |
+| WU7 | Update `scripts/epistemic-smoke-test.sh` for new marker layout (assert directory + per-PPID file) | `scripts/epistemic-smoke-test.sh` | WU2, WU3 | Low | false |
+| WU8 | Add behavioral eval fixture: parallel-preflight isolation (AC1, AC2) | `evals/evals.json`, `scripts/behavioral-smoke.sh` (helpers if needed) | WU2, WU3 | High | false (eval IS the test) |
+| WU9 | Add behavioral eval fixture: resume preserves session_id (AC3) | `evals/evals.json` | WU2 | Medium | false |
+| WU10 | Add behavioral eval fixture: orphan cleanup (AC5) | `evals/evals.json` | WU2 | Low | false |
+| WU11 | Add behavioral eval fixture: migration non-destructive (AC6) | `evals/evals.json` | WU2 | Low | false |
+| WU12 | Verify `install.sh` includes `scripts/epistemic-marker.sh` (tarball auto-extract — should just work, verify with install dry-run from `test.sh`) | `install.sh` (verify only), `test.sh` (extend Category 7 if needed) | WU1 | Trivial | false |
+
+**Critical path:** WU1 → WU2 → WU8 (helper → preflight refactor → behavioral eval). All other WUs depend on WU1.
+
+---
+
+Specification complete. Next stage: **Challenge** (Stage 3, critique mode).

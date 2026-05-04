@@ -1,0 +1,24 @@
+{
+  "id": "c2bbe8ed-727b-435c-a93b-932585a6eef1",
+  "project": "claude-sail",
+  "timestamp": "2026-05-01T17:04:24Z",
+  "preflight": {
+    "engagement": 0.85,
+    "know": 0.85,
+    "do": 0.80,
+    "context": 0.85,
+    "clarity": 0.85,
+    "coherence": 0.85,
+    "signal": 0.75,
+    "density": 0.75,
+    "state": 0.85,
+    "change": 0.55,
+    "completion": 0.05,
+    "impact": 0.65,
+    "uncertainty": 0.40
+  },
+  "postflight": null,
+  "deltas": null,
+  "task_summary": "",
+  "paired": false
+}

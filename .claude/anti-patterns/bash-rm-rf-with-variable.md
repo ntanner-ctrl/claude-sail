@@ -10,9 +10,9 @@ fixture_bad: |
   cleanup() { rm -rf "$TEMP_HOME"; }
   trap cleanup EXIT
 first_seen: 2026-04-30
-last_seen: 2026-04-30T21:09:57Z
-total_hits: 6
-recent_hits: 6
+last_seen: 2026-05-04T16:22:15Z
+total_hits: 20
+recent_hits: 20
 recent_window_days: 60
 locations_remedied: 0
 related_hookify: []

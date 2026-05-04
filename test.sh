@@ -44,6 +44,12 @@ else
     fail "behavioral-smoke.sh — syntax error"
 fi
 
+if bash -n "$SCRIPT_DIR/scripts/epistemic-marker.sh" 2>/dev/null; then
+    pass "epistemic-marker.sh"
+else
+    fail "epistemic-marker.sh — syntax error"
+fi
+
 echo ""
 
 # ─── 2. Shellcheck ────────────────────────────────────────────────
@@ -51,7 +57,8 @@ echo ""
 bold "2. Shellcheck"
 
 if command -v shellcheck &>/dev/null; then
-    for f in "$SCRIPT_DIR"/hooks/*.sh "$SCRIPT_DIR"/install.sh; do
+    for f in "$SCRIPT_DIR"/hooks/*.sh "$SCRIPT_DIR"/install.sh "$SCRIPT_DIR"/scripts/epistemic-marker.sh; do
+        [ -f "$f" ] || continue
         name=$(basename "$f")
         if shellcheck -S warning "$f" >/dev/null 2>&1; then
             pass "$name"
@@ -339,6 +346,43 @@ else
     echo "$set_e_hooks" | while read -r f; do echo "       $(basename "$f")"; done
 fi
 
+# AC4: All consumers must source the helper (no direct .current-session reads
+# outside the helper itself + test infrastructure). Spec require ≥ 9.
+helper_adoption=$(grep -rl "epistemic_get_session_id\|epistemic_marker_path\|epistemic_session_active" \
+    "$SCRIPT_DIR/hooks/" "$SCRIPT_DIR/commands/" "$SCRIPT_DIR/scripts/" 2>/dev/null | wc -l)
+if [ "$helper_adoption" -ge 9 ]; then
+    pass "AC4: helper adopted by $helper_adoption files (>= 9 required)"
+else
+    fail "AC4: helper adoption only $helper_adoption files (need >= 9)"
+fi
+
+# AC4 second check: no direct .current-session reads outside the helper +
+# test scripts. Excludes .bak/.md/legacy/migration/README per spec.
+direct_reads=$(grep -rln '\.current-session\b' \
+    "$SCRIPT_DIR/hooks/" "$SCRIPT_DIR/commands/" "$SCRIPT_DIR/scripts/" 2>/dev/null \
+    | grep -v "\.bak\|legacy\|migration\|README\|\.md$" \
+    | grep -v "scripts/epistemic-marker.sh\|scripts/epistemic-smoke-test.sh" || true)
+if [ -z "$direct_reads" ]; then
+    pass "AC4: no direct .current-session reads outside helper + test"
+else
+    fail "AC4: direct .current-session reads found (should use helper):"
+    echo "$direct_reads" | while read -r f; do echo "       $f"; done
+fi
+
+# epistemic-marker.sh is sourced by hooks — same fail-open contract applies.
+if [ -f "$SCRIPT_DIR/scripts/epistemic-marker.sh" ]; then
+    if grep -E "^[[:space:]]*set -e" "$SCRIPT_DIR/scripts/epistemic-marker.sh" 2>/dev/null | grep -v "set -eo\|set -eu\|set +e" | grep -q .; then
+        fail "scripts/epistemic-marker.sh contains 'set -e' (sourced by fail-open hooks)"
+    else
+        pass "scripts/epistemic-marker.sh has no 'set -e' (sourced by fail-open hooks)"
+    fi
+    if grep -q "^set +e" "$SCRIPT_DIR/scripts/epistemic-marker.sh" 2>/dev/null; then
+        pass "scripts/epistemic-marker.sh has explicit 'set +e'"
+    else
+        warn "scripts/epistemic-marker.sh missing explicit 'set +e'"
+    fi
+fi
+
 # Check for set +e in hooks (expected in most)
 hooks_with_set_plus_e=$(grep -l "set +e" "$SCRIPT_DIR"/hooks/*.sh 2>/dev/null | wc -l)
 if [ "$hooks_with_set_plus_e" -ge 10 ]; then
@@ -440,6 +484,27 @@ if bash "$SCRIPT_DIR/install.sh" >/dev/null 2>&1; then
     else
         fail "$non_exec hooks not executable"
     fi
+
+    # Verify epistemic-marker.sh helper landed and is sourceable.
+    if [ -f "$FAKE_HOME/.claude/scripts/epistemic-marker.sh" ]; then
+        pass "scripts/epistemic-marker.sh installed"
+        if (
+            set +e
+            source "$FAKE_HOME/.claude/scripts/epistemic-marker.sh" 2>/dev/null
+            type epistemic_get_session_id >/dev/null 2>&1 \
+              && type epistemic_marker_path >/dev/null 2>&1 \
+              && type epistemic_session_active >/dev/null 2>&1 \
+              && type epistemic_sweep_orphans >/dev/null 2>&1 \
+              && type epistemic_write_marker >/dev/null 2>&1 \
+              && type epistemic_claude_main_pid >/dev/null 2>&1
+        ); then
+            pass "epistemic-marker.sh exposes all 6 required functions"
+        else
+            fail "epistemic-marker.sh missing one or more required functions"
+        fi
+    else
+        fail "scripts/epistemic-marker.sh missing from install"
+    fi
 else
     fail "install.sh exited with error"
 fi
@@ -470,6 +535,30 @@ else
         warn "evals/evals.json not found — skipping behavioral evals"
     elif ! command -v jq &>/dev/null; then
         warn "jq not installed — skipping behavioral evals"
+    fi
+fi
+
+echo ""
+
+# ─── 8.5 Epistemic Marker End-to-End ──────────────────────────────
+
+bold "8.5 Epistemic Marker End-to-End"
+
+if [ -f "$SCRIPT_DIR/scripts/epistemic-smoke-test.sh" ] && command -v jq &>/dev/null; then
+    smoke_exit=0
+    smoke_output=$(bash "$SCRIPT_DIR/scripts/epistemic-smoke-test.sh" 2>&1) || smoke_exit=$?
+    smoke_summary=$(echo "$smoke_output" | grep -E "Smoke Test: [0-9]+ passed, [0-9]+ failed")
+    if [ "$smoke_exit" -ne 0 ]; then
+        fail "Epistemic smoke test failed"
+        echo "$smoke_output" | tail -30
+    else
+        pass "$smoke_summary"
+    fi
+else
+    if ! [ -f "$SCRIPT_DIR/scripts/epistemic-smoke-test.sh" ]; then
+        warn "scripts/epistemic-smoke-test.sh not found — skipping"
+    elif ! command -v jq &>/dev/null; then
+        warn "jq not installed — skipping epistemic smoke test"
     fi
 fi
 

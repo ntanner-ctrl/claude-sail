@@ -120,14 +120,15 @@ Exclude any note whose frontmatter contains `archived: true` from all subsequent
 ### 1.6 Check for active epistemic session
 
 ```bash
-if [ -f "$HOME/.claude/.current-session" ]; then
-  cat "$HOME/.claude/.current-session"
+source "$HOME/.claude/scripts/epistemic-marker.sh" 2>/dev/null
+if epistemic_session_active; then
+  epistemic_get_session_id
 else
   echo "NO_SESSION"
 fi
 ```
 
-If session available, read `~/.claude/epistemic.json` for calibration data.
+If session available, read `~/.claude/epistemic.json` for calibration data. (Session is resolved from the per-claude-PID marker under `~/.claude/.current-session/`.)
 
 ### 1.7 Apply filters
 

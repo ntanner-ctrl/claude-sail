@@ -1,0 +1,138 @@
+=============================================
+Probe v2 fired at: 2026-05-04T14:09:46Z
+Hook event: SessionStart (source: startup)
+Session ID from stdin: 9d114e50-9add-43b3-9c39-b79b2a09f8c6
+
+--- process tree from this hook upward ---
+  depth=0  PID=1664020  comm=bash  cmdline=bash /tmp/probe-hooks-v2.sh 
+  depth=1  PID=1664016  comm=sh  cmdline=/bin/sh -c /tmp/probe-hooks-v2.sh 
+  depth=2  PID=1663677  comm=claude  cmdline=claude --print ping 
+  depth=3  PID=68543  comm=bash  cmdline=-bash 
+  depth=4  PID=68542  comm=wslconnect  cmdline=./wslconnect wsl -F -p 127.0.0.1:22006 
+  depth=5  PID=68519  comm=Relay(68523)  cmdline=/init 
+
+--- key relationships ---
+  $$ (this script) = 1664020
+  $PPID            = 1664016
+  PPID comm        = sh
+  Claude main PID  = 1663677
+
+--- env CLAUDE_*/SESSION_*/HOOK_*/AI_* ---
+AI_AGENT=claude-code/2.1.126/harness
+CLAUDE_CODE_ENTRYPOINT=sdk-cli
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+CLAUDE_ENV_FILE=/home/nick/.claude/session-env/9d114e50-9add-43b3-9c39-b79b2a09f8c6/sessionstart-hook-3.sh
+CLAUDE_PROJECT_DIR=/home/nick/claude-sail
+
+--- raw stdin JSON ---
+{
+  "session_id": "9d114e50-9add-43b3-9c39-b79b2a09f8c6",
+  "transcript_path": "/home/nick/.claude/projects/-home-nick-claude-sail/9d114e50-9add-43b3-9c39-b79b2a09f8c6.jsonl",
+  "cwd": "/home/nick/claude-sail",
+  "hook_event_name": "SessionStart",
+  "source": "startup"
+}
+=============================================
+=============================================
+Probe v2 fired at: 2026-05-04T14:09:54Z
+Hook event: SessionEnd (source: n/a)
+Session ID from stdin: 9d114e50-9add-43b3-9c39-b79b2a09f8c6
+
+--- process tree from this hook upward ---
+  depth=0  PID=1667156  comm=bash  cmdline=bash /tmp/probe-hooks-v2.sh 
+  depth=1  PID=1667154  comm=sh  cmdline=/bin/sh -c /tmp/probe-hooks-v2.sh 
+  depth=2  PID=1663677  comm=claude  cmdline=claude --print ping 
+  depth=3  PID=68543  comm=bash  cmdline=-bash 
+  depth=4  PID=68542  comm=wslconnect  cmdline=./wslconnect wsl -F -p 127.0.0.1:22006 
+  depth=5  PID=68519  comm=Relay(68523)  cmdline=/init 
+
+--- key relationships ---
+  $$ (this script) = 1667156
+  $PPID            = 1667154
+  PPID comm        = sh
+  Claude main PID  = 1663677
+
+--- env CLAUDE_*/SESSION_*/HOOK_*/AI_* ---
+AI_AGENT=claude-code/2.1.126/harness
+CLAUDE_CODE_ENTRYPOINT=sdk-cli
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+CLAUDE_PROJECT_DIR=/home/nick/claude-sail
+
+--- raw stdin JSON ---
+{
+  "session_id": "9d114e50-9add-43b3-9c39-b79b2a09f8c6",
+  "transcript_path": "/home/nick/.claude/projects/-home-nick-claude-sail/9d114e50-9add-43b3-9c39-b79b2a09f8c6.jsonl",
+  "cwd": "/home/nick/claude-sail",
+  "hook_event_name": "SessionEnd",
+  "reason": "other"
+}
+=============================================
+=============================================
+Probe v2 fired at: 2026-05-04T14:10:12Z
+Hook event: SessionStart (source: resume)
+Session ID from stdin: 9d114e50-9add-43b3-9c39-b79b2a09f8c6
+
+--- process tree from this hook upward ---
+  depth=0  PID=1674789  comm=bash  cmdline=bash /tmp/probe-hooks-v2.sh 
+  depth=1  PID=1674786  comm=sh  cmdline=/bin/sh -c /tmp/probe-hooks-v2.sh 
+  depth=2  PID=1673733  comm=claude  cmdline=claude --resume 9d114e50-9add-43b3-9c39-b79b2a09f8c6 --print ping 
+  depth=3  PID=68543  comm=bash  cmdline=-bash 
+  depth=4  PID=68542  comm=wslconnect  cmdline=./wslconnect wsl -F -p 127.0.0.1:22006 
+  depth=5  PID=68519  comm=Relay(68523)  cmdline=/init 
+
+--- key relationships ---
+  $$ (this script) = 1674789
+  $PPID            = 1674786
+  PPID comm        = sh
+  Claude main PID  = 1673733
+
+--- env CLAUDE_*/SESSION_*/HOOK_*/AI_* ---
+AI_AGENT=claude-code/2.1.126/harness
+CLAUDE_CODE_ENTRYPOINT=sdk-cli
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+CLAUDE_ENV_FILE=/home/nick/.claude/session-env/e5d62f0c-ef31-4359-8d65-b64c64303835/sessionstart-hook-3.sh
+CLAUDE_PROJECT_DIR=/home/nick/claude-sail
+
+--- raw stdin JSON ---
+{
+  "session_id": "9d114e50-9add-43b3-9c39-b79b2a09f8c6",
+  "transcript_path": "/home/nick/.claude/projects/-home-nick-claude-sail/9d114e50-9add-43b3-9c39-b79b2a09f8c6.jsonl",
+  "cwd": "/home/nick/claude-sail",
+  "hook_event_name": "SessionStart",
+  "source": "resume"
+}
+=============================================
+=============================================
+Probe v2 fired at: 2026-05-04T14:10:17Z
+Hook event: SessionEnd (source: n/a)
+Session ID from stdin: 9d114e50-9add-43b3-9c39-b79b2a09f8c6
+
+--- process tree from this hook upward ---
+  depth=0  PID=1677363  comm=bash  cmdline=bash /tmp/probe-hooks-v2.sh 
+  depth=1  PID=1677361  comm=sh  cmdline=/bin/sh -c /tmp/probe-hooks-v2.sh 
+  depth=2  PID=1673733  comm=claude  cmdline=claude --resume 9d114e50-9add-43b3-9c39-b79b2a09f8c6 --print ping 
+  depth=3  PID=68543  comm=bash  cmdline=-bash 
+  depth=4  PID=68542  comm=wslconnect  cmdline=./wslconnect wsl -F -p 127.0.0.1:22006 
+  depth=5  PID=68519  comm=Relay(68523)  cmdline=/init 
+
+--- key relationships ---
+  $$ (this script) = 1677363
+  $PPID            = 1677361
+  PPID comm        = sh
+  Claude main PID  = 1673733
+
+--- env CLAUDE_*/SESSION_*/HOOK_*/AI_* ---
+AI_AGENT=claude-code/2.1.126/harness
+CLAUDE_CODE_ENTRYPOINT=sdk-cli
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+CLAUDE_PROJECT_DIR=/home/nick/claude-sail
+
+--- raw stdin JSON ---
+{
+  "session_id": "9d114e50-9add-43b3-9c39-b79b2a09f8c6",
+  "transcript_path": "/home/nick/.claude/projects/-home-nick-claude-sail/9d114e50-9add-43b3-9c39-b79b2a09f8c6.jsonl",
+  "cwd": "/home/nick/claude-sail",
+  "hook_event_name": "SessionEnd",
+  "reason": "other"
+}
+=============================================

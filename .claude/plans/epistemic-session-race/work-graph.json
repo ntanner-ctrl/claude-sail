@@ -1,0 +1,284 @@
+{
+  "blueprint": "epistemic-session-race",
+  "blueprint_version": 2,
+  "revision": 2,
+  "generated_at": "2026-05-04T10:15:00Z",
+  "spec_checksum": "774ee8964f7eb2dda6fcf3bb55aaf1b1f64eb47b5a608a3eef04a961c8f5c6ef",
+  "execution_preference": "simplicity",
+  "supersedes": "work-graph.json.revision-1.bak",
+  "nodes": {
+    "WU1": {
+      "description": "NEW helper scripts/epistemic-marker.sh: epistemic_claude_main_pid (process-tree traversal with caching), epistemic_marker_path, epistemic_get_session_id, epistemic_session_active, epistemic_sweep_orphans (two-condition check), epistemic_write_marker",
+      "files": [
+        "scripts/epistemic-marker.sh"
+      ],
+      "depends_on": [],
+      "complexity": "high",
+      "tdd": true,
+      "risk": "medium"
+    },
+    "WU2": {
+      "description": "Refactor epistemic-preflight.sh: stdin session_id, source helper, sweep+migrate+source-branching (startup/resume/clear/default→stderr-warn-as-startup). NO uuidgen fallback.",
+      "files": [
+        "hooks/epistemic-preflight.sh"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "high",
+      "tdd": true,
+      "risk": "high"
+    },
+    "WU3": {
+      "description": "Refactor epistemic-postflight.sh: helper-based read, stdin session_id fallback (verified by probe v2), scoped delete on own marker only",
+      "files": [
+        "hooks/epistemic-postflight.sh"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "medium",
+      "tdd": true,
+      "risk": "medium"
+    },
+    "WU4": {
+      "description": "Refactor _audit-log.sh to source helper",
+      "files": [
+        "hooks/_audit-log.sh"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "low",
+      "tdd": true,
+      "risk": "low"
+    },
+    "WU5a": {
+      "description": "commands/epistemic-preflight.md: helper-based read; rewrite create-fallback to per-claude-PID directory (CF-4 M1)",
+      "files": [
+        "commands/epistemic-preflight.md"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "medium",
+      "tdd": false,
+      "tdd_skip_reason": "Mechanical refactor with one design fix (fallback rewrite)",
+      "risk": "medium"
+    },
+    "WU5b": {
+      "description": "commands/epistemic-postflight.md: helper-based read; rewrite Step 6 cleanup to scoped delete (CF-4 M4)",
+      "files": [
+        "commands/epistemic-postflight.md"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "low",
+      "tdd": false,
+      "tdd_skip_reason": "Mechanical refactor",
+      "risk": "low"
+    },
+    "WU5c": {
+      "description": "commands/end.md: helper-based read; rewrite line-284 grep that doesn't match UUIDs (CF-4 M2)",
+      "files": [
+        "commands/end.md"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "low",
+      "tdd": false,
+      "tdd_skip_reason": "Mechanical refactor",
+      "risk": "low"
+    },
+    "WU5d": {
+      "description": "commands/{start,collect-insights,vault-curate}.md: replace -f checks with epistemic_session_active; helper-based read (CF-4 M3)",
+      "files": [
+        "commands/start.md",
+        "commands/collect-insights.md",
+        "commands/vault-curate.md"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "low",
+      "tdd": false,
+      "tdd_skip_reason": "Mechanical refactor",
+      "risk": "low"
+    },
+    "WU6": {
+      "description": "Update prose references in 7 docs (added docs/PLANNING-STORAGE.md per CF-17; fix describe.md 7-vs-9 hooks per CF-19)",
+      "files": [
+        "commands/checkpoint.md",
+        "commands/log-success.md",
+        "commands/log-error.md",
+        "commands/evolve.md",
+        "commands/blueprint.md",
+        "commands/README.md",
+        "docs/PLANNING-STORAGE.md"
+      ],
+      "depends_on": [],
+      "complexity": "trivial",
+      "tdd": false,
+      "tdd_skip_reason": "Documentation only",
+      "risk": "trivial"
+    },
+    "WU7": {
+      "description": "Update epistemic-smoke-test.sh for per-claude-PID layout",
+      "files": [
+        "scripts/epistemic-smoke-test.sh"
+      ],
+      "depends_on": [
+        "WU2",
+        "WU3"
+      ],
+      "complexity": "low",
+      "tdd": false,
+      "tdd_skip_reason": "Smoke test",
+      "risk": "low"
+    },
+    "WU8": {
+      "description": "Parallel-isolation eval fixture (AC1, AC2) — subshell with PPID propagation simulating two claude processes",
+      "files": [
+        "evals/evals.json",
+        "scripts/behavioral-smoke.sh"
+      ],
+      "depends_on": [
+        "WU2",
+        "WU3"
+      ],
+      "complexity": "high",
+      "tdd": false,
+      "tdd_skip_reason": "Eval IS the test",
+      "risk": "high"
+    },
+    "WU9": {
+      "description": "Resume-pairing eval fixture (AC3 proxy; manual verification authoritative)",
+      "files": [
+        "evals/evals.json"
+      ],
+      "depends_on": [
+        "WU2",
+        "WU3"
+      ],
+      "complexity": "medium",
+      "tdd": false,
+      "tdd_skip_reason": "Eval IS the test",
+      "risk": "medium"
+    },
+    "WU10": {
+      "description": "Orphan-sweep eval fixture (AC5 — fake PID + PID-reuse defense)",
+      "files": [
+        "evals/evals.json"
+      ],
+      "depends_on": [
+        "WU2"
+      ],
+      "complexity": "low",
+      "tdd": false,
+      "tdd_skip_reason": "Eval IS the test",
+      "risk": "low"
+    },
+    "WU11": {
+      "description": "Migration eval fixture (AC6) including ENOENT race path",
+      "files": [
+        "evals/evals.json"
+      ],
+      "depends_on": [
+        "WU2"
+      ],
+      "complexity": "medium",
+      "tdd": false,
+      "tdd_skip_reason": "Eval IS the test",
+      "risk": "low"
+    },
+    "WU12": {
+      "description": "Extend test.sh: Category 1 syntax + Category 2 shellcheck + Category 5 no-set-e for new helper; verify install dry run (CF-15)",
+      "files": [
+        "test.sh"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "low",
+      "tdd": false,
+      "tdd_skip_reason": "Test infrastructure verification",
+      "risk": "low"
+    }
+  },
+  "batches": [
+    {
+      "batch": 0,
+      "units": [
+        "WU1",
+        "WU6"
+      ],
+      "rationale": "No dependencies — helper creation and pure-doc updates parallel"
+    },
+    {
+      "batch": 1,
+      "units": [
+        "WU2",
+        "WU3",
+        "WU4",
+        "WU5a",
+        "WU5b",
+        "WU5c",
+        "WU5d",
+        "WU12"
+      ],
+      "rationale": "All depend on WU1; refactor surfaces are disjoint files. WU5a-5d split (was WU5 in rev1) enumerates per-file fix types per CF-4."
+    },
+    {
+      "batch": 2,
+      "units": [
+        "WU7",
+        "WU8",
+        "WU9",
+        "WU10",
+        "WU11"
+      ],
+      "rationale": "Eval/test additions depend on WU2 and/or WU3"
+    }
+  ],
+  "analysis": {
+    "total_units": 15,
+    "max_parallel_width": 8,
+    "critical_path_length": 3,
+    "critical_path": [
+      "WU1",
+      "WU2",
+      "WU8"
+    ],
+    "tdd_units": 4,
+    "non_tdd_units": 11,
+    "file_conflicts": [
+      {
+        "files": [
+          "evals/evals.json"
+        ],
+        "units": [
+          "WU8",
+          "WU9",
+          "WU10",
+          "WU11"
+        ],
+        "note": "All four eval-add WUs touch the same JSON file — must be sequenced. Recommend sequential execution within batch 2."
+      }
+    ],
+    "parallelization_recommendation": "moderate",
+    "parallelization_note": "execution_preference=simplicity. Sequential is recommended. WU5a-5d are truly independent (different files) and could run in parallel via /delegate, but each is small."
+  },
+  "rev1_diff_summary": {
+    "wu_count_change": "12 → 15 (+3)",
+    "expanded": [
+      "WU1 (added 3 functions)",
+      "WU2 (source-branching, no uuidgen)",
+      "WU6 (docs/PLANNING-STORAGE.md)",
+      "WU12 (Category 1+2+5)"
+    ],
+    "split": "WU5 → WU5a/b/c/d (per-file fix enumeration per CF-4)",
+    "removed": []
+  }
+}

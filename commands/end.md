@@ -1,5 +1,6 @@
 ---
 description: Use when ending a session. Runs epistemic postflight assessment and exports session artifacts to Obsidian vault before exit.
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
 # End Session
@@ -15,11 +16,18 @@ Without explicit closure, sessions become epistemically orphaned — the Session
 ### Step 1: Check for Active Epistemic Session
 
 ```bash
-# Read active session from native epistemic tracking marker
-cat ~/.claude/.current-session 2>/dev/null || echo "NO_SESSION"
+# Read active session from native epistemic tracking marker (per-claude-PID layout)
+source ~/.claude/scripts/epistemic-marker.sh 2>/dev/null
+if epistemic_session_active; then
+    epistemic_get_session_id
+else
+    echo "NO_SESSION"
+fi
 ```
 
-Extract `SESSION_ID` and `PROJECT` from the marker file. If no active session is found, skip to Step 4 (just show the exit message).
+Extract `SESSION_ID` (via `epistemic_get_session_id`) and `PROJECT` (via
+`epistemic_get_marker_field PROJECT`) from the per-claude-PID marker. If no
+active session is found, skip to Step 4 (just show the exit message).
 
 ### Step 1.5: Reconcile Orphaned Insights
 
@@ -137,7 +145,7 @@ Scope artifacts to "this session" using the session-start timestamp:
 
 1. Read session-start timestamp: `cat /tmp/.claude-session-start-$(id -u)` (ISO-8601).
    **Fallback:** If absent or empty, use `$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)`. Log: "Session-start timestamp missing — scoping artifacts to last 24 hours."
-2. Read `~/.claude/.current-session` for session ID. Fallback: `session-YYYY-MM-DD-HHMM`.
+2. Read session ID via `epistemic_get_session_id` (from per-claude-PID marker under `~/.claude/.current-session/`). Fallback: `session-YYYY-MM-DD-HHMM`.
 3. **Decision records:** Read `.claude/decisions/*.md` files. Each has `date:` frontmatter in ISO-8601. Include where `date:` >= session-start timestamp.
 4. **Disk findings:** Read `.epistemic/insights.jsonl`. Each line has `timestamp` field in ISO-8601. Include where `timestamp` >= session-start timestamp.
 5. Check for active blueprint progress (`.claude/plans/*/state.json` with `updated` after session start).
@@ -231,7 +239,7 @@ Pair preflight and postflight vectors and export the learning delta.
 5. **Create vault note**: If vault is available AND both preflight and postflight data exist, hydrate `~/.claude/commands/templates/vault-notes/epistemic-delta.md` template:
    - `date`: today (YYYY-MM-DD)
    - `project`: current project name (git repo basename)
-   - `session_id`: from `~/.claude/.current-session`
+   - `session_id`: from `epistemic_get_session_id` (per-claude-PID marker)
    - `vector_rows`: table rows for all 13 vectors (one row per vector: dimension | pre | post | delta | assessment)
    - `key_movements`: top 3 biggest deltas (positive or negative) with brief explanation
    - `session_link`: link to session summary note if created in Step 2.5
@@ -279,8 +287,10 @@ This is your last chance to capture session knowledge. Do NOT skip this step.
 Append a heuristic budget record to `.claude/budget.jsonl` in the project root. This is approximate — treat all values as estimates.
 
 ```bash
-# Read session info
-SESSION_ID=$(cat ~/.claude/.current-session 2>/dev/null | grep -o 'session-[^ ]*' | head -1 || echo "unknown")
+# Read session info via helper (per-claude-PID marker; CF-4 M2 — old grep
+# 'session-[^ ]*' did not match the UUID format Claude Code emits).
+source ~/.claude/scripts/epistemic-marker.sh 2>/dev/null
+SESSION_ID=$(epistemic_get_session_id 2>/dev/null || echo "unknown")
 PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
 STARTED=$(cat /tmp/.claude-session-start-$(id -u) 2>/dev/null || echo "unknown")
 ENDED=$(date -u +%Y-%m-%dT%H:%M:%SZ)

@@ -1,0 +1,124 @@
+{
+  "blueprint_version": 2,
+  "name": "epistemic-session-race",
+  "summary": "Replace single-file ~/.claude/.current-session with per-claude-PID markers (claude PID resolved via process-tree traversal), storing Claude Code's stdin session_id as identity. Centralized via scripts/epistemic-marker.sh helper sourced by all 13+ consumers. 3 confirmed incidents on 2026-05-01.",
+  "current_stage": "challenge",
+  "path": "full",
+  "challenge_mode": "critique",
+  "execution_preference": "simplicity",
+  "epistemic_session_id": "c2bbe8ed-727b-435c-a93b-932585a6eef1",
+  "revision": 2,
+  "completed": false,
+  "stage_summaries": {
+    "describe": {
+      "status": "complete",
+      "key_decisions": [
+        "Path: Full",
+        "Execution: simplicity",
+        "Marker scheme deferred to Stage 2 empirical gates"
+      ]
+    },
+    "specify": {
+      "status": "complete (rev2)",
+      "key_decisions_rev2": [
+        "Marker key: per-claude-PID, claude PID resolved via process-tree traversal (epistemic_claude_main_pid helper)",
+        "Discovery scaffolding: PPID chain walk; Identity: session_id from stdin (stored in marker contents)",
+        "Resume case works correctly: marker filename changes (new claude PID) but SESSION_ID inside is preserved → epistemic.json pairs correctly",
+        "uuidgen fallback REMOVED — if stdin parse fails, no marker, stderr warning, fail-open",
+        "Source-branching: startup/resume/clear/default→stderr-warn (CF-5 defensive)",
+        "Single helper mechanism — no per-file inline fallbacks (CF-10)",
+        "Two-condition sweep: /proc/$PID exists AND comm=claude (defends PID-reuse)",
+        "Migration race ENOENT explicitly handled (CF-14)"
+      ],
+      "empirical_resolutions_rev2": {
+        "Q1": "Hook hierarchy: claude → sh → hook (probe v2). Bash tool hierarchy: claude → bash. Process-tree traversal works in both.",
+        "Q2": "SessionEnd stdin contains session_id + reason field (probe v2). WU3 fallback validated.",
+        "Q3": "Resume preserves session_id with new claude PID (probe v2 confirmed).",
+        "Q4_compaction": "Deferred — defensive default branch handles unrecognized source values"
+      }
+    },
+    "challenge_rev1": {
+      "status": "complete",
+      "verdict": "REWORK",
+      "critical_count": 4,
+      "total_findings": 20,
+      "findings_carried_forward": "All 20 in adversarial.md; rev2 spec addresses each in addressed_findings list (state.json)"
+    }
+  },
+  "open_questions": {
+    "OQ-rev2-1": "Subagent compatibility — out of scope, document in debrief",
+    "OQ-rev2-2": "Eval simulation fidelity — Stage 7 risk; subshell-with-PPID-propagation approach planned for WU8"
+  },
+  "affected_surface_rev2": {
+    "hooks_modified": [
+      "epistemic-preflight.sh",
+      "epistemic-postflight.sh",
+      "_audit-log.sh"
+    ],
+    "hooks_indirectly_affected": [
+      "secret-scanner.sh",
+      "anti-pattern-write-check.sh",
+      "tdd-guardian.sh",
+      "freeze-guard.sh",
+      "protect-claude-md.sh",
+      "dangerous-commands.sh"
+    ],
+    "command_bash_blocks_modified": [
+      "commands/epistemic-preflight.md",
+      "commands/epistemic-postflight.md",
+      "commands/end.md",
+      "commands/start.md",
+      "commands/collect-insights.md",
+      "commands/vault-curate.md"
+    ],
+    "command_docs_modified": [
+      "commands/checkpoint.md",
+      "commands/log-success.md",
+      "commands/log-error.md",
+      "commands/evolve.md",
+      "commands/blueprint.md",
+      "commands/README.md",
+      "docs/PLANNING-STORAGE.md"
+    ],
+    "scripts_added": [
+      "scripts/epistemic-marker.sh"
+    ],
+    "scripts_modified": [
+      "scripts/epistemic-smoke-test.sh",
+      "scripts/behavioral-smoke.sh"
+    ],
+    "test_infrastructure_modified": [
+      "test.sh"
+    ],
+    "tests_added": [
+      "evals/evals.json (parallel-isolation, resume-pairing, orphan-sweep, migration)"
+    ]
+  },
+  "work_graph_rev2": {
+    "total_units": 15,
+    "max_parallel_width": 8,
+    "critical_path": [
+      "WU1",
+      "WU2",
+      "WU8"
+    ],
+    "tdd_units": 4,
+    "rev1_diff": "WU1 expanded (3 new functions), WU2 expanded (source-branching, no uuidgen), WU5 split into 5a-d (per-file fix enumeration), WU6 + PLANNING-STORAGE.md, WU12 + Category 1+2+5"
+  },
+  "context_pointers": {
+    "source_brief": "memory/project_epistemic_session_race.md",
+    "vault_findings": [
+      "Engineering/Findings/2026-05-01-current-session-marker-race-confirmed-incident.md",
+      "Engineering/Findings/2026-05-01-current-session-marker-single-file-race.md"
+    ],
+    "probe_v1_log": ".claude/plans/epistemic-session-race/probe-sessionstart-stdin.log",
+    "probe_v2_log": ".claude/plans/epistemic-session-race/probe-v2-process-tree-and-sessionend.log",
+    "recovery_instructions": ".claude/plans/epistemic-session-race/RECOVERY-INSTRUCTIONS.md",
+    "preflight_snapshot": ".claude/plans/epistemic-session-race/preflight-snapshot-original-2026-05-01T17-11-37Z.json",
+    "rev1_artifacts": {
+      "spec": "spec.md.revision-1.bak",
+      "work_graph": "work-graph.json.revision-1.bak",
+      "adversarial": "adversarial.md (carried forward, findings preserved)"
+    }
+  }
+}

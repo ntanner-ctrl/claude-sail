@@ -1,0 +1,29 @@
+=============================================
+Probe fired at: 2026-05-01T17:30:55Z
+PID=3180050 PPID=3180048
+PPID comm: sh
+
+--- env CLAUDE_*/SESSION_*/HOOK_*/AI_* ---
+AI_AGENT=claude-code/2.1.126/harness
+CLAUDE_CODE_ENTRYPOINT=cli
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+CLAUDE_ENV_FILE=/home/nick/.claude/session-env/16293da5-cb8a-4ecf-b260-49679e10e1a9/sessionstart-hook-3.sh
+CLAUDE_PROJECT_DIR=/home/nick/claude-sail
+
+--- argv ---
+  argv[]=
+  full args: 
+
+--- stdin (if any) ---
+{"session_id":"16293da5-cb8a-4ecf-b260-49679e10e1a9","transcript_path":"/home/nick/.claude/projects/-home-nick-claude-sail/16293da5-cb8a-4ecf-b260-49679e10e1a9.jsonl","cwd":"/home/nick/claude-sail","hook_event_name":"SessionStart","source":"startup","model":"claude-opus-4-7[1m]"}
+
+--- stdin parsed as JSON (jq) ---
+{
+  "session_id": "16293da5-cb8a-4ecf-b260-49679e10e1a9",
+  "transcript_path": "/home/nick/.claude/projects/-home-nick-claude-sail/16293da5-cb8a-4ecf-b260-49679e10e1a9.jsonl",
+  "cwd": "/home/nick/claude-sail",
+  "hook_event_name": "SessionStart",
+  "source": "startup",
+  "model": "claude-opus-4-7[1m]"
+}
+=============================================

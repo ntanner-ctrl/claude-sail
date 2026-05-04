@@ -1,0 +1,231 @@
+{
+  "blueprint": "epistemic-session-race",
+  "blueprint_version": 2,
+  "generated_at": "2026-05-01T17:35:00Z",
+  "spec_checksum": "c8dbeb565f7da282318c27f9ad2ee6479b72217c6332c7fb80ba355bd9bb23bd",
+  "execution_preference": "simplicity",
+  "nodes": {
+    "WU1": {
+      "description": "Create shared helper scripts/epistemic-marker.sh with epistemic_marker_path, epistemic_get_session_id, epistemic_sweep_orphans",
+      "files": [
+        "scripts/epistemic-marker.sh"
+      ],
+      "depends_on": [],
+      "complexity": "medium",
+      "tdd": true,
+      "risk": "low"
+    },
+    "WU2": {
+      "description": "Refactor epistemic-preflight.sh: stdin session_id, per-PPID marker, sweep orphans, migrate legacy file, handle resume",
+      "files": [
+        "hooks/epistemic-preflight.sh"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "high",
+      "tdd": true,
+      "risk": "medium"
+    },
+    "WU3": {
+      "description": "Refactor epistemic-postflight.sh: read via helper, stdin fallback, scoped cleanup",
+      "files": [
+        "hooks/epistemic-postflight.sh"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "medium",
+      "tdd": true,
+      "risk": "medium"
+    },
+    "WU4": {
+      "description": "Refactor _audit-log.sh to source helper",
+      "files": [
+        "hooks/_audit-log.sh"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "low",
+      "tdd": true,
+      "risk": "low"
+    },
+    "WU5": {
+      "description": "Refactor 6 command bash blocks to use helper",
+      "files": [
+        "commands/epistemic-preflight.md",
+        "commands/epistemic-postflight.md",
+        "commands/end.md",
+        "commands/start.md",
+        "commands/collect-insights.md",
+        "commands/vault-curate.md"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "medium",
+      "tdd": false,
+      "tdd_skip_reason": "Mechanical refactor; coverage indirect via AC1, AC2 behavioral evals",
+      "risk": "low"
+    },
+    "WU6": {
+      "description": "Update prose references in 6 command/README docs",
+      "files": [
+        "commands/checkpoint.md",
+        "commands/log-success.md",
+        "commands/log-error.md",
+        "commands/evolve.md",
+        "commands/blueprint.md",
+        "commands/README.md"
+      ],
+      "depends_on": [],
+      "complexity": "trivial",
+      "tdd": false,
+      "tdd_skip_reason": "Documentation only",
+      "risk": "trivial"
+    },
+    "WU7": {
+      "description": "Update epistemic-smoke-test.sh for new marker layout",
+      "files": [
+        "scripts/epistemic-smoke-test.sh"
+      ],
+      "depends_on": [
+        "WU2",
+        "WU3"
+      ],
+      "complexity": "low",
+      "tdd": false,
+      "tdd_skip_reason": "Smoke test, not behavioral; verifies install integrity",
+      "risk": "low"
+    },
+    "WU8": {
+      "description": "Add parallel-preflight-isolation eval fixture (AC1, AC2)",
+      "files": [
+        "evals/evals.json",
+        "scripts/behavioral-smoke.sh"
+      ],
+      "depends_on": [
+        "WU2",
+        "WU3"
+      ],
+      "complexity": "high",
+      "tdd": false,
+      "tdd_skip_reason": "Eval IS the test — meta-circular if TDD'd",
+      "risk": "high"
+    },
+    "WU9": {
+      "description": "Add resume-preserves-session_id eval fixture (AC3)",
+      "files": [
+        "evals/evals.json"
+      ],
+      "depends_on": [
+        "WU2"
+      ],
+      "complexity": "medium",
+      "tdd": false,
+      "tdd_skip_reason": "Eval IS the test",
+      "risk": "medium"
+    },
+    "WU10": {
+      "description": "Add orphan-cleanup eval fixture (AC5)",
+      "files": [
+        "evals/evals.json"
+      ],
+      "depends_on": [
+        "WU2"
+      ],
+      "complexity": "low",
+      "tdd": false,
+      "tdd_skip_reason": "Eval IS the test",
+      "risk": "low"
+    },
+    "WU11": {
+      "description": "Add migration-non-destructive eval fixture (AC6)",
+      "files": [
+        "evals/evals.json"
+      ],
+      "depends_on": [
+        "WU2"
+      ],
+      "complexity": "low",
+      "tdd": false,
+      "tdd_skip_reason": "Eval IS the test",
+      "risk": "low"
+    },
+    "WU12": {
+      "description": "Verify install.sh ships new helper (tarball auto-extract); extend test.sh Category 7 if needed",
+      "files": [
+        "install.sh",
+        "test.sh"
+      ],
+      "depends_on": [
+        "WU1"
+      ],
+      "complexity": "trivial",
+      "tdd": false,
+      "tdd_skip_reason": "Verification, not new logic",
+      "risk": "low"
+    }
+  },
+  "batches": [
+    {
+      "batch": 0,
+      "units": [
+        "WU1",
+        "WU6"
+      ],
+      "rationale": "No dependencies — helper creation and pure-doc updates can run in parallel"
+    },
+    {
+      "batch": 1,
+      "units": [
+        "WU2",
+        "WU3",
+        "WU4",
+        "WU5",
+        "WU12"
+      ],
+      "rationale": "All depend only on WU1 (helper); refactor surfaces are disjoint files"
+    },
+    {
+      "batch": 2,
+      "units": [
+        "WU7",
+        "WU8",
+        "WU9",
+        "WU10",
+        "WU11"
+      ],
+      "rationale": "All eval/test additions; depend on WU2 and/or WU3 being complete"
+    }
+  ],
+  "analysis": {
+    "total_units": 12,
+    "max_parallel_width": 5,
+    "critical_path_length": 3,
+    "critical_path": [
+      "WU1",
+      "WU2",
+      "WU8"
+    ],
+    "tdd_units": 4,
+    "non_tdd_units": 8,
+    "file_conflicts": [
+      {
+        "files": [
+          "evals/evals.json"
+        ],
+        "units": [
+          "WU8",
+          "WU9",
+          "WU10",
+          "WU11"
+        ],
+        "note": "All four eval-add WUs touch the same JSON file — must be sequenced or merged carefully. Recommend sequential execution within batch 2."
+      }
+    ],
+    "parallelization_recommendation": "moderate",
+    "parallelization_note": "execution_preference=simplicity; recommend sequential despite moderate parallel width. The four eval WUs share evals/evals.json which would require atomic JSON merging if parallelized — the cost of coordination exceeds the time savings for 4 small writes."
+  }
+}

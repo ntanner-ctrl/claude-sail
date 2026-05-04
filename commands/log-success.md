@@ -105,7 +105,7 @@ Write to `.claude/success-logs/success-YYYY-MM-DD-HHMM.md`:
 
 ### Step 5: Epistemic Tracking
 
-If an epistemic session is active (`~/.claude/.current-session` exists):
+If an epistemic session is active (`epistemic_session_active` returns 0 — checks the per-claude-PID marker in `~/.claude/.current-session/`):
 1. Append to `.epistemic/insights.jsonl`:
    ```json
    {"timestamp": "ISO-8601", "type": "finding", "input": {"finding": "[Success] one-line takeaway"}}

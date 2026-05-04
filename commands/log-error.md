@@ -155,7 +155,7 @@ Write to `.claude/error-logs/error-YYYY-MM-DD-HHMM.md`:
 
 ### Step 6: Epistemic Tracking
 
-If an epistemic session is active (`~/.claude/.current-session` exists):
+If an epistemic session is active (`epistemic_session_active` returns 0 — checks the per-claude-PID marker in `~/.claude/.current-session/`):
 1. Append to `.epistemic/insights.jsonl`:
    ```json
    {"timestamp": "ISO-8601", "type": "mistake", "input": {"mistake": "one-line lesson", "impact": "brief impact"}}

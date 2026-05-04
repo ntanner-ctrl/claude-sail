@@ -96,7 +96,7 @@ schema with challenge mode, confidence scoring, epistemic tracking integration, 
     },
     "epistemic_session_id": {
       "type": ["string", "null"],
-      "description": "Epistemic session ID from ~/.claude/.current-session (primary storage)"
+      "description": "Epistemic session ID resolved via epistemic_get_session_id (reads per-claude-PID marker under ~/.claude/.current-session/; one file per active claude process, session_id stored inside)"
     },
     "epistemic_preflight_complete": {
       "type": "boolean",

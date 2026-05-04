@@ -11,12 +11,18 @@ Capture postflight self-assessment, compute deltas against preflight, update cal
 ### Step 1: Read Session Context
 
 ```bash
-cat ~/.claude/.current-session 2>/dev/null || echo "NO_SESSION"
+source ~/.claude/scripts/epistemic-marker.sh 2>/dev/null
+if epistemic_session_active; then
+    epistemic_get_session_id
+else
+    echo "NO_SESSION"
+fi
 ```
 
 If no session marker exists or `SESSION_ID` is empty, the write step
-in Step 3 will refuse to run. Inspect `~/.claude/.current-session` or
-re-run `/epistemic-preflight` first to create one. (Silently proceeding
+in Step 3 will refuse to run. The marker is a per-claude-PID file under
+`~/.claude/.current-session/` — inspect it directly, or re-run
+`/epistemic-preflight` first to recreate it. (Silently proceeding
 with an empty session ID once corrupted `epistemic.json` — see the
 2026-04-30 data-loss event.)
 
@@ -53,18 +59,24 @@ set +e
 EPISTEMIC_FILE="${HOME}/.claude/epistemic.json"
 EPISTEMIC_TMP="${EPISTEMIC_FILE}.tmp"
 EPISTEMIC_BAK="${EPISTEMIC_FILE}.bak"
-SESSION_FILE="${HOME}/.claude/.current-session"
 
-# Read session context (strip CR for CRLF-tolerant marker files)
-SESSION_ID=$(grep "^SESSION_ID=" "$SESSION_FILE" 2>/dev/null | cut -d= -f2 | tr -d '\r')
-PROJECT=$(grep "^PROJECT=" "$SESSION_FILE" 2>/dev/null | cut -d= -f2 | tr -d '\r')
+# Source the marker helper for per-claude-PID resolution.
+source "${HOME}/.claude/scripts/epistemic-marker.sh" 2>/dev/null
+if [ -z "$(type -t epistemic_get_session_id 2>/dev/null)" ]; then
+    echo "ERROR: epistemic-marker.sh not found. Reinstall claude-sail." >&2
+    exit 1
+fi
+
+# Read session context via helper.
+SESSION_ID=$(epistemic_get_session_id 2>/dev/null)
+PROJECT=$(epistemic_get_marker_field PROJECT 2>/dev/null)
 
 # Fail-fast on empty SESSION_ID. Proceeding without a session ID once
 # corrupted epistemic.json (data-loss event 2026-04-30) — refuse instead
 # of silently falling through to the standalone branch.
 if [ -z "$SESSION_ID" ]; then
-    echo "ERROR: SESSION_ID is empty in ${SESSION_FILE} — refusing to write postflight." >&2
-    echo "Inspect ~/.claude/.current-session or re-run /epistemic-preflight first." >&2
+    echo "ERROR: No active session marker — refusing to write postflight." >&2
+    echo "Inspect ~/.claude/.current-session/ or re-run /epistemic-preflight first." >&2
     exit 1
 fi
 
@@ -355,5 +367,14 @@ Present a summary:
 ### Step 6: Cleanup Session Marker
 
 ```bash
-rm -f ~/.claude/.current-session 2>/dev/null
+# Scoped delete: only this claude process's per-PID marker file.
+# Bare `rm -f ~/.claude/.current-session` would target the whole
+# directory now (and silently no-op since rm without -r refuses dirs),
+# leaving every other claude session's marker behind. Use the helper
+# to resolve the specific file path.
+source ~/.claude/scripts/epistemic-marker.sh 2>/dev/null
+MARKER_PATH=$(epistemic_marker_path 2>/dev/null)
+if [ -n "$MARKER_PATH" ] && [ -f "$MARKER_PATH" ]; then
+    rm -f -- "$MARKER_PATH" 2>/dev/null
+fi
 ```
