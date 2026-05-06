@@ -11,9 +11,9 @@ fixture_bad: |
   SESSION_ID=$(grep "^SESSION_ID=" "$SESSION_FILE" 2>/dev/null | cut -d= -f2)
   jq ".sessions += [{id: \"$SESSION_ID\"}]" "$EPISTEMIC" > "$TMP"
 first_seen: 2026-04-30
-last_seen: 2026-05-04T16:22:15Z
-total_hits: 10
-recent_hits: 10
+last_seen: 2026-05-06T13:45:08Z
+total_hits: 17
+recent_hits: 17
 recent_window_days: 60
 locations_remedied: 0
 related_hookify: []
