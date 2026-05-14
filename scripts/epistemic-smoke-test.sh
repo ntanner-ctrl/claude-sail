@@ -491,6 +491,96 @@ fi
 
 echo ""
 
+# ── 12. Safe-Swap Tripwire (rolling-window floor) ─────────────
+# Regression: before EPISTEMIC_SESSIONS_FLOOR was added, the postflight
+# command's .[-50:] trim would drop session count below ORIG and the
+# tripwire would refuse the swap (e.g. 71 → 50 was rejected). The fix
+# is to allow drops down to the floor but refuse drops below it.
+echo "Phase 12: Safe-Swap Tripwire (rolling-window floor)"
+
+# shellcheck disable=SC1091
+source "$REPO_ROOT/scripts/epistemic-safe-write.sh"
+
+SWAP_FIXTURE="$HOME/.claude/swap-fixture.json"
+SWAP_TMP="$SWAP_FIXTURE.tmp"
+
+# Helper: write a JSON file with N stub sessions.
+write_n_sessions() {
+    local n="$1"
+    local out="$2"
+    jq -n --argjson n "$n" '{
+      schema_version: 1,
+      sessions: [range(0; $n) | { id: ("s-\(.)"), preflight: null, postflight: null, paired: false }],
+      calibration: {}
+    }' > "$out"
+}
+
+# Helper: invoke the safe-swap, returning its exit code. We do not care
+# whether the file is actually swapped in these tests — only that the
+# tripwire admits/refuses correctly. Always rewrite the fixture beforehand.
+run_swap() {
+    local orig="$1"
+    local new="$2"
+    local floor="$3"  # may be empty
+    write_n_sessions "$orig" "$SWAP_FIXTURE"
+    write_n_sessions "$new"  "$SWAP_TMP"
+    if [ -n "$floor" ]; then
+        EPISTEMIC_ORIG_SESSIONS="$orig" EPISTEMIC_SESSIONS_FLOOR="$floor" \
+            epistemic_safe_swap "$SWAP_FIXTURE" "$SWAP_TMP" 0 >/dev/null 2>&1
+    else
+        unset EPISTEMIC_SESSIONS_FLOOR
+        EPISTEMIC_ORIG_SESSIONS="$orig" \
+            epistemic_safe_swap "$SWAP_FIXTURE" "$SWAP_TMP" 0 >/dev/null 2>&1
+    fi
+}
+
+# NOTE: this script runs under `set -e`, so bare `run_swap ...; if [ $? ... ]`
+# would die before the check. The `if run_swap ...; then` idiom is set-e-safe
+# (commands in `if` conditions don't trigger errexit).
+
+# Case A: drop to floor with floor=50 → ALLOWED (the bug fix).
+if run_swap 53 50 50; then
+    pass "Drop to floor allowed (53 → 50, floor=50)"
+else
+    fail "Drop to floor should be allowed (53 → 50, floor=50)"
+fi
+
+# Case B: drop below floor with floor=50 → REFUSED (protection preserved).
+if ! run_swap 53 49 50; then
+    pass "Drop below floor refused (53 → 49, floor=50)"
+else
+    fail "Drop below floor should be refused (53 → 49, floor=50)"
+fi
+
+# Case C: ORIG below floor — any drop is still refused (strict tripwire
+# applies because min_allowed = ORIG when ORIG <= FLOOR).
+if ! run_swap 30 10 50; then
+    pass "Drop refused when ORIG <= floor (30 → 10, floor=50)"
+else
+    fail "Drop should be refused when ORIG <= floor (30 → 10, floor=50)"
+fi
+
+# Case D: no-op swap (count unchanged) → ALLOWED.
+if run_swap 30 30 50; then
+    pass "No-op swap allowed (30 → 30, floor=50)"
+else
+    fail "No-op swap should be allowed (30 → 30, floor=50)"
+fi
+
+# Case E: backward compatibility — no floor set → original strict tripwire.
+# Any drop is refused, regardless of count.
+if ! run_swap 53 52 ""; then
+    pass "Backward compat: no floor → strict tripwire refuses any drop (53 → 52)"
+else
+    fail "Backward compat broken: helper allowed drop without floor (53 → 52)"
+fi
+
+# Cleanup
+rm -f "$SWAP_FIXTURE" "$SWAP_TMP" "$SWAP_FIXTURE.bak"
+unset EPISTEMIC_ORIG_SESSIONS EPISTEMIC_SESSIONS_FLOOR
+
+echo ""
+
 # ── Summary ──────────────────────────────────────────────────
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  Smoke Test: $PASS passed, $FAIL failed"

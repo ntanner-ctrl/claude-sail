@@ -20,6 +20,14 @@
 # Optional: set EPISTEMIC_ORIG_SESSIONS before calling to enable the
 # session-count tripwire. If the new file has fewer sessions than the
 # original, the swap is refused.
+#
+# Optional: set EPISTEMIC_SESSIONS_FLOOR alongside EPISTEMIC_ORIG_SESSIONS
+# to permit intentional rolling-window trims (e.g. `.sessions = .[-50:]`).
+# When ORIG > FLOOR, drops down to FLOOR are allowed; drops below FLOOR
+# are still refused. When ORIG <= FLOOR, behavior is unchanged (any drop
+# is refused — the strict tripwire). When FLOOR is unset, behavior is
+# also unchanged (strict tripwire) — this preserves backward compatibility
+# with callers that never trim.
 
 epistemic_safe_swap() {
     local file="$1"
@@ -46,11 +54,20 @@ epistemic_safe_swap() {
         rm -f "$tmp"
         return 1
     fi
-    if [ -n "$EPISTEMIC_ORIG_SESSIONS" ]; then
+    # Use ${VAR:-} so the helper is safe to source into a `set -u` caller
+    # (e.g. scripts/epistemic-smoke-test.sh). Callers who don't set
+    # EPISTEMIC_ORIG_SESSIONS or EPISTEMIC_SESSIONS_FLOOR get empty strings,
+    # not unbound-variable errors.
+    if [ -n "${EPISTEMIC_ORIG_SESSIONS:-}" ]; then
         local new_count
         new_count=$(jq '.sessions | length' "$tmp" 2>/dev/null)
-        if [ -n "$new_count" ] && [ "$new_count" -lt "$EPISTEMIC_ORIG_SESSIONS" ]; then
-            echo "epistemic_safe_swap: session count would drop ($EPISTEMIC_ORIG_SESSIONS → $new_count). Refusing swap." >&2
+        local min_allowed="$EPISTEMIC_ORIG_SESSIONS"
+        if [ -n "${EPISTEMIC_SESSIONS_FLOOR:-}" ] && \
+           [ "$EPISTEMIC_ORIG_SESSIONS" -gt "$EPISTEMIC_SESSIONS_FLOOR" ]; then
+            min_allowed="$EPISTEMIC_SESSIONS_FLOOR"
+        fi
+        if [ -n "$new_count" ] && [ "$new_count" -lt "$min_allowed" ]; then
+            echo "epistemic_safe_swap: session count below floor ($EPISTEMIC_ORIG_SESSIONS → $new_count, floor $min_allowed). Refusing swap." >&2
             rm -f "$tmp"
             return 1
         fi

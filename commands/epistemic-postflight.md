@@ -88,9 +88,20 @@ fi
 # Snapshot original session count — used as a tripwire before any swap.
 ORIG_SESSIONS=$(jq '.sessions | length' "$EPISTEMIC_FILE" 2>/dev/null || echo "")
 
+# Rolling-window floor: the paired-postflight jq pipeline trims
+# .sessions to .[-50:]. Any post-trim count >= 50 is intentional, not
+# a bug — the tripwire must allow drops down to this floor, but never
+# below. Drops below the floor are the catastrophic-loss signal that
+# motivated the tripwire (see 2026-04-30 incident in
+# scripts/epistemic-safe-write.sh). Keep this in sync with the .[-50:]
+# slice further down the pipeline and with EPISTEMIC_SESSIONS_FLOOR in
+# scripts/epistemic-safe-write.sh.
+SESSIONS_FLOOR=50
+
 # Validate-before-swap: only replace epistemic.json if jq output is
-# non-empty, valid JSON, and didn't lose sessions. Backs up the prior
-# state to .bak on every successful write.
+# non-empty, valid JSON, and didn't drop sessions below the rolling-
+# window floor. Backs up the prior state to .bak on every successful
+# write.
 #
 # Call as:   jq ... > "$EPISTEMIC_TMP"; JQ_EXIT=$?; _safe_swap || exit 1
 #
@@ -117,8 +128,13 @@ _safe_swap() {
     fi
     local new_count
     new_count=$(jq '.sessions | length' "$EPISTEMIC_TMP" 2>/dev/null)
-    if [ -n "$ORIG_SESSIONS" ] && [ -n "$new_count" ] && [ "$new_count" -lt "$ORIG_SESSIONS" ]; then
-        echo "ERROR: session count would drop ($ORIG_SESSIONS → $new_count). Refusing swap." >&2
+    local min_allowed="$ORIG_SESSIONS"
+    if [ -n "$ORIG_SESSIONS" ] && [ -n "$SESSIONS_FLOOR" ] && \
+       [ "$ORIG_SESSIONS" -gt "$SESSIONS_FLOOR" ]; then
+        min_allowed="$SESSIONS_FLOOR"
+    fi
+    if [ -n "$min_allowed" ] && [ -n "$new_count" ] && [ "$new_count" -lt "$min_allowed" ]; then
+        echo "ERROR: session count below floor ($ORIG_SESSIONS → $new_count, floor $min_allowed). Refusing swap." >&2
         rm -f "$EPISTEMIC_TMP"
         return 1
     fi

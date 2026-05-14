@@ -89,9 +89,19 @@ fi
 # Snapshot original session count — used as a tripwire before any swap.
 ORIG_SESSIONS=$(jq '.sessions | length' "$EPISTEMIC_FILE" 2>/dev/null || echo "")
 
+# Rolling-window floor: kept here as a mirror invariant with
+# epistemic-postflight (whose paired pipeline trims to .[-50:]) and with
+# scripts/epistemic-safe-write.sh::epistemic_safe_swap. The preflight
+# upserts a single session, so its count never drops and SESSIONS_FLOOR
+# is effectively dead code in this command. It is preserved to keep the
+# mirror identical — drift between this inline copy and the helper has
+# bitten us before.
+SESSIONS_FLOOR=50
+
 # Validate-before-swap: only replace epistemic.json if jq output is
-# non-empty, valid JSON, and didn't lose sessions. Backs up the prior
-# state to .bak on every successful write.
+# non-empty, valid JSON, and didn't drop sessions below the rolling-
+# window floor. Backs up the prior state to .bak on every successful
+# write.
 #
 # Mirrors scripts/epistemic-safe-write.sh::epistemic_safe_swap. Kept
 # inline so this command stays self-contained — Claude executes this
@@ -120,8 +130,13 @@ _safe_swap() {
     fi
     local new_count
     new_count=$(jq '.sessions | length' "$EPISTEMIC_TMP" 2>/dev/null)
-    if [ -n "$ORIG_SESSIONS" ] && [ -n "$new_count" ] && [ "$new_count" -lt "$ORIG_SESSIONS" ]; then
-        echo "ERROR: session count would drop ($ORIG_SESSIONS → $new_count). Refusing swap." >&2
+    local min_allowed="$ORIG_SESSIONS"
+    if [ -n "$ORIG_SESSIONS" ] && [ -n "$SESSIONS_FLOOR" ] && \
+       [ "$ORIG_SESSIONS" -gt "$SESSIONS_FLOOR" ]; then
+        min_allowed="$SESSIONS_FLOOR"
+    fi
+    if [ -n "$min_allowed" ] && [ -n "$new_count" ] && [ "$new_count" -lt "$min_allowed" ]; then
+        echo "ERROR: session count below floor ($ORIG_SESSIONS → $new_count, floor $min_allowed). Refusing swap." >&2
         rm -f "$EPISTEMIC_TMP"
         return 1
     fi
